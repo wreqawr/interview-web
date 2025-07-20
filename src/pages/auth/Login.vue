@@ -2,12 +2,12 @@
   <div class="login-modern-bg">
     <!-- 全屏科技感背景 -->
     <div class="full-bg"></div>
-    
+
     <!-- 背景图片 -->
     <div class="background-image">
-      <img src="@/assets/welcome.svg" alt="背景图片" />
+      <img src="@/assets/welcome.svg" alt="背景图片"/>
     </div>
-    
+
     <!-- 动态背景元素 -->
     <div class="tech-bg-elements">
       <div class="floating-circle circle-1"></div>
@@ -19,7 +19,7 @@
       <div class="floating-circle circle-7"></div>
       <div class="floating-circle circle-8"></div>
       <div class="tech-grid"></div>
-      
+
       <!-- 新增动态科技元素 -->
       <div class="tech-particles">
         <div class="particle particle-1"></div>
@@ -39,7 +39,7 @@
         <div class="particle particle-15"></div>
         <div class="particle particle-16"></div>
       </div>
-      
+
       <div class="tech-lines">
         <div class="tech-line line-1"></div>
         <div class="tech-line line-2"></div>
@@ -50,7 +50,7 @@
         <div class="tech-line line-7"></div>
         <div class="tech-line line-8"></div>
       </div>
-      
+
       <div class="data-stream">
         <div class="data-bit bit-1"></div>
         <div class="data-bit bit-2"></div>
@@ -66,7 +66,7 @@
         <div class="data-bit bit-12"></div>
       </div>
     </div>
-    
+
     <!-- 主要内容区域 -->
     <div class="login-modern-wrapper">
       <!-- 顶部标题 -->
@@ -76,7 +76,7 @@
           <p>让每一次面试都成为提升的机会</p>
         </div>
       </div>
-      
+
       <!-- 中央登录表单 -->
       <div class="center-login">
         <div class="login-modern-card">
@@ -84,27 +84,27 @@
           <el-form :model="form" :rules="rules" ref="loginForm" label-width="0" @submit.prevent>
             <el-form-item prop="username">
               <el-input
-                v-model="form.username"
-                placeholder="账号/手机号"
-                :prefix-icon="User"
-                class="modern-input"
-                size="large"
-                clearable
+                  v-model="form.username"
+                  placeholder="账号/手机号"
+                  :prefix-icon="User"
+                  class="modern-input"
+                  size="large"
+                  clearable
               />
             </el-form-item>
             <el-form-item prop="password">
               <el-input
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="密码"
-                :prefix-icon="Lock"
-                class="modern-input"
-                size="large"
-                clearable
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="密码"
+                  :prefix-icon="Lock"
+                  class="modern-input"
+                  size="large"
+                  clearable
               >
                 <template #suffix>
                   <el-icon @click="showPassword = !showPassword" style="cursor:pointer;">
-                    <component :is="showPassword ? Hide : View" />
+                    <component :is="showPassword ? Hide : View"/>
                   </el-icon>
                 </template>
               </el-input>
@@ -112,20 +112,20 @@
             <el-form-item prop="captcha">
               <div class="captcha-flex">
                 <el-input
-                  v-model="form.captcha"
-                  placeholder="验证码"
-                  maxlength="6"
-                  class="captcha-input modern-input"
-                  size="large"
-                  clearable
-                  :prefix-icon="Key"
+                    v-model="form.captcha"
+                    placeholder="验证码"
+                    maxlength="6"
+                    class="captcha-input modern-input"
+                    size="large"
+                    clearable
+                    :prefix-icon="Key"
                 />
                 <img
-                  :src="captchaUrl"
-                  class="captcha-img"
-                  @click="refreshCaptcha"
-                  title="点击刷新"
-                  alt="验证码"
+                    :src="captchaUrl"
+                    class="captcha-img"
+                    @click="refreshCaptcha"
+                    title="点击刷新"
+                    alt="验证码"
                 />
               </div>
             </el-form-item>
@@ -135,13 +135,13 @@
           </el-form>
         </div>
       </div>
-      
+
       <!-- 底部注册和签名 -->
       <div class="bottom-content">
         <div class="register-panel">
           <p>还没有账号？<a class="register-link" @click.prevent="goRegister">立即注册</a></p>
         </div>
-        
+
         <div class="signature">
           <p>designed by minglg</p>
         </div>
@@ -155,7 +155,9 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {Hide, Key, Lock, User, View} from '@element-plus/icons-vue'
 import {getCaptcha} from '@/api/captcha'
-import {login} from '@/api/auth'
+import {login, getPublicKey, encryptPassword} from '@/api/auth'
+import {getTimestamp} from '@/utils/tools'
+import {ElMessage} from 'element-plus'
 
 const router = useRouter()
 const form = ref({
@@ -164,12 +166,12 @@ const form = ref({
   captcha: ''
 })
 const rules = {
-  username: [{ required: true, message: '请输入账号/手机号', trigger: 'blur' }],
+  username: [{required: true, message: '请输入账号/手机号', trigger: 'blur'}],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 3, message: '密码长度至少3位', trigger: 'blur' }
+    {required: true, message: '请输入密码', trigger: 'blur'},
+    {min: 3, message: '密码长度至少3位', trigger: 'blur'}
   ],
-  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  captcha: [{required: true, message: '请输入验证码', trigger: 'blur'}]
 }
 const captchaUrl = ref('')
 const captchaId = ref('')
@@ -182,37 +184,50 @@ onMounted(async () => {
 
 async function refreshCaptcha() {
   try {
-    const { captchaId: newCaptchaId, captchaImageUrl } = await getCaptcha()
+    const {captchaId: newCaptchaId, captchaImageUrl} = await getCaptcha()
     captchaUrl.value = captchaImageUrl
     captchaId.value = newCaptchaId
   } catch (error) {
     console.error('获取验证码失败:', error)
   }
 }
+
 const loginForm = ref(null)
+
 async function onLogin() {
   loginForm.value.validate(async (valid) => {
     if (valid) {
       try {
+        // 第一步：获取公钥
+        const publicKey = await getPublicKey()
+        // 第二步：拼接密码和20位时间戳并加密
+        const timestamp = getTimestamp()
+        const encryptedPwd = encryptPassword(publicKey, form.value.password + timestamp)
+        // 构造登录参数
         const loginPayload = {
           username: form.value.username,
-          password: form.value.password,
-          captcha: form.value.captcha,
-          captchaId: captchaId.value
+          password: encryptedPwd,
+          captcha: form.value.captcha
         }
-        const result = await login(loginPayload)
-        console.log('登录成功:', result)
-        // 这里可以添加登录成功后的处理逻辑，比如跳转到首页
-        // router.push('/dashboard')
+        // 第三步：发送请求
+        const result = await login(loginPayload, captchaId.value)
+        if (result && result.code === 200) {
+          ElMessage.success(result.message || '登录成功')
+          // 可跳转页面等后续逻辑
+        } else {
+          ElMessage.error(result.message || '登录失败')
+          await refreshCaptcha()
+          form.value.password = ''
+        }
       } catch (error) {
-        console.error('登录失败:', error)
-        // 登录失败时刷新验证码
+        ElMessage.error('登录失败')
         await refreshCaptcha()
-        form.value.captcha = ''
+        form.value.password = ''
       }
     }
   })
 }
+
 function goRegister() {
   router.push('/register')
 }
@@ -244,6 +259,7 @@ export default {
   overflow: hidden;
   /* 高斯模糊背景 */
 }
+
 .login-modern-bg::before {
   content: '';
   position: fixed;
@@ -256,10 +272,12 @@ export default {
   -webkit-backdrop-filter: blur(8px);
   pointer-events: none;
 }
+
 .login-modern-wrapper {
   position: relative;
   z-index: 1;
 }
+
 .login-modern-wrapper {
   display: flex;
   flex-direction: column;
@@ -280,20 +298,19 @@ export default {
   top: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: 
-    linear-gradient(135deg, 
-      rgba(0, 0, 0, 0.8) 0%, 
-      rgba(20, 20, 40, 0.8) 15%, 
-      rgba(40, 20, 80, 0.8) 30%, 
-      rgba(60, 40, 120, 0.8) 45%, 
-      rgba(80, 60, 160, 0.8) 60%, 
-      rgba(100, 80, 200, 0.8) 75%, 
-      rgba(120, 100, 240, 0.8) 90%, 
-      rgba(140, 120, 255, 0.8) 100%
-    ),
-    radial-gradient(circle at 30% 20%, rgba(0, 255, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(0, 255, 128, 0.2) 0%, transparent 50%) !important;
+  background: linear-gradient(135deg,
+  rgba(0, 0, 0, 0.8) 0%,
+  rgba(20, 20, 40, 0.8) 15%,
+  rgba(40, 20, 80, 0.8) 30%,
+  rgba(60, 40, 120, 0.8) 45%,
+  rgba(80, 60, 160, 0.8) 60%,
+  rgba(100, 80, 200, 0.8) 75%,
+  rgba(120, 100, 240, 0.8) 90%,
+  rgba(140, 120, 255, 0.8) 100%
+  ),
+  radial-gradient(circle at 30% 20%, rgba(0, 255, 255, 0.3) 0%, transparent 50%),
+  radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.3) 0%, transparent 50%),
+  radial-gradient(circle at 50% 50%, rgba(0, 255, 128, 0.2) 0%, transparent 50%) !important;
   z-index: 0 !important;
 }
 
@@ -304,12 +321,12 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.5) 0%, transparent 60%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.5) 0%, transparent 60%),
-    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.4) 0%, transparent 60%);
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.5) 0%, transparent 60%),
+  radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.5) 0%, transparent 60%),
+  radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.4) 0%, transparent 60%);
   z-index: 1;
 }
+
 .top-title {
   display: flex;
   flex-direction: column;
@@ -430,6 +447,7 @@ export default {
   animation-delay: 2.5s;
   background: rgba(0, 255, 255, 0.18);
 }
+
 .circle-7 {
   width: 110px;
   height: 110px;
@@ -438,6 +456,7 @@ export default {
   animation-delay: 4.2s;
   background: rgba(0, 255, 255, 0.12);
 }
+
 .circle-8 {
   width: 60px;
   height: 60px;
@@ -453,9 +472,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, rgba(255, 0, 255, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+  radial-gradient(circle at 75% 75%, rgba(255, 0, 255, 0.1) 1px, transparent 1px);
   background-size: 100px 100px, 100px 100px;
   opacity: 0.5;
   animation: gridMove 20s linear infinite;
@@ -538,7 +556,6 @@ export default {
 }
 
 
-
 .tech-tagline {
   text-align: center;
   max-width: 600px;
@@ -588,6 +605,7 @@ export default {
   letter-spacing: 1px;
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
+
 .center-login {
   display: flex;
   align-items: center;
@@ -597,6 +615,7 @@ export default {
   flex: 1;
   margin: 0;
 }
+
 .login-modern-card {
   width: 350px;
   padding: 48px 32px 32px 32px;
@@ -608,6 +627,7 @@ export default {
   position: relative;
   z-index: 2;
 }
+
 .login-modern-title {
   font-size: 32px;
   font-weight: bold;
@@ -624,17 +644,21 @@ export default {
   background: #409eff;
   border: none;
 }
+
 .modern-login-btn:hover {
   background: #66b1ff;
 }
+
 .captcha-flex {
   display: flex;
   align-items: center;
   width: 100%;
 }
+
 .captcha-input {
   flex: 1 1 0;
 }
+
 .modern-input {
   border-radius: 12px !important;
 }
@@ -650,6 +674,7 @@ export default {
   user-select: none;
   margin-left: 10px;
 }
+
 /* 动画关键帧 */
 @keyframes float {
   0%, 100% {
@@ -1036,27 +1061,33 @@ export default {
     padding: 0 0 40px 0;
     overflow: hidden;
   }
+
   .top-title, .center-login, .bottom-content {
     width: 100%;
     min-width: 0;
     padding: 10px 8px;
   }
+
   .login-modern-card {
     width: 100%;
     min-width: 0;
     box-shadow: none;
     padding: 20px 8px 16px 8px;
   }
+
   .bottom-content {
     margin-top: 8px;
   }
+
   .tech-tagline h2 {
     font-size: 28px;
   }
+
   .tech-tagline p {
     font-size: 16px;
   }
 }
+
 .register-link {
   color: #409eff;
   text-decoration: underline;
@@ -1064,6 +1095,7 @@ export default {
   margin-left: 4px;
   transition: color 0.2s;
 }
+
 .register-link:hover {
   color: #1867c0;
   text-decoration: underline;
