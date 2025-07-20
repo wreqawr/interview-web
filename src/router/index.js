@@ -7,6 +7,10 @@ const routes = [
     component: () => import('../pages/auth/Login.vue')
   },
   {
+    path: '/login-bak',
+    component: () => import('../pages/auth/LoginBak.vue')
+  },
+  {
     path: '/',
     component: () => import('../layouts/MainLayout.vue'),
     children: [

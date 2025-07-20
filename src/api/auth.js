@@ -18,7 +18,7 @@ export function encryptPassword(publicKeyPem, password) {
 }
 
 export async function login(loginPayload) {
-  const { data } = await http.post(LOGIN_URL, { loginPayload });
+  const { data } = await http.post(LOGIN_URL, loginPayload);
   return data;
 }
 
