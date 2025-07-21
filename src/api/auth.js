@@ -18,7 +18,7 @@ export function encryptPassword(publicKeyPem, password) {
 }
 
 export async function login(loginPayload, captchaId) {
-    const {data} = await http.post(
+    return await http.post(
         LOGIN_URL,
         loginPayload,
         {
@@ -27,7 +27,6 @@ export async function login(loginPayload, captchaId) {
             }
         }
     );
-    return data;
 }
 
 export async function register(registerPayload) {

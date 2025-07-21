@@ -170,8 +170,13 @@ async function onLogin() {
         }
         // 第三步：发送请求
         const result = await login(loginPayload, captchaId.value)
-        if (result && result.code === 200) {
-          ElMessage.success(result.message || '登录成功')
+        if (result && result.data && result.data.code === 200) {
+          console.log(result)
+          const token = result.headers['authorization'] || result.headers['Authorization'];
+          if (token) {
+            sessionStorage.setItem('Authorization', token);
+          }
+          ElMessage.success(result.data.message || '登录成功')
           // 可跳转页面等后续逻辑
         } else {
           ElMessage.error(result.message || '登录失败')

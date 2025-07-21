@@ -1,9 +1,51 @@
 import axios from "axios";
+import { LOGIN_URL, REGISTER_URL, GET_PUB_KEY_URL, CAPTCHA_URL } from './endpoints';
 
 const http = axios.create({
   timeout: 10000
 });
 
-// 可在此添加请求/响应拦截器
+// 需要放行的接口或页面路径白名单
+const whiteList = [
+  '/login', // 页面路由
+  '/register', // 页面路由
+  LOGIN_URL,
+  REGISTER_URL,
+  GET_PUB_KEY_URL,
+  CAPTCHA_URL
+];
+
+// 请求拦截器：自动加Authorization
+http.interceptors.request.use(
+  config => {
+    const token = sessionStorage.getItem('Authorization');
+    // 判断当前请求是否在白名单
+    const isWhite = whiteList.some(path => (config.url && config.url.includes(path)) || (window.location.pathname === path));
+    if (!isWhite) {
+      if (token) {
+        config.headers['Authorization'] = token;
+      } else {
+        window.sessionStorage.clear();
+        window.location.href = '/login';
+        alert('登录已过期，请重新登录');
+      }
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
+// 响应拦截器：处理未登录/过期
+http.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      window.sessionStorage.clear();
+      window.location.href = '/login';
+      alert('登录已过期，请重新登录');
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default http; 
