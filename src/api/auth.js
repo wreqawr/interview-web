@@ -29,7 +29,15 @@ export async function login(loginPayload, captchaId) {
     );
 }
 
-export async function register(registerPayload) {
-    const {data} = await http.post(REGISTER_URL, {registerPayload});
+export async function register(registerPayload, captchaId) {
+    const {data} = await http.post(
+        REGISTER_URL,
+        registerPayload,
+        {
+            headers: {
+                captchaId
+            }
+        }
+    );
     return data;
 } 

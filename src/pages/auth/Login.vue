@@ -22,7 +22,7 @@
       </div>
       <!-- SVG插画和WELCOME字样 -->
       <div class="welcome-svg-wrap">
-        <img src="@/assets/welcome.svg" alt="welcome" class="welcome-svg" />
+        <img src="@/assets/welcome.svg" alt="welcome" class="welcome-svg"/>
       </div>
       <!-- 顶部标题、副标题 -->
       <div class="left-header">
@@ -171,15 +171,14 @@ async function onLogin() {
         // 第三步：发送请求
         const result = await login(loginPayload, captchaId.value)
         if (result && result.data && result.data.code === 200) {
-          console.log(result)
           const token = result.headers['authorization'] || result.headers['Authorization'];
           if (token) {
             sessionStorage.setItem('Authorization', token);
           }
-          ElMessage.success(result.data.message || '登录成功')
+          ElMessage.success('登录成功')
           // 可跳转页面等后续逻辑
         } else {
-          ElMessage.error(result.message || '登录失败')
+          ElMessage.error(result.data.message || '登录失败')
           await refreshCaptcha()
           form.value.password = ''
         }
@@ -216,13 +215,17 @@ html, body {
 <style scoped>
 .login-container {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   min-height: 100vh;
   overflow: hidden;
   display: flex;
 }
+
 .login-left {
   position: relative;
   width: 50vw;
@@ -237,16 +240,20 @@ html, body {
   background: #fff;
   border-radius: 0 48px 48px 0;
 }
+
 .gradient-bg {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background:
-    linear-gradient(135deg, #3a3f8f 0%, #7b3ff2 60%, #4fd1c5 100%),
-    rgba(255,255,255,0.88);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #3a3f8f 0%, #7b3ff2 60%, #4fd1c5 100%),
+  rgba(255, 255, 255, 0.88);
   z-index: 0;
   border-radius: 0 48px 48px 0;
   overflow: hidden;
 }
+
 .blur-circle {
   position: absolute;
   border-radius: 50%;
@@ -254,39 +261,74 @@ html, body {
   opacity: 0.35;
   z-index: 1;
 }
-.blur1 { width: 320px; height: 320px; left: 10%; top: 10%; background: #6c63ff; }
-.blur2 { width: 200px; height: 200px; right: 5%; top: 60%; background: #4fd1c5; }
-.blur3 { width: 180px; height: 180px; left: 60%; top: 70%; background: #ff6584; }
+
+.blur1 {
+  width: 320px;
+  height: 320px;
+  left: 10%;
+  top: 10%;
+  background: #6c63ff;
+}
+
+.blur2 {
+  width: 200px;
+  height: 200px;
+  right: 5%;
+  top: 60%;
+  background: #4fd1c5;
+}
+
+.blur3 {
+  width: 180px;
+  height: 180px;
+  left: 60%;
+  top: 70%;
+  background: #ff6584;
+}
+
 .welcome-svg-wrap {
   position: absolute;
-  left: 0; right: 0; top: 50%;
+  left: 0;
+  right: 0;
+  top: 50%;
   transform: translateY(-40%);
   width: 100%;
   display: flex;
   justify-content: center;
   z-index: 2;
 }
+
 .welcome-svg {
   width: 80%;
   max-width: 600px;
   opacity: 0.92;
   pointer-events: none;
 }
+
 .left-header,
 .left-title,
 .left-desc,
 .left-bottom,
 .signature {
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) both !important;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) both !important;
 }
+
 @keyframes fadeUp {
-  0% { opacity: 0; transform: translateY(48px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .left-header {
   position: absolute;
   top: 60px;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   text-align: center;
   z-index: 10;
   /* 移除背景、圆角、内边距、阴影 */
@@ -296,26 +338,31 @@ html, body {
   margin: 0 auto;
   max-width: 90%;
   box-shadow: none;
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) both !important;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) both !important;
 }
+
 .left-title {
   font-size: 38px;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.6);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.6);
   margin-bottom: 12px;
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) 0.1s both;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) 0.1s both;
 }
+
 .left-desc {
   font-size: 20px;
   color: #e0eaff;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.6);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.6);
   margin: 0;
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) 0.3s both;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) 0.3s both;
 }
+
 .left-bottom {
   position: absolute;
-  left: 0; right: 0; bottom: 40px;
+  left: 0;
+  right: 0;
+  bottom: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -327,14 +374,16 @@ html, body {
   max-width: 90%;
   margin: 0 auto;
   box-shadow: none;
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) both !important;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) both !important;
 }
+
 .register-panel {
   margin-bottom: 12px;
   text-align: center;
   color: #fff;
   font-size: 18px;
 }
+
 .register-btn {
   margin-top: 8px;
   padding: 8px 32px;
@@ -344,52 +393,106 @@ html, body {
   color: #fff;
   font-size: 18px;
   font-weight: 500;
-  box-shadow: 0 0 16px 2px #a18fff66, 0 2px 12px rgba(108,99,255,0.12);
+  box-shadow: 0 0 16px 2px #a18fff66, 0 2px 12px rgba(108, 99, 255, 0.12);
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
-  animation: pulseGlow 2.2s infinite alternate cubic-bezier(.4,0,.2,1);
+  animation: pulseGlow 2.2s infinite alternate cubic-bezier(.4, 0, .2, 1);
 }
+
 .register-btn:hover {
   background: linear-gradient(90deg, #6c63ff 0%, #a18fff 100%);
-  box-shadow: 0 4px 24px rgba(108,99,255,0.18);
+  box-shadow: 0 4px 24px rgba(108, 99, 255, 0.18);
 }
+
 .signature {
   color: #e0eaff;
   font-size: 14px;
   font-style: italic;
   letter-spacing: 1px;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.6);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.6);
   margin-top: 8px;
-  animation: fadeUp 1.2s cubic-bezier(.23,1.02,.32,1) 0.7s both;
+  animation: fadeUp 1.2s cubic-bezier(.23, 1.02, .32, 1) 0.7s both;
 }
+
 .effect-circles {
   position: absolute;
-  left: 0; top: 0; width: 100%; height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   z-index: 3;
   pointer-events: none;
 }
+
 .effect-circle {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.18);
-  box-shadow: 0 0 32px 8px rgba(108,99,255,0.12);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 32px 8px rgba(108, 99, 255, 0.12);
   animation: effectCircleAnim 8s linear infinite;
 }
-.ec1 { width: 120px; height: 120px; left: 8%; top: 18%; animation-delay: 0s; }
-.ec2 { width: 80px; height: 80px; right: 12%; top: 30%; animation-delay: 2s; }
-.ec3 { width: 60px; height: 60px; left: 20%; bottom: 18%; animation-delay: 4s; }
-.ec4 { width: 90px; height: 90px; right: 30%; top: 60%; animation-delay: 1s; }
-.ec5 { width: 70px; height: 70px; left: 60%; bottom: 10%; animation-delay: 3s; }
-@keyframes effectCircleAnim {
-  0%,100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.15) rotate(180deg); }
+
+.ec1 {
+  width: 120px;
+  height: 120px;
+  left: 8%;
+  top: 18%;
+  animation-delay: 0s;
 }
+
+.ec2 {
+  width: 80px;
+  height: 80px;
+  right: 12%;
+  top: 30%;
+  animation-delay: 2s;
+}
+
+.ec3 {
+  width: 60px;
+  height: 60px;
+  left: 20%;
+  bottom: 18%;
+  animation-delay: 4s;
+}
+
+.ec4 {
+  width: 90px;
+  height: 90px;
+  right: 30%;
+  top: 60%;
+  animation-delay: 1s;
+}
+
+.ec5 {
+  width: 70px;
+  height: 70px;
+  left: 60%;
+  bottom: 10%;
+  animation-delay: 3s;
+}
+
+@keyframes effectCircleAnim {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(180deg);
+  }
+}
+
 .particles {
   position: absolute;
-  left: 0; top: 0; width: 100%; height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   z-index: 4;
   pointer-events: none;
 }
+
 .particle {
   position: absolute;
   border-radius: 50%;
@@ -397,20 +500,98 @@ html, body {
   background: radial-gradient(circle, #fff 0%, #a18fff 80%, transparent 100%);
   animation: particleFloat 8s ease-in-out infinite;
 }
-.p1 { width: 10px; height: 10px; left: 12%; top: 22%; animation-delay: 0s; }
-.p2 { width: 8px; height: 8px; left: 30%; top: 12%; animation-delay: 1.2s; }
-.p3 { width: 12px; height: 12px; left: 60%; top: 18%; animation-delay: 2.1s; }
-.p4 { width: 7px; height: 7px; left: 80%; top: 30%; animation-delay: 3.3s; }
-.p5 { width: 9px; height: 9px; left: 18%; top: 60%; animation-delay: 4.5s; }
-.p6 { width: 6px; height: 6px; left: 40%; top: 80%; animation-delay: 5.7s; }
-.p7 { width: 11px; height: 11px; left: 70%; top: 70%; animation-delay: 6.2s; }
-.p8 { width: 8px; height: 8px; left: 85%; top: 60%; animation-delay: 7.1s; }
-.p9 { width: 10px; height: 10px; left: 55%; top: 45%; animation-delay: 2.8s; }
-.p10 { width: 7px; height: 7px; left: 25%; top: 80%; animation-delay: 3.9s; }
-@keyframes particleFloat {
-  0%,100% { opacity: 0.7; transform: translateY(0) scale(1); }
-  50% { opacity: 1; transform: translateY(-18px) scale(1.2); }
+
+.p1 {
+  width: 10px;
+  height: 10px;
+  left: 12%;
+  top: 22%;
+  animation-delay: 0s;
 }
+
+.p2 {
+  width: 8px;
+  height: 8px;
+  left: 30%;
+  top: 12%;
+  animation-delay: 1.2s;
+}
+
+.p3 {
+  width: 12px;
+  height: 12px;
+  left: 60%;
+  top: 18%;
+  animation-delay: 2.1s;
+}
+
+.p4 {
+  width: 7px;
+  height: 7px;
+  left: 80%;
+  top: 30%;
+  animation-delay: 3.3s;
+}
+
+.p5 {
+  width: 9px;
+  height: 9px;
+  left: 18%;
+  top: 60%;
+  animation-delay: 4.5s;
+}
+
+.p6 {
+  width: 6px;
+  height: 6px;
+  left: 40%;
+  top: 80%;
+  animation-delay: 5.7s;
+}
+
+.p7 {
+  width: 11px;
+  height: 11px;
+  left: 70%;
+  top: 70%;
+  animation-delay: 6.2s;
+}
+
+.p8 {
+  width: 8px;
+  height: 8px;
+  left: 85%;
+  top: 60%;
+  animation-delay: 7.1s;
+}
+
+.p9 {
+  width: 10px;
+  height: 10px;
+  left: 55%;
+  top: 45%;
+  animation-delay: 2.8s;
+}
+
+.p10 {
+  width: 7px;
+  height: 7px;
+  left: 25%;
+  top: 80%;
+  animation-delay: 3.9s;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-18px) scale(1.2);
+  }
+}
+
 .login-right {
   position: relative;
   width: 50vw;
@@ -422,6 +603,7 @@ html, body {
   background: #fff;
   z-index: 2;
 }
+
 .center-login {
   width: 100%;
   display: flex;
@@ -429,6 +611,7 @@ html, body {
   justify-content: center;
   min-height: 400px;
 }
+
 .login-modern-card {
   width: 380px;
   padding: 48px 32px 32px 32px;
@@ -440,6 +623,7 @@ html, body {
   position: relative;
   z-index: 2;
 }
+
 .login-modern-title {
   font-size: 32px;
   font-weight: bold;
@@ -447,6 +631,7 @@ html, body {
   margin-bottom: 32px;
   letter-spacing: 2px;
 }
+
 .modern-login-btn {
   width: 100%;
   border-radius: 16px;
@@ -456,20 +641,25 @@ html, body {
   border: none;
   font-weight: 600;
 }
+
 .modern-login-btn:hover {
   background: #66b1ff;
 }
+
 .captcha-flex {
   display: flex;
   align-items: center;
   width: 100%;
 }
+
 .captcha-input {
   flex: 1 1 0;
 }
+
 .modern-input {
   border-radius: 12px !important;
 }
+
 .captcha-img {
   height: 40px;
   width: 120px;
@@ -481,18 +671,22 @@ html, body {
   user-select: none;
   margin-left: 10px;
 }
+
 @media (max-width: 900px) {
   .login-container {
     flex-direction: column;
   }
+
   .login-left, .login-right {
     width: 100vw;
     min-width: 0;
     height: 50vh;
   }
+
   .center-login {
     min-height: 200px;
   }
+
   .login-modern-card {
     width: 100%;
     min-width: 0;
