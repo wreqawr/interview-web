@@ -1,10 +1,10 @@
 import http from './http';
-import {LOGIN_URL, REGISTER_URL, GET_PUB_KEY_URL} from './endpoints';
+import {LOGIN_URL, REGISTER_URL, PUB_KEY_URL} from './endpoints';
 import forge from "node-forge";
 
 
 export async function getPublicKey() {
-    const {data} = await http.get(GET_PUB_KEY_URL);
+    const {data} = await http.get(PUB_KEY_URL);
     return data.publicKey;
 }
 

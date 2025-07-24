@@ -1,8 +1,8 @@
 import http from './http';
-import {GET_CAPTCHA_URL} from './endpoints';
+import {CAPTCHA_URL} from './endpoints';
 
 export async function getCaptcha() {
-    const response = await http.get(GET_CAPTCHA_URL, {
+    const response = await http.get(CAPTCHA_URL, {
         responseType: 'blob' // 设置响应类型为blob以处理二进制数据
     });
 

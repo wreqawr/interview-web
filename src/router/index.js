@@ -15,7 +15,8 @@ const routes = [
     component: () => import('../layouts/MainLayout.vue'),
     children: [
       { path: '', redirect: '/dashboard' },
-      { path: 'dashboard', component: () => import('../pages/dashboard/Index.vue') }
+      { path: 'dashboard', component: () => import('../pages/dashboard/Dashboard.vue') },
+      { path: 'resume', component: () => import('../pages/resume/ResumeUpload.vue') }
     ]
   }
 ];

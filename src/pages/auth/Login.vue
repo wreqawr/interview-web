@@ -120,8 +120,8 @@ import {ElMessage} from 'element-plus'
 
 const router = useRouter()
 const form = ref({
-  username: '',
-  password: '',
+  username: 'minglg',
+  password: 'minglg123',
   captcha: ''
 })
 const rules = {
@@ -177,6 +177,7 @@ async function onLogin() {
           }
           ElMessage.success('登录成功')
           // 可跳转页面等后续逻辑
+          await router.push('/resume')
         } else {
           ElMessage.error(result.data.message || '登录失败')
           await refreshCaptcha()
