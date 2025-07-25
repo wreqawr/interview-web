@@ -4,7 +4,7 @@
 echo "开始构建 Docker 镜像..."
 
 # 构建镜像
-docker build -t interview-web:latest .
+docker build --no-cache -t interview-web:latest .
 
 echo "构建完成！"
 
