@@ -19,14 +19,16 @@ COPY . .
 # 构建应用
 RUN npm run build
 
-# 生产阶段 - 使用 nginx
-FROM nginx:alpine
+# 生产阶段 - 使用更轻量的nginx镜像
+FROM nginx:alpine-slim
 
 # 配置 Alpine 包管理器镜像源为国内镜像，加速包安装
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
-# 安装 curl 用于健康检查
-RUN apk add --no-cache curl
+# 安装最小化的curl用于健康检查
+RUN apk add --no-cache --virtual .build-deps curl && \
+    apk add --no-cache curl && \
+    apk del .build-deps
 
 # 复制构建产物到 nginx 目录
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -38,11 +40,15 @@ COPY nginx.conf /etc/nginx/nginx.conf
 RUN addgroup -g 1001 -S appuser && \
     adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G appuser -g appuser appuser
 
-# 设置目录权限
+# 设置目录权限并清理不必要的文件
 RUN chown -R appuser:appuser /usr/share/nginx/html && \
     chown -R appuser:appuser /var/cache/nginx && \
     chown -R appuser:appuser /var/log/nginx && \
-    chown -R appuser:appuser /etc/nginx/conf.d
+    chown -R appuser:appuser /etc/nginx/conf.d && \
+    # 清理不必要的文件
+    rm -rf /var/cache/apk/* && \
+    rm -rf /tmp/* && \
+    rm -rf /var/tmp/*
 
 # 切换到非 root 用户
 USER appuser
