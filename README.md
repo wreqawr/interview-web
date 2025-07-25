@@ -268,7 +268,7 @@ A: 在 `nginx.conf` 中添加SSL证书配置。
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+本项目采用 GNU GPL v3.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 联系方式
 
