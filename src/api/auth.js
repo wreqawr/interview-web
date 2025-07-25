@@ -5,7 +5,7 @@ import forge from "node-forge";
 
 export async function getPublicKey() {
     const {data} = await http.get(PUB_KEY_URL);
-    return data.publicKey;
+    return data.data; // 直接返回公钥字符串
 }
 
 export function encryptPassword(publicKeyPem, password) {
