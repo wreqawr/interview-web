@@ -50,6 +50,9 @@ RUN chown -R appuser:appuser /usr/share/nginx/html && \
     rm -rf /tmp/* && \
     rm -rf /var/tmp/*
 
+# 设置 /run 目录权限
+RUN mkdir -p /run && chown -R appuser:appuser /run
+
 # 切换到非 root 用户
 USER appuser
 
