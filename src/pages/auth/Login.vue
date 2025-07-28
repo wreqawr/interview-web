@@ -60,6 +60,7 @@
                   class="modern-input"
                   size="large"
                   clearable
+                  @keyup.enter="onLogin"
               />
             </el-form-item>
             <el-form-item prop="password">
@@ -71,6 +72,7 @@
                   class="modern-input"
                   size="large"
                   clearable
+                  @keyup.enter="onLogin"
               >
                 <template #suffix>
                   <el-icon @click="showPassword = !showPassword" style="cursor:pointer;">
@@ -89,6 +91,7 @@
                     size="large"
                     clearable
                     :prefix-icon="Key"
+                    @keyup.enter="onLogin"
                 />
                 <img
                     :src="captchaUrl"
@@ -117,6 +120,7 @@ import {getCaptcha} from '@/api/captcha'
 import {login, getPublicKey, encryptPassword} from '@/api/auth'
 import {getTimestamp} from '@/utils/tools'
 import {ElMessage} from 'element-plus'
+import {useUserStore} from '@/stores/user'
 
 const router = useRouter()
 const form = ref({
@@ -146,8 +150,10 @@ async function refreshCaptcha() {
     const {captchaId: newCaptchaId, captchaImageUrl} = await getCaptcha()
     captchaUrl.value = captchaImageUrl
     captchaId.value = newCaptchaId
+    form.value.captcha = '' // 清空验证码输入框
   } catch (error) {
     console.error('获取验证码失败:', error)
+    ElMessage.error('获取验证码失败，请重试')
   }
 }
 
@@ -174,19 +180,25 @@ async function onLogin() {
           const token = result.headers['authorization'] || result.headers['Authorization'];
           if (token) {
             sessionStorage.setItem('Authorization', token);
+            const userStore = useUserStore()
+            userStore.setToken(token)
+
+            // 根据角色跳转到对应的首页
+            const homePage = userStore.getHomePage()
+            ElMessage.success('登录成功')
+            await router.push(homePage)
           }
-          ElMessage.success('登录成功')
-          // 可跳转页面等后续逻辑
-          await router.push('/resume')
         } else {
           ElMessage.error(result.data.message || '登录失败')
           await refreshCaptcha()
           form.value.password = ''
+          form.value.captcha = ''
         }
       } catch (error) {
         ElMessage.error('登录失败')
         await refreshCaptcha()
         form.value.password = ''
+        form.value.captcha = ''
       }
     }
   })
