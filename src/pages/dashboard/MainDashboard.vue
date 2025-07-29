@@ -110,7 +110,10 @@
                 :style="getGlobePosition(index, userFeatures[0].features.length)"
                 @click="handleFeatureClick(feature)"
               >
-                <div class="feature-card-content">
+                <div 
+                  class="feature-card-content"
+                  :style="getCardContentStyle(index, userFeatures[0].features.length)"
+                >
                   <div class="feature-icon-large">
                     <img 
                       v-if="feature.icon === '@/assets/resume/resume-management.svg'" 
@@ -375,6 +378,14 @@ const getGlobePosition = (index, total) => {
   }
 }
 
+// 计算卡片内容的反向旋转
+const getCardContentStyle = (index, total) => {
+  const angle = (index / total) * 360
+  return {
+    transform: `rotateY(${-angle}deg)`
+  }
+}
+
 // 控制地球仪旋转
 const rotateGlobe = (direction) => {
   isUserInteracting.value = true
@@ -612,6 +623,7 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  transform-style: preserve-3d;
 }
 
 .feature-icon-large {
