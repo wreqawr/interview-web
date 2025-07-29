@@ -75,7 +75,10 @@ export function getRolesFromToken(token) {
 // 获取用户主要角色
 export function getPrimaryRole(token) {
   const roles = getRolesFromToken(token);
-  return roles.length > 0 ? roles[0].roleName : null;
+  console.log('JWT解析的角色列表:', roles);
+  const primaryRole = roles.length > 0 ? roles[0].roleName : null;
+  console.log('主要角色:', primaryRole);
+  return primaryRole;
 }
 
 // 检查用户是否有某个角色
@@ -85,12 +88,7 @@ export function hasRole(token, roleName) {
 }
 
 // 根据角色获取对应的首页路径
-export function getRoleHomePage(token) {
-  const primaryRole = getPrimaryRole(token);
-  const roleHomePages = {
-    'ROLE_ADMIN': '/admin/dashboard',
-    'ROLE_HR': '/hr/dashboard', 
-    'ROLE_JOB_SEEKER': '/jobseeker/dashboard'
-  };
-  return roleHomePages[primaryRole] || '/dashboard';
+export function getRoleHomePage() {
+  // 现在所有用户都使用统一的dashboard页面
+  return '/dashboard';
 } 

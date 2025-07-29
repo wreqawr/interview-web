@@ -14,6 +14,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref('');
   const userInfo = ref(null);
   const userRoles = ref([]);
+  const userPermissions = ref([]);
 
   // 计算属性
   const getUserInfo = computed(() => {
@@ -56,6 +57,11 @@ export const useUserStore = defineStore('user', () => {
     return [];
   });
 
+  // 获取用户实际权限列表
+  const getUserPermissions = computed(() => {
+    return userPermissions.value;
+  });
+
   // 角色检查方法
   const hasUserRole = (role) => {
     if (token.value) {
@@ -76,7 +82,7 @@ export const useUserStore = defineStore('user', () => {
 
   // 获取角色对应的首页路径
   const getHomePage = () => {
-    return getRoleHomePage(token.value);
+    return getRoleHomePage();
   };
 
   // 设置token
@@ -95,6 +101,11 @@ export const useUserStore = defineStore('user', () => {
     if (roles) {
       userRoles.value = roles;
     }
+  };
+
+  // 设置用户权限
+  const setUserPermissions = (permissions) => {
+    userPermissions.value = permissions;
   };
 
   // 从localStorage恢复token
@@ -132,14 +143,14 @@ export const useUserStore = defineStore('user', () => {
 
   return {
     // 状态
-    token, userInfo, userRoles,
+    token, userInfo, userRoles, userPermissions,
     
     // 计算属性
     getUserInfo, getUserRoles, userRole, isUserTokenExpired,
-    userFeatures, userStatistics,
+    userFeatures, userStatistics, getUserPermissions,
     
     // 方法
-    setToken, restoreToken, clearUserInfo, refreshUserInfo,
+    setToken, setUserPermissions, restoreToken, clearUserInfo, refreshUserInfo,
     hasUserRole, hasFeature, getFeature, getHomePage
   };
 }); 
