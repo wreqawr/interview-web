@@ -2,7 +2,7 @@
 
 # 定义镜像名称
 # shellcheck disable=SC2269
-IMAGE_NAME="$IMAGE_NAME"
+IMAGE_NAME="interview-web:latest"
 
 # 检查镜像是否存在
 if docker image inspect "$IMAGE_NAME" &> /dev/null; then
