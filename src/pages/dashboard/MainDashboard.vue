@@ -96,20 +96,20 @@
                 <el-icon><ArrowRight /></el-icon>
                 <span>下一个</span>
               </div>
-            </div>
+                  </div>
             
             <div 
               class="globe-orbit" 
               :class="{ 'auto-rotate': isAutoRotating }"
               :style="{ transform: `rotateY(${globeRotation}deg)` }"
             >
-              <div 
+                  <div 
                 v-for="(feature, index) in userFeatures[0].features" 
-                :key="feature.key"
+                    :key="feature.key"
                 class="globe-feature-card"
                 :style="getGlobePosition(index, userFeatures[0].features.length)"
-                @click="handleFeatureClick(feature)"
-              >
+                    @click="handleFeatureClick(feature)"
+                  >
                 <div 
                   class="feature-card-content"
                   :style="getCardContentStyle(index, userFeatures[0].features.length)"
@@ -257,15 +257,15 @@
                       v-else 
                       :is="feature.icon" 
                     />
-                  </div>
+                    </div>
                   <div class="feature-info-large">
                     <div class="feature-name-large">{{ feature.name }}</div>
                     <div class="feature-desc-large">{{ feature.description }}</div>
-                  </div>
+                    </div>
                   <div class="feature-status-large">
                     <el-tag type="success" size="large">
                       可用
-                    </el-tag>
+                      </el-tag>
                   </div>
                 </div>
               </div>
@@ -698,4 +698,4 @@ onMounted(() => {
 
 /* 轮播图指示器样式 */
 
-</style>
+</style> 
