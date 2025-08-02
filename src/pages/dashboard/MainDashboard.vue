@@ -72,203 +72,214 @@
         <div class="features-section">
           <h2 class="section-title">功能菜单</h2>
           
-          <!-- 功能地球仪 -->
-          <div class="globe-container">
+          <!-- 2D轮播图容器 -->
+          <div class="carousel-container">
             <!-- 控制按钮 -->
-            <div class="globe-controls">
+            <div class="carousel-controls">
               <div 
-                class="globe-btn globe-btn-prev" 
-                @click="rotateGlobe('prev')"
-                @mousedown="handleButtonDown"
-                @mouseup="handleButtonUp"
-                @mouseleave="handleButtonUp"
+                class="carousel-btn carousel-btn-prev" 
+                @click="prevSlide"
+                :class="{ disabled: currentIndex === 0 }"
               >
                 <el-icon><ArrowLeft /></el-icon>
                 <span>上一个</span>
               </div>
               <div 
-                class="globe-btn globe-btn-next" 
-                @click="rotateGlobe('next')"
-                @mousedown="handleButtonDown"
-                @mouseup="handleButtonUp"
-                @mouseleave="handleButtonUp"
+                class="carousel-btn carousel-btn-next" 
+                @click="nextSlide"
               >
                 <el-icon><ArrowRight /></el-icon>
                 <span>下一个</span>
               </div>
-                  </div>
+            </div>
             
-            <div 
-              class="globe-orbit" 
-              :class="{ 'auto-rotate': isAutoRotating }"
-              :style="{ transform: `rotateY(${globeRotation}deg)` }"
-            >
+            <!-- 轮播图主体 -->
+            <div class="carousel-wrapper">
+              <div 
+                class="carousel-track"
+                :style="{ transform: `translateX(-${(currentIndex - 1) * 33.333}%)` }"
+              >
+                <div 
+                  v-for="(feature, index) in extendedFeatures" 
+                  :key="`${feature.key}-${index}`"
+                  class="carousel-slide"
+                  :class="{ 
+                    'active-slide': currentIndex === index,
+                    'prev-slide': currentIndex - 1 === index,
+                    'next-slide': currentIndex + 1 === index
+                  }"
+                >
                   <div 
-                v-for="(feature, index) in userFeatures[0].features" 
-                    :key="feature.key"
-                class="globe-feature-card"
-                :style="getGlobePosition(index, userFeatures[0].features.length)"
+                    class="feature-card-content"
                     @click="handleFeatureClick(feature)"
                   >
-                <div 
-                  class="feature-card-content"
-                  :style="getCardContentStyle(index, userFeatures[0].features.length)"
-                >
-                  <div class="feature-icon-large">
-                    <img 
-                      v-if="feature.icon === '@/assets/resume/resume-management.svg'" 
-                      :src="resumeManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/resume/resume-version.svg'" 
-                      :src="resumeVersionIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/interview/interview-count.svg'" 
-                      :src="interviewCountIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/user-management.svg'" 
-                      :src="userManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/company-management.svg'" 
-                      :src="companyManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/system-setting.svg'" 
-                      :src="systemSettingIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/data-management.svg'" 
-                      :src="dataManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/system-monitor.svg'" 
-                      :src="systemMonitorIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/candidate-management.svg'" 
-                      :src="candidateManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobs-management.svg'" 
-                      :src="jobsManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/communication-management.svg'" 
-                      :src="communicationManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/data-analyze.svg'" 
-                      :src="dataAnalyzeIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/resume-select.svg'" 
-                      :src="resumeSelectIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/interview-management.svg'" 
-                      :src="interviewManagementIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/interview-assessment.svg'" 
-                      :src="interviewAssessmentIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/company-info.svg'" 
-                      :src="companyInfoIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/user-profile.svg'" 
-                      :src="userProfileIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/interview-appointment.svg'" 
-                      :src="interviewAppointmentIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/ai-interview.svg'" 
-                      :src="aiInterviewIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/realtime-interview.svg'" 
-                      :src="realtimeInterviewIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/interview-record.svg'" 
-                      :src="interviewRecordIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/interview-report.svg'" 
-                      :src="interviewReportIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <img 
-                      v-else-if="feature.icon === '@/assets/function/jobseeker/study-center.svg'" 
-                      :src="studyCenterIcon" 
-                      :alt="feature.name"
-                      class="svg-icon-large"
-                    />
-                    <component 
-                      v-else 
-                      :is="feature.icon" 
-                    />
+                    <div class="feature-icon-large">
+                      <img 
+                        v-if="feature.icon === '@/assets/resume/resume-management.svg'" 
+                        :src="resumeManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/resume/resume-version.svg'" 
+                        :src="resumeVersionIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/interview/interview-count.svg'" 
+                        :src="interviewCountIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/user-management.svg'" 
+                        :src="userManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/company-management.svg'" 
+                        :src="companyManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/system-setting.svg'" 
+                        :src="systemSettingIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/data-management.svg'" 
+                        :src="dataManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/system-monitor.svg'" 
+                        :src="systemMonitorIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/candidate-management.svg'" 
+                        :src="candidateManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobs-management.svg'" 
+                        :src="jobsManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/communication-management.svg'" 
+                        :src="communicationManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/data-analyze.svg'" 
+                        :src="dataAnalyzeIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/resume-select.svg'" 
+                        :src="resumeSelectIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/interview-management.svg'" 
+                        :src="interviewManagementIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/interview-assessment.svg'" 
+                        :src="interviewAssessmentIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/company-info.svg'" 
+                        :src="companyInfoIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/user-profile.svg'" 
+                        :src="userProfileIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/interview-appointment.svg'" 
+                        :src="interviewAppointmentIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/ai-interview.svg'" 
+                        :src="aiInterviewIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/realtime-interview.svg'" 
+                        :src="realtimeInterviewIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/interview-record.svg'" 
+                        :src="interviewRecordIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/interview-report.svg'" 
+                        :src="interviewReportIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <img 
+                        v-else-if="feature.icon === '@/assets/function/jobseeker/study-center.svg'" 
+                        :src="studyCenterIcon" 
+                        :alt="feature.name"
+                        class="svg-icon-large"
+                      />
+                      <component 
+                        v-else 
+                        :is="feature.icon" 
+                      />
                     </div>
-                  <div class="feature-info-large">
-                    <div class="feature-name-large">{{ feature.name }}</div>
-                    <div class="feature-desc-large">{{ feature.description }}</div>
+                    <div class="feature-info-large">
+                      <div class="feature-name-large">{{ feature.name }}</div>
+                      <div class="feature-desc-large">{{ feature.description }}</div>
                     </div>
-                  <div class="feature-status-large">
-                    <el-tag type="success" size="large">
-                      可用
+                    <div class="feature-status-large">
+                      <el-tag type="success" size="large">
+                        可用
                       </el-tag>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+            
+            <!-- 指示器 -->
+            <div class="carousel-indicators">
+              <div 
+                v-for="(feature, index) in userFeatures[0].features" 
+                :key="`indicator-${feature.key}`"
+                class="indicator"
+                :class="{ active: currentIndex % originalFeatureCount === index }"
+                @click="goToSlide(index)"
+              ></div>
             </div>
           </div>
         </div>
@@ -278,7 +289,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
@@ -316,10 +327,10 @@ const userStore = useUserStore()
 // 测试用的角色状态
 const testRole = ref(null)
 
-// 地球仪旋转控制
-const globeRotation = ref(0)
-const isAutoRotating = ref(true)
-const isUserInteracting = ref(false)
+// 2D轮播图控制
+const currentIndex = ref(1)
+const autoPlayInterval = ref(null)
+const isAutoPlaying = ref(true)
 
 // 用户统计信息
 const userStatistics = computed(() => {
@@ -345,80 +356,100 @@ const userFeatures = computed(() => {
   const roleFeatures = getRoleFeatures(role)
   console.log('从permissions.js获取的功能:', roleFeatures)
   
-  // 地球仪效果：所有功能在一个3D空间中排列
   return [{
-    key: 'globe_features',
+    key: 'carousel_features',
     features: roleFeatures
   }]
+})
+
+// 扩展功能列表，用于无缝循环
+const extendedFeatures = computed(() => {
+  if (!userFeatures.value[0]?.features) return []
+  const features = userFeatures.value[0].features
+  const featureCount = features.length
+  
+  // 动态计算需要复制的次数，确保有足够的内容
+  // 假设currentIndex最大可能达到1000，我们需要确保有足够的内容
+  const copiesNeeded = Math.ceil(1000 / featureCount) + 2
+  const extendedArray = []
+  
+  for (let i = 0; i < copiesNeeded; i++) {
+    extendedArray.push(...features)
+  }
+  
+  return extendedArray
+})
+
+// 获取原始功能数量
+const originalFeatureCount = computed(() => {
+  if (!userFeatures.value[0]?.features) return 0
+  return userFeatures.value[0].features.length
 })
 
 // 角色切换方法
 const switchRole = (role) => {
   testRole.value = role
+  currentIndex.value = 1 // 重置轮播图位置
   ElMessage.success(`已切换到 ${role} 角色`)
 }
 
 // 清除角色
 const clearRole = () => {
   testRole.value = null
+  currentIndex.value = 1
   ElMessage.info('已清除测试角色')
 }
 
-// 计算地球仪位置
-const getGlobePosition = (index, total) => {
-  const angle = (index / total) * 360 // 360度平均分布
-  const radius = 350 // 增大轨道半径，让卡片分布更宽松
-  const x = Math.cos((angle - 90) * Math.PI / 180) * radius
-  const z = Math.sin((angle - 90) * Math.PI / 180) * radius
-  const y = Math.sin(angle * Math.PI / 180) * 80 // 增加上下波动幅度
-  
-  return {
-    transform: `translate3d(${x}px, ${y}px, ${z}px) rotateY(${angle}deg)`,
-    zIndex: Math.round(z + 350) // 根据z轴位置设置层级
+// 轮播图控制方法
+const nextSlide = () => {
+  currentIndex.value++
+  resetAutoPlay()
+}
+
+const prevSlide = () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--
+    resetAutoPlay()
   }
 }
 
-// 计算卡片内容的反向旋转
-const getCardContentStyle = (index, total) => {
-  const angle = (index / total) * 360
-  return {
-    transform: `rotateY(${-angle}deg)`
+const goToSlide = (index) => {
+  currentIndex.value = index + 1
+  resetAutoPlay()
+}
+
+const resetAutoPlay = () => {
+  if (autoPlayInterval.value) {
+    clearInterval(autoPlayInterval.value)
   }
-}
-
-// 控制地球仪旋转
-const rotateGlobe = (direction) => {
-  isUserInteracting.value = true
-  isAutoRotating.value = false // 停止自动旋转
-  
-  if (direction === 'prev') {
-    globeRotation.value -= 45 // 向左旋转45度
-  } else if (direction === 'next') {
-    globeRotation.value += 45 // 向右旋转45度
+  if (isAutoPlaying.value) {
+    autoPlayInterval.value = setInterval(() => {
+      currentIndex.value++
+    }, 4000) // 4秒自动切换
   }
-}
-
-// 处理按钮按下事件
-const handleButtonDown = () => {
-  isUserInteracting.value = true
-  isAutoRotating.value = false
-}
-
-// 处理按钮释放事件
-const handleButtonUp = () => {
-  isUserInteracting.value = false
-  // 延迟恢复自动旋转，给用户一些时间观察
-  setTimeout(() => {
-    if (!isUserInteracting.value) {
-      isAutoRotating.value = true
-    }
-  }, 2000)
 }
 
 // 处理功能点击
 const handleFeatureClick = (feature) => {
   ElMessage.info(`正在跳转到 ${feature.name}...`)
   router.push(feature.path)
+}
+
+// 启动自动播放
+const startAutoPlay = () => {
+  if (isAutoPlaying.value && userFeatures.value[0]?.features?.length > 1) {
+    autoPlayInterval.value = setInterval(() => {
+      currentIndex.value++
+    }, 4000)
+  }
+}
+
+// 停止自动播放
+const stopAutoPlay = () => {
+  if (autoPlayInterval.value) {
+    clearInterval(autoPlayInterval.value)
+    autoPlayInterval.value = null
+  }
 }
 
 // 确保页面滚动正常工作
@@ -432,13 +463,19 @@ onMounted(() => {
   document.documentElement.style.overflow = 'auto'
   document.documentElement.style.overflowX = 'hidden'
   document.documentElement.style.overflowY = 'auto'
+  
+  // 启动自动播放
+  startAutoPlay()
+})
+
+onUnmounted(() => {
+  stopAutoPlay()
 })
 </script>
 
 <style scoped>
 .dashboard {
   padding: 20px;
-  background-color: #f5f7fa;
   min-height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -503,21 +540,20 @@ onMounted(() => {
   text-align: center;
 }
 
-/* 轮播图样式 */
-
-.globe-container {
+/* 2D轮播图样式 */
+.carousel-container {
   position: relative;
-  height: 700px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  perspective: 1500px;
-  overflow: visible;
-  pointer-events: auto;
-  padding-top: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 500px;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 0 80px;
+  box-sizing: border-box;
 }
 
-.globe-controls {
+.carousel-controls {
   position: absolute;
   top: 50%;
   left: 0;
@@ -526,123 +562,213 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 0;
   z-index: 1000;
   pointer-events: none;
 }
 
-.globe-btn {
+.carousel-btn {
   pointer-events: auto;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
   border: none;
   color: white;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  box-shadow: 0 8px 20px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.3);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  gap: 4px;
+  gap: 2px;
   user-select: none;
 }
 
-.globe-btn span {
-  font-size: 12px;
-  line-height: 1;
+.carousel-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: scale(0.9);
 }
 
-.globe-btn:hover {
+.carousel-btn:not(.disabled):hover {
   transform: scale(1.1);
   box-shadow: 0 12px 30px rgba(64, 158, 255, 0.4);
 }
 
-.globe-btn:active {
+.carousel-btn:not(.disabled):active {
   transform: scale(0.95);
 }
 
-.globe-orbit {
+.carousel-btn span {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.carousel-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  pointer-events: auto;
+  overflow: hidden;
 }
 
-.globe-orbit.auto-rotate {
-  animation: globeRotate 45s linear infinite;
+.carousel-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease-out;
+  align-items: center;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  margin-left: -33.333%;
 }
 
-.globe-feature-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 280px;
-  height: 300px;
-  margin: -150px 0 0 -140px;
+.carousel-slide {
+  flex: 0 0 33.333%;
+  width: 33.333%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
   cursor: pointer;
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-style: preserve-3d;
+  box-sizing: border-box;
+  position: relative;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.globe-feature-card:hover {
-  transform: scale(1.1) translateZ(20px) !important;
-  filter: brightness(1.2);
+.carousel-slide.active-slide {
+  z-index: 10;
 }
 
-@keyframes globeRotate {
-  from {
-    transform: rotateY(0deg);
-  }
-  to {
-    transform: rotateY(360deg);
-  }
+.carousel-slide.next-slide {
+  z-index: 5;
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+.indicator.active {
+  background: #409eff;
+  transform: scale(1.3);
 }
 
 .feature-card-content {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border-radius: 24px;
-  padding: 30px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 25px;
+  width: 100%;
+  max-width: 280px;
   height: 100%;
+  max-height: 320px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    0 8px 20px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  transform-style: preserve-3d;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  margin: 0 auto;
+  transform: scale(0.9) translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.active-slide .feature-card-content {
+  transform: scale(1) translateZ(0);
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+}
+
+.prev-slide .feature-card-content {
+  transform: scale(0.75) translateZ(0);
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.next-slide .feature-card-content {
+  transform: scale(0.75) translateZ(0);
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+.feature-card-content:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.2),
+    0 12px 30px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .feature-icon-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: rgba(102, 126, 234, 0.8);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
-  font-size: 48px;
-  box-shadow: 
-    0 15px 35px rgba(102, 126, 234, 0.4),
-    0 8px 20px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  margin-bottom: 16px;
+  font-size: 32px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .feature-icon-large::before {
@@ -656,9 +782,13 @@ onMounted(() => {
   border-radius: 24px;
 }
 
+.feature-card-content:hover .feature-icon-large {
+  transform: scale(1.02) translateZ(0);
+}
+
 .svg-icon-large {
-  width: 80px;
-  height: 80px;
+  width: 48px;
+  height: 48px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   position: relative;
   z-index: 1;
@@ -676,26 +806,101 @@ onMounted(() => {
 }
 
 .feature-name-large {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 700;
-  color: #303133;
-  margin-bottom: 12px;
+  color: #2c3e50;
+  margin-bottom: 8px;
   line-height: 1.2;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
 }
 
 .feature-desc-large {
-  font-size: 16px;
-  color: #606266;
+  font-size: 12px;
+  color: #34495e;
   line-height: 1.5;
-  max-width: 400px;
+  max-width: 240px;
   margin: 0 auto;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
 }
 
 .feature-status-large {
   margin-top: 16px;
 }
 
-/* 轮播图指示器样式 */
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .carousel-container {
+    height: 400px;
+  }
+  
+  .carousel-slide {
+    padding: 20px;
+  }
+  
+  .feature-card-content {
+    padding: 30px;
+  }
+  
+  .feature-icon-large {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+  }
+  
+  .svg-icon-large {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .feature-name-large {
+    font-size: 24px;
+  }
+  
+  .feature-desc-large {
+    font-size: 14px;
+  }
+  
+  .carousel-btn {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .carousel-btn span {
+    font-size: 10px;
+  }
+}
 
+/* 低性能设备优化 */
+@media (prefers-reduced-motion: reduce) {
+  .carousel-track {
+    transition: transform 0.1s ease-out;
+  }
+  
+  .carousel-slide {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+  
+  .feature-card-content {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+  
+  .feature-icon-large {
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* 低分辨率设备优化 */
+@media (max-resolution: 1dppx) {
+  .carousel-track {
+    transition: transform 0.1s ease-out;
+  }
+  
+  .carousel-slide {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+  
+  .feature-card-content {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+}
 </style> 

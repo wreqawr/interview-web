@@ -126,7 +126,7 @@ const router = useRouter()
 const form = ref({
   username: 'minglg',
   password: 'minglg123',
-  captcha: ''
+  captcha: '1234'
 })
 const rules = {
   username: [{required: true, message: '请输入账号/手机号', trigger: 'blur'}],
