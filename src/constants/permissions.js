@@ -501,7 +501,7 @@ export const ROLE_FEATURES = {
       name: '简历管理',
       icon: '@/assets/resume/resume-management.svg',
       type: 'info',
-      path: '/jobseeker/resume',
+      path: '/resume/management',
       description: '简历上传、编辑和版本管理',
       permissions: [
         PERMISSION_CODES.RESUME_UPLOAD,

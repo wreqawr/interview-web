@@ -27,11 +27,17 @@ const routes = [
     meta: { requiresAuth: true }
   },
   
-  // 简历上传页面
+  // 简历管理页面（包含上传功能）
   {
     path: '/resume',
-    name: 'ResumeUpload',
-    component: () => import('@/pages/resume/ResumeUpload.vue'),
+    redirect: '/resume/management'
+  },
+  
+  // 简历管理页面
+  {
+    path: '/resume/management',
+    name: 'ResumeManagement',
+    component: () => import('@/pages/resume/ResumeManagement.vue'),
     meta: { requiresAuth: true }
   },
   
