@@ -1,5 +1,5 @@
 import http from './http';
-import { RESUME_UPLOAD_URL } from './endpoints';
+import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL } from './endpoints';
 
 /**
  * 简历上传接口
@@ -12,6 +12,29 @@ export async function uploadResume(file) {
   return await http.post(RESUME_UPLOAD_URL, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
+    }
+  });
+}
+
+/**
+ * 获取用户简历列表接口
+ * @returns {Promise}
+ */
+export async function getResumeList() {
+  return await http.get(RESUME_METADATA_URL);
+}
+
+/**
+ * 查询简历异步上传结果接口
+ * @param {string} taskId - 任务ID
+ * @param {string} resumeId - 简历ID
+ * @returns {Promise}
+ */
+export async function queryResumeAsyncResult(taskId, resumeId) {
+  return await http.get(RESUME_METADATA_ASYNC_URL, {
+    params: {
+      taskId,
+      resumeId
     }
   });
 } 

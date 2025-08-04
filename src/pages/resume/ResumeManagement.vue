@@ -27,7 +27,7 @@
               <el-icon><Document /></el-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">5</div>
+              <div class="stat-value">{{ resumes.length }}</div>
               <div class="stat-label">简历总数</div>
             </div>
           </div>
@@ -38,7 +38,7 @@
               <el-icon><Files /></el-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">12</div>
+              <div class="stat-value">{{ resumes.length }}</div>
               <div class="stat-label">版本数量</div>
             </div>
           </div>
@@ -49,7 +49,7 @@
               <el-icon><View /></el-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">89</div>
+              <div class="stat-value">{{ totalViews }}</div>
               <div class="stat-label">查看次数</div>
             </div>
           </div>
@@ -60,7 +60,7 @@
               <el-icon><Star /></el-icon>
             </div>
             <div class="stat-info">
-              <div class="stat-value">4.8</div>
+              <div class="stat-value">{{ averageScore }}</div>
               <div class="stat-label">综合评分</div>
             </div>
           </div>
@@ -96,7 +96,16 @@
             </div>
 
             <!-- 简历卡片列表 -->
-            <div class="resume-cards">
+            <div v-if="loading" class="loading-container">
+              <div class="loading-placeholder">
+                <el-icon class="is-loading"><Loading /></el-icon>
+                <p>正在加载简历数据...</p>
+              </div>
+            </div>
+            <div v-else-if="resumes.length === 0" class="empty-container">
+              <el-empty description="暂无简历数据" />
+            </div>
+            <div v-else class="resume-cards">
               <div 
                 v-for="resume in filteredResumes" 
                 :key="resume.id"
@@ -144,10 +153,6 @@
 
                 <div class="resume-card-content">
                   <div class="resume-info">
-                    <div class="info-item">
-                      <span class="label">版本：</span>
-                      <span class="value">{{ resume.version }}</span>
-                    </div>
                     <div class="info-item">
                       <span class="label">格式：</span>
                       <span class="value">{{ resume.format }}</span>
@@ -209,10 +214,6 @@
                 <div class="detail-item">
                   <span class="label">标题：</span>
                   <span class="value">{{ selectedResume.title }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">版本：</span>
-                  <span class="value">{{ selectedResume.version }}</span>
                 </div>
                 <div class="detail-item">
                   <span class="label">状态：</span>
@@ -333,9 +334,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume } from '@/api/resume'
+import { uploadResume, getResumeList, queryResumeAsyncResult } from '@/api/resume'
 import {
   Upload,
   Plus,
@@ -349,7 +350,8 @@ import {
   Download,
   DataAnalysis,
   Delete,
-  UploadFilled
+  UploadFilled,
+  Loading
 } from '@element-plus/icons-vue'
 
 // 响应式数据
@@ -359,75 +361,96 @@ const selectedResume = ref(null)
 const uploadDialogVisible = ref(false)
 const uploadFiles = ref([])
 const uploadRef = ref()
+const loading = ref(false)
+const pollingInterval = ref(null) // 轮询定时器
 
-// 模拟简历数据
-const resumes = ref([
-  {
-    id: 1,
-    title: '前端开发工程师简历',
-    version: 'v2.1',
-    status: 'active',
-    format: 'PDF',
-    size: '2.3MB',
-    createTime: '2024-01-15',
-    updateTime: '2024-01-20',
-    viewCount: 25,
-    downloadCount: 8,
-    score: 4.8
-  },
-  {
-    id: 2,
-    title: '前端开发工程师简历',
-    version: 'v2.0',
-    status: 'history',
-    format: 'PDF',
-    size: '2.1MB',
-    createTime: '2024-01-10',
-    updateTime: '2024-01-15',
-    viewCount: 18,
-    downloadCount: 5,
-    score: 4.5
-  },
-  {
-    id: 3,
-    title: '前端开发工程师简历',
-    version: 'v1.5',
-    status: 'history',
-    format: 'DOCX',
-    size: '1.8MB',
-    createTime: '2024-01-05',
-    updateTime: '2024-01-10',
-    viewCount: 12,
-    downloadCount: 3,
-    score: 4.2
-  },
-  {
-    id: 4,
-    title: '产品经理简历',
-    version: 'v1.0',
-    status: 'history',
-    format: 'PDF',
-    size: '3.2MB',
-    createTime: '2023-12-20',
-    updateTime: '2023-12-25',
-    viewCount: 15,
-    downloadCount: 4,
-    score: 4.6
-  },
-  {
-    id: 5,
-    title: 'UI设计师简历',
-    version: 'v1.2',
-    status: 'history',
-    format: 'PDF',
-    size: '4.1MB',
-    createTime: '2023-12-15',
-    updateTime: '2023-12-20',
-    viewCount: 19,
-    downloadCount: 6,
-    score: 4.7
+// 简历数据
+const resumes = ref([])
+
+// 数据转换函数：将后端数据转换为前端需要的格式
+const transformResumeData = (backendData) => {
+  return backendData.map((resume, index) => {
+    // 格式化文件大小：将字节转换为MB
+    const formatFileSize = (bytes) => {
+      const mb = bytes / (1024 * 1024)
+      return `${mb.toFixed(1)}MB`
+    }
+    
+    // 格式化文件类型
+    const formatMimeType = (mimeType) => {
+      const typeMap = {
+        'application/pdf': 'PDF',
+        'application/msword': 'DOC',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX'
+      }
+      return typeMap[mimeType] || mimeType
+    }
+    
+    // 格式化时间：YYYY-MM-DD hh:mm:ss
+    const formatDateTime = (dateTimeStr) => {
+      const date = new Date(dateTimeStr)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    }
+    
+    return {
+      id: resume.resumeId,
+      title: resume.resumeTitle || '未命名简历',
+      status: index === 0 ? 'active' : 'history', // 第一个为当前使用
+      format: formatMimeType(resume.mimeType),
+      size: formatFileSize(resume.fileSize),
+      createTime: formatDateTime(resume.createdAt),
+      updateTime: formatDateTime(resume.updatedAt),
+      viewCount: resume.viewCount || 0,
+      downloadCount: resume.downloadCount || 0,
+      score: resume.rate || 0,
+      // 保存原始数据用于详情展示
+      originalData: resume
+    }
+  })
+}
+
+// 获取简历列表
+const fetchResumeList = async () => {
+  try {
+    loading.value = true
+    const response = await getResumeList()
+    const data = response?.data || response
+    
+    if (data.code === 200 && data.data) {
+      resumes.value = transformResumeData(data.data)
+      // 默认选择第一个简历
+      if (resumes.value.length > 0) {
+        selectedResume.value = resumes.value[0]
+      }
+      ElMessage.success('简历列表加载成功')
+    } else {
+      ElMessage.error(data.message || '获取简历列表失败')
+    }
+  } catch (error) {
+    console.error('获取简历列表失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('获取简历列表失败，请重试')
+    }
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  fetchResumeList()
+})
+
+// 组件卸载时清理轮询定时器
+onUnmounted(() => {
+  stopPolling()
+})
 
 // 计算属性
 const filteredResumes = computed(() => {
@@ -455,6 +478,18 @@ const filteredResumes = computed(() => {
   })
 
   return result
+})
+
+// 计算总查看次数
+const totalViews = computed(() => {
+  return resumes.value.reduce((total, resume) => total + resume.viewCount, 0)
+})
+
+// 计算平均评分
+const averageScore = computed(() => {
+  if (resumes.value.length === 0) return '0.0'
+  const totalScore = resumes.value.reduce((total, resume) => total + resume.score, 0)
+  return (totalScore / resumes.value.length).toFixed(1)
 })
 
 // 方法
@@ -530,6 +565,81 @@ const handleDelete = async (resume) => {
   }
 }
 
+// 轮询查询简历异步上传结果
+const startPolling = async (taskId, resumeId) => {
+  // 清除之前的轮询
+  stopPolling()
+  
+  let pollCount = 0 // 轮询次数计数器
+  
+  const poll = async () => {
+    try {
+      const response = await queryResumeAsyncResult(taskId, resumeId)
+      const data = response?.data || response
+      
+      if (data.code === 200) {
+        // 异步任务成功结束
+        stopPolling()
+        ElMessage.success('简历已解析完毕')
+        
+        // 将新解析的简历添加到列表开头
+        const newResume = transformResumeData([data.data])[0]
+        resumes.value.unshift(newResume)
+        
+        // 选择新上传的简历
+        selectedResume.value = newResume
+        
+      } else if (data.code === 900) {
+        // 异步任务还在执行中，继续轮询
+        pollCount++
+        console.log(`简历解析中，第${pollCount}次轮询，继续等待...`)
+        
+        // 根据轮询次数设置不同的间隔
+        if (pollCount === 1) {
+          // 第一次轮询后，等待10秒进行第二次轮询
+          stopPolling()
+          pollingInterval.value = setTimeout(() => {
+            poll()
+          }, 10000)
+        } else {
+          // 第二次轮询后，每5秒轮询一次
+          stopPolling()
+          pollingInterval.value = setInterval(poll, 5000)
+        }
+        
+      } else if (data.code === 901) {
+        // 异步任务结束但有错误
+        stopPolling()
+        ElMessage.error(data.message || '简历解析失败')
+        
+      } else {
+        // 其他错误情况
+        stopPolling()
+        ElMessage.error(data.message || '查询解析状态失败')
+      }
+    } catch (error) {
+      console.error('轮询查询失败:', error)
+      if (!error.isAuth) {
+        ElMessage.error('查询解析状态失败，请重试')
+      }
+      stopPolling()
+    }
+  }
+  
+  // 等待2秒后开始第一次轮询
+  setTimeout(async () => {
+    await poll()
+  }, 2000)
+}
+
+// 停止轮询
+const stopPolling = () => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+}
+
 // 上传相关方法
 async function customUpload(option) {
   try {
@@ -538,12 +648,16 @@ async function customUpload(option) {
     const data = response?.data || response
     console.log(data)
     if (data.code === 200) {
-      ElMessage.success('上传成功，简历正在解析...')
+      ElMessage.success(data.message || '上传成功')
       option.onSuccess()
       // 上传成功后关闭对话框并清空文件列表
       uploadDialogVisible.value = false
       uploadFiles.value = []
-      // 这里可以添加刷新简历列表的逻辑
+      
+      // 开始轮询查询解析结果
+      if (data.data?.taskId && data.data?.resumeId) {
+        await startPolling(data.data.taskId, data.data.resumeId)
+      }
     } else {
       ElMessage.error(data.message || '上传失败')
       // 不再调用 option.onError，否则会触发 catch
@@ -713,6 +827,30 @@ function submitUpload() {
 .section-actions {
   display: flex;
   align-items: center;
+}
+
+/* 加载和空状态 */
+.loading-container {
+  padding: 40px 0;
+}
+
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #7f8c8d;
+}
+
+.loading-placeholder p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.empty-container {
+  padding: 60px 0;
+  text-align: center;
 }
 
 /* 简历卡片 */

@@ -12,6 +12,7 @@ AI模拟面试系统是一个基于Vue 3 + Spring Boot的智能面试平台，�
 - 👥 **多角色管理**：求职者、企业HR、系统管理员三种角色
 - 🔐 **安全认证**：JWT + Spring Security，支持RBAC权限控制
 - 📱 **响应式设计**：适配PC端和移动端
+- ⚡ **异步处理**：支持简历上传后的异步解析和轮询查询
 
 ## 技术栈
 
@@ -43,8 +44,19 @@ AI模拟面试系统是一个基于Vue 3 + Spring Boot的智能面试平台，�
 interview-web/
 ├── src/
 │   ├── api/                 # API接口封装
+│   │   ├── auth.js         # 认证相关接口
+│   │   ├── resume.js       # 简历管理接口
+│   │   ├── endpoints.js    # 接口地址配置
+│   │   └── http.js         # HTTP请求封装
 │   ├── assets/              # 静态资源
+│   │   ├── function/       # 功能图标
+│   │   ├── interview/      # 面试相关图标
+│   │   ├── resume/         # 简历相关图标
+│   │   └── other/          # 其他图标
 │   ├── components/          # 公共组件
+│   ├── constants/           # 常量定义
+│   │   └── permissions.js  # 权限配置
+│   ├── hooks/              # 组合式函数
 │   ├── layouts/             # 布局组件
 │   ├── pages/               # 页面组件
 │   │   ├── auth/           # 认证相关页面
@@ -53,6 +65,8 @@ interview-web/
 │   │   ├── interview/      # 面试相关
 │   │   └── report/         # 报告分析
 │   ├── router/             # 路由配置
+│   ├── stores/             # 状态管理
+│   ├── styles/             # 样式文件
 │   ├── utils/              # 工具函数
 │   └── main.js             # 应用入口
 ├── public/                 # 公共文件
@@ -139,12 +153,15 @@ npm run build
 - 能力雷达图
 - 功能入口导航
 - 实时数据展示
+- 角色切换测试
 
 ### 3. 简历智能解析
-- 支持PDF/Word格式
-- 自动信息提取
+- 支持PDF/Word格式上传
+- 自动信息提取和解析
 - 简历评分系统
-- 格式转换
+- 异步处理支持
+- 智能轮询查询（2秒→10秒→5秒策略）
+- 实时状态监控
 
 ### 4. AI模拟面试
 - 多场景面试模式
@@ -157,6 +174,32 @@ npm run build
 - 岗位匹配度评分
 - 改进建议生成
 - 历史记录查看
+
+## 核心特性
+
+### 🔐 权限管理系统
+- **RBAC模型**：基于角色的访问控制
+- **188个权限点**：细粒度的功能权限控制
+- **动态权限**：根据用户角色动态显示功能
+- **权限验证**：前后端双重权限验证
+
+### 📄 简历管理功能
+- **多格式支持**：PDF、DOC、DOCX格式
+- **异步解析**：后端异步处理，前端智能轮询
+- **版本管理**：简历版本控制和历史记录
+- **智能评分**：基于AI的简历质量评估
+
+### ⚡ 异步处理机制
+- **智能轮询**：渐进式轮询策略（2秒→10秒→5秒）
+- **状态监控**：实时监控任务执行状态
+- **错误处理**：完善的错误处理和用户提示
+- **资源清理**：自动清理轮询定时器
+
+### 🎨 用户体验优化
+- **响应式设计**：适配各种屏幕尺寸
+- **加载状态**：友好的加载和错误提示
+- **交互优化**：流畅的页面切换和操作反馈
+- **性能优化**：代码分割和懒加载
 
 ## 配置说明
 
@@ -181,6 +224,12 @@ VUE_APP_DEBUG=true
 
 ```javascript
 export const BASE_URL = "http://localhost:8081/api";
+
+// 简历相关接口
+export const RESUME_API = `${BASE_URL}/resume`;
+export const RESUME_UPLOAD_URL = `${RESUME_API}/upload`;
+export const RESUME_METADATA_URL = `${RESUME_API}/getMyResume`;
+export const RESUME_METADATA_ASYNC_URL = `${RESUME_API}/queryResumeAsyncUploadResult`;
 ```
 
 ## 开发指南
@@ -228,6 +277,7 @@ chore: 构建过程或辅助工具的变动
 - **缓存策略**：静态资源长期缓存
 - **CDN加速**：静态资源CDN分发
 - **图片优化**：WebP格式支持
+- **异步处理**：智能轮询和状态管理
 
 ## 安全特性
 
@@ -236,6 +286,7 @@ chore: 构建过程或辅助工具的变动
 - **安全头**：CSP、HSTS等
 - **权限控制**：RBAC模型
 - **数据加密**：敏感数据加密存储
+- **接口安全**：白名单机制和权限验证
 
 ## 监控告警
 
@@ -243,6 +294,7 @@ chore: 构建过程或辅助工具的变动
 - **日志监控**：Nginx访问日志
 - **错误追踪**：前端错误监控
 - **性能监控**：页面加载性能
+- **异步任务监控**：轮询状态和错误处理
 
 ## 常见问题
 
@@ -257,6 +309,12 @@ A: 修改 `src/assets/styles/variables.scss` 中的CSS变量。
 
 ### Q: 如何配置HTTPS？
 A: 在 `nginx.conf` 中添加SSL证书配置。
+
+### Q: 简历上传后为什么没有立即显示？
+A: 简历解析是异步处理的，系统会自动轮询查询解析状态，解析完成后会自动显示。
+
+### Q: 如何修改轮询间隔时间？
+A: 在 `src/pages/resume/ResumeManagement.vue` 中的 `startPolling` 函数中修改轮询策略。
 
 ## 贡献指南
 
@@ -277,6 +335,14 @@ A: 在 `nginx.conf` 中添加SSL证书配置。
 - 项目地址：[GitHub Repository](https://github.com/wreqawr/interview-web.git)
 
 ## 更新日志
+
+### v1.1.0 (2025-08-04)
+- ✨ 实现简历管理页面API集成
+- ✨ 添加异步轮询功能（2秒→10秒→5秒策略）
+- ✨ 优化Dashboard用户体验
+- ✨ 完善权限管理系统
+- 🐛 修复API常量引用问题
+- 📚 更新项目文档
 
 ### v1.0.0 (2025-07-25)
 - 🎉 初始版本发布

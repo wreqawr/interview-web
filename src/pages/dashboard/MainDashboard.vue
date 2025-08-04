@@ -431,7 +431,6 @@ const resetAutoPlay = () => {
 
 // 处理功能点击
 const handleFeatureClick = (feature) => {
-  ElMessage.info(`正在跳转到 ${feature.name}...`)
   router.push(feature.path)
 }
 
