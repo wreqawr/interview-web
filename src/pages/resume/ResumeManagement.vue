@@ -6,6 +6,46 @@
         <h1 class="page-title">简历管理</h1>
         <p class="page-subtitle">管理您的所有简历版本，提升求职竞争力</p>
       </div>
+      <div class="header-stats">
+        <div class="stat-cards-row">
+          <div class="stat-card">
+            <div class="stat-icon resume-icon">
+              <el-icon><Document /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ resumes.length }}</div>
+              <div class="stat-label">简历总数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon version-icon">
+              <el-icon><Files /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ resumes.length }}</div>
+              <div class="stat-label">版本数量</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon view-icon">
+              <el-icon><View /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ totalViews }}</div>
+              <div class="stat-label">查看次数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon score-icon">
+              <el-icon><Star /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ averageScore }}</div>
+              <div class="stat-label">综合评分</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="header-actions">
         <el-button type="primary" size="large" @click="handleUpload">
           <el-icon><Upload /></el-icon>
@@ -18,61 +58,11 @@
       </div>
     </div>
 
-    <!-- 统计卡片区域 -->
-    <div class="statistics-section">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon resume-icon">
-              <el-icon><Document /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ resumes.length }}</div>
-              <div class="stat-label">简历总数</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon version-icon">
-              <el-icon><Files /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ resumes.length }}</div>
-              <div class="stat-label">版本数量</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon view-icon">
-              <el-icon><View /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ totalViews }}</div>
-              <div class="stat-label">查看次数</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card">
-            <div class="stat-icon score-icon">
-              <el-icon><Star /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ averageScore }}</div>
-              <div class="stat-label">综合评分</div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div>
-
     <!-- 主要内容区域 -->
     <div class="main-content">
       <el-row :gutter="24">
-        <!-- 左侧：简历列表 -->
-        <el-col :span="16">
+        <!-- 简历列表 -->
+        <el-col :span="24">
           <div class="resume-list-section">
             <div class="section-header">
               <h2 class="section-title">我的简历</h2>
@@ -107,7 +97,7 @@
             </div>
             <div v-else class="resume-cards">
               <div 
-                v-for="resume in filteredResumes" 
+                v-for="resume in paginatedResumes" 
                 :key="resume.id"
                 class="resume-card"
                 :class="{ active: selectedResume?.id === resume.id }"
@@ -165,6 +155,14 @@
                       <span class="label">创建时间：</span>
                       <span class="value">{{ resume.createTime }}</span>
                     </div>
+                    <div class="info-item">
+                      <span class="label">最后修改：</span>
+                      <span class="value">{{ resume.updateTime }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">文件哈希：</span>
+                      <span class="value sha256-value">{{ resume.sha256 }}</span>
+                    </div>
                   </div>
                   
                   <div class="resume-preview">
@@ -197,95 +195,19 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </el-col>
-
-        <!-- 右侧：详情面板 -->
-        <el-col :span="8">
-          <div class="detail-panel">
-            <div class="panel-header">
-              <h3>简历详情</h3>
-            </div>
-            
-            <div v-if="selectedResume" class="panel-content">
-              <div class="detail-section">
-                <h4>基本信息</h4>
-                <div class="detail-item">
-                  <span class="label">标题：</span>
-                  <span class="value">{{ selectedResume.title }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">状态：</span>
-                  <el-tag :type="selectedResume.status === 'active' ? 'success' : 'info'">
-                    {{ selectedResume.status === 'active' ? '当前使用' : '历史版本' }}
-                  </el-tag>
-                </div>
+              
+              <!-- 分页组件 -->
+              <div class="pagination-container">
+                <el-pagination
+                  v-model:current-page="currentPage"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[2, 4, 6]"
+                  :total="filteredResumes.length"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                />
               </div>
-
-              <div class="detail-section">
-                <h4>文件信息</h4>
-                <div class="detail-item">
-                  <span class="label">格式：</span>
-                  <span class="value">{{ selectedResume.format }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">大小：</span>
-                  <span class="value">{{ selectedResume.size }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">创建时间：</span>
-                  <span class="value">{{ selectedResume.createTime }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">最后修改：</span>
-                  <span class="value">{{ selectedResume.updateTime }}</span>
-                </div>
-              </div>
-
-              <div class="detail-section">
-                <h4>使用统计</h4>
-                <div class="detail-item">
-                  <span class="label">查看次数：</span>
-                  <span class="value">{{ selectedResume.viewCount }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">下载次数：</span>
-                  <span class="value">{{ selectedResume.downloadCount }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">综合评分：</span>
-                  <el-rate 
-                    v-model="selectedResume.score" 
-                    disabled 
-                    show-score 
-                    text-color="#ff9900"
-                    score-template="{value}"
-                  />
-                </div>
-              </div>
-
-              <div class="detail-section">
-                <h4>快速操作</h4>
-                <div class="action-buttons">
-                  <el-button type="primary" @click="handlePreview">
-                    <el-icon><View /></el-icon>预览
-                  </el-button>
-                  <el-button type="success" @click="handleEdit">
-                    <el-icon><Edit /></el-icon>编辑
-                  </el-button>
-                  <el-button type="warning" @click="handleDownload">
-                    <el-icon><Download /></el-icon>下载
-                  </el-button>
-                  <el-button type="info" @click="handleAnalyze">
-                    <el-icon><DataAnalysis /></el-icon>分析
-                  </el-button>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="panel-empty">
-              <el-empty description="请选择一个简历查看详情" />
             </div>
           </div>
         </el-col>
@@ -336,7 +258,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume, getResumeList, queryResumeAsyncResult } from '@/api/resume'
+import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes } from '@/api/resume'
 import {
   Upload,
   Plus,
@@ -363,6 +285,10 @@ const uploadFiles = ref([])
 const uploadRef = ref()
 const loading = ref(false)
 const pollingInterval = ref(null) // 轮询定时器
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(2)
 
 // 简历数据
 const resumes = ref([])
@@ -406,6 +332,7 @@ const transformResumeData = (backendData) => {
       size: formatFileSize(resume.fileSize),
       createTime: formatDateTime(resume.createdAt),
       updateTime: formatDateTime(resume.updatedAt),
+      sha256: resume.sha256 || '',
       viewCount: resume.viewCount || 0,
       downloadCount: resume.downloadCount || 0,
       score: resume.rate || 0,
@@ -492,6 +419,13 @@ const averageScore = computed(() => {
   return (totalScore / resumes.value.length).toFixed(1)
 })
 
+// 分页后的简历列表
+const paginatedResumes = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize.value
+  const endIndex = startIndex + pageSize.value
+  return filteredResumes.value.slice(startIndex, endIndex)
+})
+
 // 方法
 const selectResume = (resume) => {
   selectedResume.value = resume
@@ -559,10 +493,38 @@ const handleDelete = async (resume) => {
         type: 'warning',
       }
     )
-    ElMessage.success('删除成功')
-  } catch {
-    ElMessage.info('已取消删除')
+    
+    // 调用删除API
+    const response = await deleteResumes([resume.id])
+    const data = response?.data || response
+    
+    if (data.code === 200) {
+      ElMessage.success('删除成功')
+      // 重新加载简历列表
+      await fetchResumeList()
+    } else {
+      ElMessage.error(data.message || '删除失败')
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      ElMessage.info('已取消删除')
+    } else {
+      console.error('删除简历失败:', error)
+      if (!error.isAuth) {
+        ElMessage.error('删除失败，请重试')
+      }
+    }
   }
+}
+
+// 分页相关方法
+const handleSizeChange = (newSize) => {
+  pageSize.value = newSize
+  currentPage.value = 1 // 重置到第一页
+}
+
+const handleCurrentChange = (newPage) => {
+  currentPage.value = newPage
 }
 
 // 轮询查询简历异步上传结果
@@ -699,7 +661,7 @@ function submitUpload() {
 
 <style scoped>
 .resume-management {
-  padding: 24px;
+  padding: 0 20px 20px 20px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
 }
@@ -707,62 +669,79 @@ function submitUpload() {
 /* 页面头部 */
 .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 32px;
-  padding: 24px;
+  margin-bottom: 20px;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px);
+  gap: 70px;
+  position: fixed;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.header-content {
+  min-width: 0;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+}
+
+.stat-cards-row {
+  display: flex;
+  gap: 20px;
 }
 
 .header-content .page-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #2c3e50;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .header-content .page-subtitle {
-  font-size: 16px;
+  font-size: 14px;
   color: #7f8c8d;
   margin: 0;
+  white-space: nowrap;
 }
 
 .header-actions {
   display: flex;
   gap: 12px;
+  align-items: center;
+  margin-left: auto;
 }
 
-/* 统计卡片 */
-.statistics-section {
-  margin-bottom: 32px;
-}
+/* 统计卡片样式已在页面头部中定义 */
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 24px;
   display: flex;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
+  padding: 14px 18px;
   transition: transform 0.3s ease;
+  min-width: 150px;
 }
 
 .stat-card:hover {
-  transform: translateY(-4px);
+  transform: scale(1.05);
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px;
+  margin-right: 14px;
   font-size: 24px;
   color: white;
 }
@@ -784,7 +763,7 @@ function submitUpload() {
 }
 
 .stat-info .stat-value {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #2c3e50;
   line-height: 1;
@@ -793,19 +772,20 @@ function submitUpload() {
 .stat-info .stat-label {
   font-size: 14px;
   color: #7f8c8d;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
 /* 主要内容区域 */
 .main-content {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+  margin-top: 140px;
 }
 
 /* 简历列表区域 */
 .resume-list-section {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px);
 }
@@ -814,11 +794,11 @@ function submitUpload() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #2c3e50;
   margin: 0;
@@ -831,7 +811,7 @@ function submitUpload() {
 
 /* 加载和空状态 */
 .loading-container {
-  padding: 40px 0;
+  padding: 30px 0;
 }
 
 .loading-placeholder {
@@ -839,7 +819,7 @@ function submitUpload() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 30px;
   color: #7f8c8d;
 }
 
@@ -849,20 +829,20 @@ function submitUpload() {
 }
 
 .empty-container {
-  padding: 60px 0;
+  padding: 40px 0;
   text-align: center;
 }
 
 /* 简历卡片 */
 .resume-cards {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .resume-card {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -883,20 +863,20 @@ function submitUpload() {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .resume-title h3 {
   font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 8px 0;
+  font-weight: 700;
+  color: #1a365d;
+  margin: 0 0 6px 0;
 }
 
 .resume-card-content {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .resume-info {
@@ -910,19 +890,28 @@ function submitUpload() {
 }
 
 .info-item .label {
-  color: #7f8c8d;
+  color: #64748b;
   width: 80px;
   flex-shrink: 0;
+  font-weight: 400;
 }
 
 .info-item .value {
-  color: #2c3e50;
-  font-weight: 500;
+  color: #334155;
+  font-weight: 400;
+}
+
+.sha256-value {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #475569;
+  white-space: nowrap;
+  font-weight: 400 !important;
 }
 
 .resume-preview {
-  width: 120px;
-  height: 80px;
+  width: 100px;
+  height: 70px;
   border: 2px dashed #ddd;
   border-radius: 8px;
   display: flex;
@@ -935,67 +924,46 @@ function submitUpload() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #7f8c8d;
-  font-size: 12px;
+  color: #94a3b8;
+  font-size: 11px;
 }
 
 .resume-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid #eee;
 }
 
 .resume-stats {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .stat {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  color: #7f8c8d;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 400;
 }
 
 /* 详情面板 */
-.detail-panel {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
-  height: fit-content;
-  position: sticky;
-  top: 24px;
-}
 
 .panel-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 20px 0;
-}
-
-.detail-section {
-  margin-bottom: 24px;
-}
-
-.detail-section h4 {
   font-size: 16px;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
 }
 
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+.detail-section h4 {
   font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 10px 0;
 }
 
 .detail-item .label {
@@ -1007,15 +975,13 @@ function submitUpload() {
   font-weight: 500;
 }
 
-.action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.panel-empty {
-  text-align: center;
-  padding: 40px 0;
+/* 分页容器 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }
 
 /* 上传对话框 */

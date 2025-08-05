@@ -18,3 +18,5 @@ export const RESUME_UPLOAD_URL = `${RESUME_API}/upload`;
 export const RESUME_METADATA_URL = `${RESUME_API}/getMyResume`;
 // 获取用户上传简历后的异步任务状态
 export const RESUME_METADATA_ASYNC_URL = `${RESUME_API}/queryResumeAsyncUploadResult`;
+// 简历删除
+export const RESUME_DELETE_URL = `${RESUME_API}/delete`;

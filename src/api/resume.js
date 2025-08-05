@@ -1,5 +1,5 @@
 import http from './http';
-import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL } from './endpoints';
+import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL, RESUME_DELETE_URL } from './endpoints';
 
 /**
  * 简历上传接口
@@ -31,10 +31,16 @@ export async function getResumeList() {
  * @returns {Promise}
  */
 export async function queryResumeAsyncResult(taskId, resumeId) {
-  return await http.get(RESUME_METADATA_ASYNC_URL, {
-    params: {
-      taskId,
-      resumeId
-    }
+  return await http.get(`${RESUME_METADATA_ASYNC_URL}/${taskId}/${resumeId}`);
+}
+
+/**
+ * 删除简历接口
+ * @param {Array<string>} resumeIds - 简历ID数组
+ * @returns {Promise}
+ */
+export async function deleteResumes(resumeIds) {
+  return await http.delete(RESUME_DELETE_URL, {
+    data: resumeIds
   });
 } 
