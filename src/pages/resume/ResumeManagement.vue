@@ -120,8 +120,20 @@
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
-                          <el-dropdown-item :command="{ action: 'preview', resume }">
-                            <el-icon><View /></el-icon>预览
+                          <el-dropdown-item 
+                            :command="{ action: 'preview', resume }"
+                            :disabled="!resume.previewEnabled || operationLoading.preview"
+                            :class="{ 'disabled-item': !resume.previewEnabled || operationLoading.preview }"
+                          >
+                            <el-icon>
+                              <View v-if="resume.previewEnabled && !operationLoading.preview" />
+                              <Lock v-else-if="!resume.previewEnabled" />
+                              <Loading v-else class="is-loading" />
+                            </el-icon>
+                            {{ 
+                              !resume.previewEnabled ? '预览 (不支持)' : 
+                              operationLoading.preview ? '预览中...' : '预览' 
+                            }}
                           </el-dropdown-item>
                           <el-dropdown-item :command="{ action: 'edit', resume }">
                             <el-icon><Edit /></el-icon>编辑
@@ -132,8 +144,17 @@
                           <el-dropdown-item :command="{ action: 'analyze', resume }">
                             <el-icon><DataAnalysis /></el-icon>分析
                           </el-dropdown-item>
-                          <el-dropdown-item divided :command="{ action: 'delete', resume }">
-                            <el-icon><Delete /></el-icon>删除
+                          <el-dropdown-item 
+                            divided 
+                            :command="{ action: 'delete', resume }"
+                            :disabled="operationLoading.delete"
+                            :class="{ 'disabled-item': operationLoading.delete }"
+                          >
+                            <el-icon>
+                              <Delete v-if="!operationLoading.delete" />
+                              <Loading v-else class="is-loading" />
+                            </el-icon>
+                            {{ operationLoading.delete ? '删除中...' : '删除' }}
                           </el-dropdown-item>
                         </el-dropdown-menu>
                       </template>
@@ -162,6 +183,17 @@
                     <div class="info-item">
                       <span class="label">文件哈希：</span>
                       <span class="value sha256-value">{{ resume.sha256 }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">预览支持：</span>
+                      <span class="value">
+                        <el-tag 
+                          :type="resume.previewEnabled ? 'success' : 'info'" 
+                          size="small"
+                        >
+                          {{ resume.previewEnabled ? '支持预览' : '不支持预览' }}
+                        </el-tag>
+                      </span>
                     </div>
                   </div>
                   
@@ -244,21 +276,66 @@
           <el-button @click="uploadDialogVisible = false">取消</el-button>
           <el-button 
             type="primary" 
-            :disabled="uploadFiles.length === 0"
+            :disabled="uploadFiles.length === 0 || operationLoading.upload"
+            :loading="operationLoading.upload"
             @click="submitUpload"
           >
-            上传简历
+            {{ operationLoading.upload ? '上传中...' : '上传简历' }}
           </el-button>
         </span>
       </template>
     </el-dialog>
+
+    <!-- 预览对话框 -->
+    <el-dialog 
+      v-model="previewDialogVisible" 
+      title="简历预览" 
+      width="80%" 
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
+      class="preview-dialog"
+    >
+      <div v-if="previewLoading" class="preview-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <p>正在加载预览...</p>
+      </div>
+      <div v-else-if="previewUrl" class="preview-container">
+        <iframe 
+          :src="previewUrl" 
+          class="preview-iframe"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="previewDialogVisible = false">关闭</el-button>
+          <el-button 
+            type="primary" 
+            @click="openInNewTab"
+          >
+            在新窗口打开
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
+    
+    <!-- 全局加载遮罩 -->
+    <div 
+      v-if="isAnyOperationLoading" 
+      class="global-loading-overlay"
+    >
+      <div class="loading-content">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <p>操作进行中，请稍候...</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes } from '@/api/resume'
+import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl } from '@/api/resume'
 import {
   Upload,
   Plus,
@@ -273,7 +350,8 @@ import {
   DataAnalysis,
   Delete,
   UploadFilled,
-  Loading
+  Loading,
+  Lock
 } from '@element-plus/icons-vue'
 
 // 响应式数据
@@ -285,6 +363,19 @@ const uploadFiles = ref([])
 const uploadRef = ref()
 const loading = ref(false)
 const pollingInterval = ref(null) // 轮询定时器
+
+// 预览相关
+const previewDialogVisible = ref(false)
+const previewUrl = ref('')
+const previewLoading = ref(false)
+
+// 操作状态控制
+const operationLoading = ref({
+  preview: false,
+  delete: false,
+  upload: false,
+  refresh: false
+})
 
 // 分页相关
 const currentPage = ref(1)
@@ -336,6 +427,7 @@ const transformResumeData = (backendData) => {
       viewCount: resume.viewCount || 0,
       downloadCount: resume.downloadCount || 0,
       score: resume.rate || 0,
+      previewEnabled: resume.previewEnabled || false,
       // 保存原始数据用于详情展示
       originalData: resume
     }
@@ -346,6 +438,7 @@ const transformResumeData = (backendData) => {
 const fetchResumeList = async () => {
   try {
     loading.value = true
+    operationLoading.value.refresh = true
     const response = await getResumeList()
     const data = response?.data || response
     
@@ -355,7 +448,6 @@ const fetchResumeList = async () => {
       if (resumes.value.length > 0) {
         selectedResume.value = resumes.value[0]
       }
-      ElMessage.success('简历列表加载成功')
     } else {
       ElMessage.error(data.message || '获取简历列表失败')
     }
@@ -366,6 +458,7 @@ const fetchResumeList = async () => {
     }
   } finally {
     loading.value = false
+    operationLoading.value.refresh = false
   }
 }
 
@@ -426,6 +519,11 @@ const paginatedResumes = computed(() => {
   return filteredResumes.value.slice(startIndex, endIndex)
 })
 
+// 检查是否有任何操作正在进行
+const isAnyOperationLoading = computed(() => {
+  return Object.values(operationLoading.value).some(loading => loading)
+})
+
 // 方法
 const selectResume = (resume) => {
   selectedResume.value = resume
@@ -443,8 +541,19 @@ const handleCreate = () => {
 
 const handleResumeAction = (command) => {
   const { action, resume } = command
+  
+  // 全局防抖检查
+  if (operationLoading.value[action]) {
+    return
+  }
+  
   switch (action) {
     case 'preview':
+      // 检查是否支持预览
+      if (!resume.previewEnabled) {
+        ElMessage.warning('该简历不支持预览功能')
+        return
+      }
       handlePreview(resume)
       break
     case 'edit':
@@ -462,9 +571,33 @@ const handleResumeAction = (command) => {
   }
 }
 
-const handlePreview = (resume = selectedResume.value) => {
+const handlePreview = async (resume = selectedResume.value) => {
   if (!resume) return
-  ElMessage.info(`预览简历：${resume.title}`)
+  
+  // 防抖：如果正在加载，直接返回
+  if (operationLoading.value.preview) return
+  
+  try {
+    operationLoading.value.preview = true
+    previewLoading.value = true
+    const response = await getResumePreviewUrl(resume.id)
+    const data = response?.data || response
+    
+    if (data.code === 200 && data.data?.previewUrl) {
+      previewUrl.value = data.data.previewUrl
+      previewDialogVisible.value = true
+    } else {
+      ElMessage.error(data.message || '获取预览地址失败')
+    }
+  } catch (error) {
+    console.error('获取预览地址失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('获取预览地址失败，请重试')
+    }
+  } finally {
+    operationLoading.value.preview = false
+    previewLoading.value = false
+  }
 }
 
 const handleEdit = (resume = selectedResume.value) => {
@@ -482,7 +615,16 @@ const handleAnalyze = (resume = selectedResume.value) => {
   ElMessage.info(`分析简历：${resume.title}`)
 }
 
+const openInNewTab = () => {
+  if (previewUrl.value) {
+    window.open(previewUrl.value, '_blank')
+  }
+}
+
 const handleDelete = async (resume) => {
+  // 防抖：如果正在删除，直接返回
+  if (operationLoading.value.delete) return
+  
   try {
     await ElMessageBox.confirm(
       `确定要删除简历"${resume.title}"吗？`,
@@ -495,6 +637,7 @@ const handleDelete = async (resume) => {
     )
     
     // 调用删除API
+    operationLoading.value.delete = true
     const response = await deleteResumes([resume.id])
     const data = response?.data || response
     
@@ -514,6 +657,8 @@ const handleDelete = async (resume) => {
         ElMessage.error('删除失败，请重试')
       }
     }
+  } finally {
+    operationLoading.value.delete = false
   }
 }
 
@@ -604,7 +749,11 @@ const stopPolling = () => {
 
 // 上传相关方法
 async function customUpload(option) {
+  // 防抖：如果正在上传，直接返回
+  if (operationLoading.value.upload) return
+  
   try {
+    operationLoading.value.upload = true
     const response = await uploadResume(option.file)
     // 兼容axios返回格式
     const data = response?.data || response
@@ -625,11 +774,13 @@ async function customUpload(option) {
       // 不再调用 option.onError，否则会触发 catch
     }
   } catch (e) {
-    // 只对非全局登录拦截类错误弹窗
+    // 只对非全局登录类错误弹窗
     if (!e.isAuth) {
       ElMessage.error('上传失败，请重试')
     }
     option.onError(e)
+  } finally {
+    operationLoading.value.upload = false
   }
 }
 
@@ -991,6 +1142,70 @@ function submitUpload() {
 
 .el-upload__tip {
   color: #7f8c8d;
+}
+
+/* 禁用状态样式 */
+.disabled-item {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabled-item:hover {
+  background-color: transparent !important;
+}
+
+/* 预览对话框样式 */
+.preview-dialog {
+}
+
+.preview-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #64748b;
+}
+
+.preview-container {
+  height: 600px;
+  overflow: hidden;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* 全局加载遮罩 */
+.global-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.loading-content p {
+  margin: 0;
+  color: #606266;
+  font-size: 14px;
 }
 
 /* 响应式设计 */

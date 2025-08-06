@@ -20,3 +20,5 @@ export const RESUME_METADATA_URL = `${RESUME_API}/getMyResume`;
 export const RESUME_METADATA_ASYNC_URL = `${RESUME_API}/queryResumeAsyncUploadResult`;
 // 简历删除
 export const RESUME_DELETE_URL = `${RESUME_API}/delete`;
+// 简历预览
+export const RESUME_PREVIEW_URL = `${RESUME_API}/preview`;

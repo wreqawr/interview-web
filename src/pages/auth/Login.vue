@@ -103,7 +103,16 @@
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" class="modern-login-btn" size="large" @click="onLogin">登录</el-button>
+              <el-button 
+                type="primary" 
+                class="modern-login-btn" 
+                size="large" 
+                :loading="loginLoading"
+                :disabled="loginLoading"
+                @click="onLogin"
+              >
+                {{ loginLoading ? '登录中...' : '登录' }}
+              </el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -139,6 +148,7 @@ const rules = {
 const captchaUrl = ref('')
 const captchaId = ref('')
 const showPassword = ref(false)
+const loginLoading = ref(false)
 
 // 初始化验证码
 onMounted(async () => {
@@ -160,9 +170,13 @@ async function refreshCaptcha() {
 const loginForm = ref(null)
 
 async function onLogin() {
+  // 防抖：如果正在登录，直接返回
+  if (loginLoading.value) return
+  
   loginForm.value.validate(async (valid) => {
     if (valid) {
       try {
+        loginLoading.value = true
         // 第一步：获取公钥
         const publicKey = await getPublicKey()
         // 第二步：拼接密码和20位时间戳并加密
@@ -199,6 +213,8 @@ async function onLogin() {
         await refreshCaptcha()
         form.value.password = ''
         form.value.captcha = ''
+      } finally {
+        loginLoading.value = false
       }
     }
   })

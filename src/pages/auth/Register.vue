@@ -105,7 +105,16 @@
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" class="modern-login-btn" size="large" @click="onRegister">注册</el-button>
+              <el-button 
+                type="primary" 
+                class="modern-login-btn" 
+                size="large" 
+                :loading="registerLoading"
+                :disabled="registerLoading"
+                @click="onRegister"
+              >
+                {{ registerLoading ? '注册中...' : '注册' }}
+              </el-button>
             </el-form-item>
             <el-form-item>
               <a class="register-link" @click.prevent="goLogin">已有账号？立即登录</a>
@@ -131,6 +140,7 @@ const registerForm = ref(null);
 const showPassword = ref(false);
 const captchaUrl = ref('');
 const captchaId = ref('');
+const registerLoading = ref(false);
 
 const form = ref({
   username: '',
@@ -171,9 +181,13 @@ async function refreshCaptcha() {
 }
 
 async function onRegister() {
+  // 防抖：如果正在注册，直接返回
+  if (registerLoading.value) return
+  
   registerForm.value.validate(async (valid) => {
     if (valid) {
       try {
+        registerLoading.value = true
         const publicKey = await getPublicKey();
         const timestamp = getTimestamp();
         const encryptedPwd = encryptPassword(publicKey, form.value.password + timestamp);
@@ -204,6 +218,8 @@ async function onRegister() {
       } catch (error) {
         ElMessage.error('注册失败，请稍后重试');
         await refreshCaptcha();
+      } finally {
+        registerLoading.value = false
       }
     }
   });
