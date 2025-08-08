@@ -46,16 +46,7 @@
           </div>
         </div>
       </div>
-      <div class="header-actions">
-        <el-button type="primary" size="large" @click="handleUpload">
-          <el-icon><Upload /></el-icon>
-          上传简历
-        </el-button>
-        <el-button type="success" size="large" @click="handleCreate">
-          <el-icon><Plus /></el-icon>
-          创建简历
-        </el-button>
-      </div>
+
     </div>
 
     <!-- 主要内容区域 -->
@@ -65,8 +56,19 @@
         <el-col :span="24">
           <div class="resume-list-section">
             <div class="section-header">
-              <h2 class="section-title">我的简历</h2>
-              <div class="section-actions">
+              <div class="section-title-area">
+                <h2 class="section-title">我的简历</h2>
+              </div>
+              <div class="section-center">
+                <div class="select-all-area">
+                  <el-checkbox 
+                    v-model="selectAll"
+                    :indeterminate="isIndeterminate"
+                    @change="handleSelectAll"
+                  >
+                    全选
+                  </el-checkbox>
+                </div>
                 <el-select v-model="sortBy" placeholder="排序方式" size="small">
                   <el-option label="最新创建" value="createTime" />
                   <el-option label="最近修改" value="updateTime" />
@@ -76,12 +78,42 @@
                   v-model="searchKeyword"
                   placeholder="搜索简历"
                   size="small"
-                  style="width: 200px; margin-left: 10px;"
+                  style="width: 200px;"
                 >
                   <template #prefix>
                     <el-icon><Search /></el-icon>
                   </template>
                 </el-input>
+              </div>
+              <div class="action-buttons-section">
+                <el-button type="primary" size="small" @click="handleUpload">
+                  <el-icon><Upload /></el-icon>
+                  上传简历
+                </el-button>
+                <el-button type="success" size="small" @click="handleCreate">
+                  <el-icon><Plus /></el-icon>
+                  创建简历
+                </el-button>
+                <el-button 
+                  type="warning" 
+                  size="small" 
+                  @click="handleBatchDownload"
+                  :disabled="selectedResumes.length === 0 || operationLoading.download"
+                  :loading="operationLoading.download"
+                >
+                  <el-icon><Download /></el-icon>
+                  {{ operationLoading.download ? '下载中...' : `批量下载 (${selectedResumes.length})` }}
+                </el-button>
+                <el-button 
+                  type="danger" 
+                  size="small" 
+                  @click="handleBatchDelete"
+                  :disabled="selectedResumes.length === 0 || operationLoading.delete"
+                  :loading="operationLoading.delete"
+                >
+                  <el-icon><Delete /></el-icon>
+                  {{ operationLoading.delete ? '删除中...' : `批量删除 (${selectedResumes.length})` }}
+                </el-button>
               </div>
             </div>
 
@@ -101,10 +133,16 @@
                 :key="resume.id"
                 class="resume-card"
                 :class="{ active: selectedResume?.id === resume.id }"
-                @click="selectResume(resume)"
               >
                 <div class="resume-card-header">
-                  <div class="resume-title">
+                  <div class="resume-selection">
+                    <el-checkbox 
+                      v-model="resume.selected" 
+                      @change="updateSelectedResumes"
+                      @click.stop
+                    />
+                  </div>
+                  <div class="resume-title" @click="selectResume(resume)">
                     <h3>{{ resume.title }}</h3>
                     <el-tag 
                       :type="resume.status === 'active' ? 'success' : 'info'" 
@@ -113,94 +151,103 @@
                       {{ resume.status === 'active' ? '当前使用' : '历史版本' }}
                     </el-tag>
                   </div>
-                  <div class="resume-actions">
-                    <el-dropdown trigger="click" @command="handleResumeAction">
-                      <el-button type="text" size="small">
-                        <el-icon><MoreFilled /></el-icon>
-                      </el-button>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item 
-                            :command="{ action: 'preview', resume }"
-                            :disabled="!resume.previewEnabled || operationLoading.preview"
-                            :class="{ 'disabled-item': !resume.previewEnabled || operationLoading.preview }"
-                          >
-                            <el-icon>
-                              <View v-if="resume.previewEnabled && !operationLoading.preview" />
-                              <Lock v-else-if="!resume.previewEnabled" />
-                              <Loading v-else class="is-loading" />
-                            </el-icon>
-                            {{ 
-                              !resume.previewEnabled ? '预览 (不支持)' : 
-                              operationLoading.preview ? '预览中...' : '预览' 
-                            }}
-                          </el-dropdown-item>
-                          <el-dropdown-item :command="{ action: 'edit', resume }">
-                            <el-icon><Edit /></el-icon>编辑
-                          </el-dropdown-item>
-                          <el-dropdown-item :command="{ action: 'download', resume }">
-                            <el-icon><Download /></el-icon>下载
-                          </el-dropdown-item>
-                          <el-dropdown-item :command="{ action: 'analyze', resume }">
-                            <el-icon><DataAnalysis /></el-icon>分析
-                          </el-dropdown-item>
-                          <el-dropdown-item 
-                            divided 
-                            :command="{ action: 'delete', resume }"
-                            :disabled="operationLoading.delete"
-                            :class="{ 'disabled-item': operationLoading.delete }"
-                          >
-                            <el-icon>
-                              <Delete v-if="!operationLoading.delete" />
-                              <Loading v-else class="is-loading" />
-                            </el-icon>
-                            {{ operationLoading.delete ? '删除中...' : '删除' }}
-                          </el-dropdown-item>
-                        </el-dropdown-menu>
-                      </template>
-                    </el-dropdown>
-                  </div>
                 </div>
 
-                <div class="resume-card-content">
-                  <div class="resume-info">
-                    <div class="info-item">
-                      <span class="label">格式：</span>
-                      <span class="value">{{ resume.format }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">大小：</span>
-                      <span class="value">{{ resume.size }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">创建时间：</span>
-                      <span class="value">{{ resume.createTime }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">最后修改：</span>
-                      <span class="value">{{ resume.updateTime }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">文件哈希：</span>
-                      <span class="value sha256-value">{{ resume.sha256 }}</span>
-                    </div>
-                    <div class="info-item">
-                      <span class="label">预览支持：</span>
-                      <span class="value">
-                        <el-tag 
-                          :type="resume.previewEnabled ? 'success' : 'info'" 
-                          size="small"
-                        >
-                          {{ resume.previewEnabled ? '支持预览' : '不支持预览' }}
-                        </el-tag>
-                      </span>
+                <div class="resume-card-body">
+                  <div class="resume-content">
+                    <div class="resume-info">
+                      <div class="info-item">
+                        <span class="label">格式：</span>
+                        <span class="value">{{ resume.format }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">大小：</span>
+                        <span class="value">{{ resume.size }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">创建时间：</span>
+                        <span class="value">{{ resume.createTime }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">最后修改：</span>
+                        <span class="value">{{ resume.updateTime }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">文件哈希：</span>
+                        <span class="value sha256-value">{{ resume.sha256 }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">预览支持：</span>
+                        <span class="value">
+                          <el-tag 
+                            :type="resume.previewEnabled ? 'success' : 'info'" 
+                            size="small"
+                          >
+                            {{ resume.previewEnabled ? '支持预览' : '不支持预览' }}
+                          </el-tag>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div class="resume-preview">
-                    <div class="preview-placeholder">
-                      <el-icon><Document /></el-icon>
-                      <span>点击预览</span>
+                  <div class="resume-actions">
+                    <div class="action-items">
+                      <div 
+                        class="action-item preview"
+                        @click="handlePreview(resume)"
+                        :class="{ disabled: !resume.previewEnabled || operationLoading.preview, 'no-preview': !resume.previewEnabled }"
+                      >
+                        <el-icon>
+                          <View v-if="resume.previewEnabled && !operationLoading.preview" />
+                          <Lock v-else-if="!resume.previewEnabled" />
+                          <Loading v-else class="is-loading" />
+                        </el-icon>
+                        <span>{{ 
+                          operationLoading.preview ? '预览中...' : '预览' 
+                        }}</span>
+                      </div>
+                      <div 
+                        class="action-item edit"
+                        @click="handleEdit(resume)"
+                        :class="{ disabled: true, 'dev-in-progress': true }"
+                      >
+                        <el-icon><Edit /></el-icon>
+                        <span>编辑</span>
+                      </div>
+                      <div 
+                        class="action-item download"
+                        @click="handleDownload(resume)"
+                        :class="{ disabled: operationLoading.download }"
+                      >
+                        <el-icon>
+                          <Download v-if="!operationLoading.download" />
+                          <Loading v-else class="is-loading" />
+                        </el-icon>
+                        <span>{{ operationLoading.download ? '下载中...' : '下载' }}</span>
+                      </div>
+                      <div 
+                        class="action-item analyze"
+                        @click="handleAnalyze(resume)"
+                        :class="{ disabled: operationLoading.analyze && analyzingResumeId === resume.id }"
+                      >
+                        <el-icon>
+                          <DataAnalysis v-if="!(operationLoading.analyze && analyzingResumeId === resume.id)" />
+                          <Loading v-else class="is-loading" />
+                        </el-icon>
+                        <span>{{ 
+                          operationLoading.analyze && analyzingResumeId === resume.id ? '分析中' : '分析' 
+                        }}</span>
+                      </div>
+                      <div 
+                        class="action-item delete"
+                        @click="handleDelete(resume)"
+                        :class="{ disabled: operationLoading.delete }"
+                      >
+                        <el-icon>
+                          <Delete v-if="!operationLoading.delete" />
+                          <Loading v-else class="is-loading" />
+                        </el-icon>
+                        <span>{{ operationLoading.delete ? '删除中...' : '删除' }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -318,6 +365,39 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 分析对话框 -->
+    <el-dialog 
+      v-model="analyzeDialogVisible" 
+      title="简历分析" 
+      width="90%" 
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
+      class="analyze-dialog"
+    >
+      <div v-if="analyzeLoading" class="analyze-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <p>正在分析简历...</p>
+      </div>
+      <div v-else-if="analyzeHtml" class="analyze-container">
+        <iframe 
+          :srcdoc="analyzeHtml" 
+          class="analyze-iframe"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="analyzeDialogVisible = false">关闭</el-button>
+          <el-button 
+            type="primary" 
+            @click="openAnalyzeInNewTab"
+          >
+            在新窗口打开
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
     
     <!-- 全局加载遮罩 -->
     <div 
@@ -335,7 +415,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl } from '@/api/resume'
+import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl, getResumeDownloadUrls, analyzeResume } from '@/api/resume'
 import {
   Upload,
   Plus,
@@ -344,7 +424,7 @@ import {
   View,
   Star,
   Search,
-  MoreFilled,
+
   Edit,
   Download,
   DataAnalysis,
@@ -362,19 +442,29 @@ const uploadDialogVisible = ref(false)
 const uploadFiles = ref([])
 const uploadRef = ref()
 const loading = ref(false)
-const pollingInterval = ref(null) // 轮询定时器
+// 轮询任务管理：使用Map存储每个任务的轮询定时器
+const pollingTasks = ref(new Map()) // 存储 {taskId: {interval, pollCount, resumeId}}
+
 
 // 预览相关
 const previewDialogVisible = ref(false)
 const previewUrl = ref('')
 const previewLoading = ref(false)
 
+// 分析相关
+const analyzeDialogVisible = ref(false)
+const analyzeHtml = ref('')
+const analyzeLoading = ref(false)
+const analyzingResumeId = ref(null) // 当前正在分析的简历ID
+
 // 操作状态控制
 const operationLoading = ref({
   preview: false,
   delete: false,
   upload: false,
-  refresh: false
+  refresh: false,
+  download: false,
+  analyze: false
 })
 
 // 分页相关
@@ -428,6 +518,7 @@ const transformResumeData = (backendData) => {
       downloadCount: resume.downloadCount || 0,
       score: resume.rate || 0,
       previewEnabled: resume.previewEnabled || false,
+      selected: false, // 添加选择状态
       // 保存原始数据用于详情展示
       originalData: resume
     }
@@ -467,9 +558,9 @@ onMounted(() => {
   fetchResumeList()
 })
 
-// 组件卸载时清理轮询定时器
+// 组件卸载时清理所有轮询定时器
 onUnmounted(() => {
-  stopPolling()
+  stopAllPolling()
 })
 
 // 计算属性
@@ -524,9 +615,185 @@ const isAnyOperationLoading = computed(() => {
   return Object.values(operationLoading.value).some(loading => loading)
 })
 
+// 选中的简历列表
+const selectedResumes = computed(() => {
+  return resumes.value.filter(resume => resume.selected)
+})
+
+// 全选状态
+const selectAll = computed({
+  get() {
+    return paginatedResumes.value.length > 0 && paginatedResumes.value.every(resume => resume.selected)
+  },
+  set(value) {
+    paginatedResumes.value.forEach(resume => {
+      resume.selected = value
+    })
+  }
+})
+
+// 半选状态（部分选中）
+const isIndeterminate = computed(() => {
+  const selectedCount = paginatedResumes.value.filter(resume => resume.selected).length
+  return selectedCount > 0 && selectedCount < paginatedResumes.value.length
+})
+
 // 方法
 const selectResume = (resume) => {
   selectedResume.value = resume
+}
+
+const updateSelectedResumes = () => {
+  // 这个方法会在复选框状态改变时被调用
+  // 主要用于触发响应式更新
+}
+
+const handleSelectAll = (value) => {
+  // 全选/取消全选当前页面的简历
+  paginatedResumes.value.forEach(resume => {
+    resume.selected = value
+  })
+}
+
+const handleBatchDownload = async () => {
+  if (selectedResumes.value.length === 0) {
+    ElMessage.warning('请先选择要下载的简历')
+    return
+  }
+  
+  // 防抖：如果正在下载，直接返回
+  if (operationLoading.value.download) return
+  
+  try {
+    operationLoading.value.download = true
+    
+    // 获取选中的简历ID列表
+    const resumeIds = selectedResumes.value.map(resume => resume.id)
+    
+    // 获取下载链接
+    const response = await getResumeDownloadUrls(resumeIds)
+    const data = response?.data || response
+    
+    if (data.code === 200 && data.data && data.data.length > 0) {
+      // 限制同时下载的文件数量为3个
+      const maxConcurrentDownloads = 3
+      const downloadInfos = data.data
+      
+      // 分批下载，每批最多3个文件
+      for (let i = 0; i < downloadInfos.length; i += maxConcurrentDownloads) {
+        const batch = downloadInfos.slice(i, i + maxConcurrentDownloads)
+        
+        // 并发下载当前批次
+        const downloadPromises = batch.map(downloadInfo => {
+          return new Promise((resolve) => {
+            const { downloadUrl, downloadFileName } = downloadInfo
+            
+            // 使用fetch下载文件并设置正确的文件名
+            fetch(downloadUrl)
+              .then(fileResponse => {
+                if (fileResponse.ok) {
+                  return fileResponse.blob()
+                } else {
+                  throw new Error('文件下载失败')
+                }
+              })
+              .then(blob => {
+                // 创建下载链接
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = downloadFileName
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                
+                // 清理URL对象
+                window.URL.revokeObjectURL(url)
+                
+                // 显示下载成功消息
+                ElMessage.success(`${downloadFileName}下载成功！`)
+                resolve()
+              })
+              .catch(error => {
+                console.error(`下载文件失败: ${downloadFileName}`, error)
+                ElMessage.error(`${downloadFileName}下载失败`)
+                resolve()
+              })
+          })
+        })
+        
+        // 等待当前批次完成
+        await Promise.all(downloadPromises)
+        
+        // 如果不是最后一批，等待一小段时间再下载下一批
+        if (i + maxConcurrentDownloads < downloadInfos.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+      }
+      
+      ElMessage.success(`批量下载完成，共下载 ${downloadInfos.length} 个文件`)
+    } else {
+      ElMessage.error(data.message || '获取下载链接失败')
+    }
+  } catch (error) {
+    console.error('批量下载简历失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('批量下载失败，请重试')
+    }
+  } finally {
+    operationLoading.value.download = false
+  }
+}
+
+const handleBatchDelete = async () => {
+  if (selectedResumes.value.length === 0) {
+    ElMessage.warning('请先选择要删除的简历')
+    return
+  }
+  
+  // 防抖：如果正在删除，直接返回
+  if (operationLoading.value.delete) return
+  
+  try {
+    // 确认删除
+    const resumeNames = selectedResumes.value.map(resume => resume.title).join('、')
+    await ElMessageBox.confirm(
+      `确定要删除以下简历吗？\n${resumeNames}`,
+      '确认批量删除',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: false,
+        customClass: 'batch-delete-dialog'
+      }
+    )
+    
+    // 调用删除API
+    operationLoading.value.delete = true
+    const resumeIds = selectedResumes.value.map(resume => resume.id)
+    const response = await deleteResumes(resumeIds)
+    const data = response?.data || response
+    
+    if (data.code === 200) {
+      ElMessage.success(`批量删除成功，共删除 ${selectedResumes.value.length} 个简历`)
+      // 重新加载简历列表
+      await fetchResumeList()
+    } else {
+      ElMessage.error(data.message || '批量删除失败')
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      ElMessage.info('已取消批量删除')
+    } else {
+      console.error('批量删除简历失败:', error)
+      if (!error.isAuth) {
+        ElMessage.error('批量删除失败，请重试')
+      }
+    }
+  } finally {
+    operationLoading.value.delete = false
+  }
 }
 
 const handleUpload = () => {
@@ -539,37 +806,7 @@ const handleCreate = () => {
   ElMessage.info('创建简历功能开发中...')
 }
 
-const handleResumeAction = (command) => {
-  const { action, resume } = command
-  
-  // 全局防抖检查
-  if (operationLoading.value[action]) {
-    return
-  }
-  
-  switch (action) {
-    case 'preview':
-      // 检查是否支持预览
-      if (!resume.previewEnabled) {
-        ElMessage.warning('该简历不支持预览功能')
-        return
-      }
-      handlePreview(resume)
-      break
-    case 'edit':
-      handleEdit(resume)
-      break
-    case 'download':
-      handleDownload(resume)
-      break
-    case 'analyze':
-      handleAnalyze(resume)
-      break
-    case 'delete':
-      handleDelete(resume)
-      break
-  }
-}
+
 
 const handlePreview = async (resume = selectedResume.value) => {
   if (!resume) return
@@ -605,19 +842,107 @@ const handleEdit = (resume = selectedResume.value) => {
   ElMessage.info(`编辑简历：${resume.title}`)
 }
 
-const handleDownload = (resume = selectedResume.value) => {
+const handleDownload = async (resume = selectedResume.value) => {
   if (!resume) return
-  ElMessage.success(`下载简历：${resume.title}`)
+  
+  // 防抖：如果正在下载，直接返回
+  if (operationLoading.value.download) return
+  
+  try {
+    operationLoading.value.download = true
+    
+    // 获取下载链接
+    const response = await getResumeDownloadUrls([resume.id])
+    const data = response?.data || response
+    
+    if (data.code === 200 && data.data && data.data.length > 0) {
+      // 获取下载信息
+      const downloadInfo = data.data[0]
+      const { downloadUrl, downloadFileName } = downloadInfo
+      
+      // 使用fetch下载文件并设置正确的文件名
+      const fileResponse = await fetch(downloadUrl)
+      if (fileResponse.ok) {
+        const blob = await fileResponse.blob()
+        
+        // 创建下载链接
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = downloadFileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        
+        // 清理URL对象
+        window.URL.revokeObjectURL(url)
+        
+        ElMessage.success(`${downloadFileName}下载成功！`)
+      } else {
+        ElMessage.error('文件下载失败')
+      }
+    } else {
+      ElMessage.error(data.message || '获取下载链接失败')
+    }
+  } catch (error) {
+    console.error('下载简历失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('下载失败，请重试')
+    }
+  } finally {
+    operationLoading.value.download = false
+  }
 }
 
-const handleAnalyze = (resume = selectedResume.value) => {
+const handleAnalyze = async (resume = selectedResume.value) => {
   if (!resume) return
-  ElMessage.info(`分析简历：${resume.title}`)
+  
+  // 防抖：如果正在分析，直接返回
+  if (operationLoading.value.analyze) return
+  
+  try {
+    operationLoading.value.analyze = true
+    analyzingResumeId.value = resume.id
+    analyzeLoading.value = true
+    
+    const response = await analyzeResume(resume.id)
+    const data = response?.data || response
+    
+    if (data.code === 200) {
+      // 分析成功，显示结果
+      ElMessage.success(data.message || '简历分析成功')
+      analyzeHtml.value = data.data
+      analyzeDialogVisible.value = true
+    } else if (data.code === 900) {
+      // 异步任务正在执行中
+      ElMessage.info(data.message || '正在后台分析中，请稍后！')
+    } else {
+      // 其他错误情况
+      ElMessage.error(data.message || '简历分析失败')
+    }
+  } catch (error) {
+    console.error('简历分析失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('简历分析失败，请重试')
+    }
+  } finally {
+    operationLoading.value.analyze = false
+    analyzingResumeId.value = null
+    analyzeLoading.value = false
+  }
 }
 
 const openInNewTab = () => {
   if (previewUrl.value) {
     window.open(previewUrl.value, '_blank')
+  }
+}
+
+const openAnalyzeInNewTab = () => {
+  if (analyzeHtml.value) {
+    const newWindow = window.open('', '_blank')
+    newWindow.document.write(analyzeHtml.value)
+    newWindow.document.close()
   }
 }
 
@@ -674,10 +999,16 @@ const handleCurrentChange = (newPage) => {
 
 // 轮询查询简历异步上传结果
 const startPolling = async (taskId, resumeId) => {
-  // 清除之前的轮询
-  stopPolling()
+  // 如果该任务已经在轮询中，先停止
+  stopPolling(taskId)
   
-  let pollCount = 0 // 轮询次数计数器
+  // 创建新的轮询任务
+  const taskInfo = {
+    interval: null,
+    pollCount: 0,
+    resumeId: resumeId
+  }
+  pollingTasks.value.set(taskId, taskInfo)
   
   const poll = async () => {
     try {
@@ -686,7 +1017,7 @@ const startPolling = async (taskId, resumeId) => {
       
       if (data.code === 200) {
         // 异步任务成功结束
-        stopPolling()
+        stopPolling(taskId)
         ElMessage.success('简历已解析完毕')
         
         // 将新解析的简历添加到列表开头
@@ -698,38 +1029,36 @@ const startPolling = async (taskId, resumeId) => {
         
       } else if (data.code === 900) {
         // 异步任务还在执行中，继续轮询
-        pollCount++
-        console.log(`简历解析中，第${pollCount}次轮询，继续等待...`)
+        taskInfo.pollCount++
+        console.log(`任务 ${taskId} 解析中，第${taskInfo.pollCount}次轮询，继续等待...`)
         
         // 根据轮询次数设置不同的间隔
-        if (pollCount === 1) {
+        if (taskInfo.pollCount === 1) {
           // 第一次轮询后，等待10秒进行第二次轮询
-          stopPolling()
-          pollingInterval.value = setTimeout(() => {
+          taskInfo.interval = setTimeout(() => {
             poll()
           }, 10000)
         } else {
           // 第二次轮询后，每5秒轮询一次
-          stopPolling()
-          pollingInterval.value = setInterval(poll, 5000)
+          taskInfo.interval = setInterval(poll, 5000)
         }
         
       } else if (data.code === 901) {
         // 异步任务结束但有错误
-        stopPolling()
+        stopPolling(taskId)
         ElMessage.error(data.message || '简历解析失败')
         
       } else {
         // 其他错误情况
-        stopPolling()
+        stopPolling(taskId)
         ElMessage.error(data.message || '查询解析状态失败')
       }
     } catch (error) {
-      console.error('轮询查询失败:', error)
+      console.error(`任务 ${taskId} 轮询查询失败:`, error)
       if (!error.isAuth) {
         ElMessage.error('查询解析状态失败，请重试')
       }
-      stopPolling()
+      stopPolling(taskId)
     }
   }
   
@@ -739,13 +1068,34 @@ const startPolling = async (taskId, resumeId) => {
   }, 2000)
 }
 
-// 停止轮询
-const stopPolling = () => {
-  if (pollingInterval.value) {
-    clearInterval(pollingInterval.value)
-    pollingInterval.value = null
+// 停止指定任务的轮询
+const stopPolling = (taskId) => {
+  const taskInfo = pollingTasks.value.get(taskId)
+  if (taskInfo && taskInfo.interval) {
+    if (taskInfo.interval._destroyed) {
+      clearTimeout(taskInfo.interval)
+    } else {
+      clearInterval(taskInfo.interval)
+    }
+    pollingTasks.value.delete(taskId)
   }
 }
+
+// 停止所有轮询
+const stopAllPolling = () => {
+  pollingTasks.value.forEach((taskInfo) => {
+    if (taskInfo.interval) {
+      if (taskInfo.interval._destroyed) {
+        clearTimeout(taskInfo.interval)
+      } else {
+        clearInterval(taskInfo.interval)
+      }
+    }
+  })
+  pollingTasks.value.clear()
+}
+
+
 
 // 上传相关方法
 async function customUpload(option) {
@@ -843,6 +1193,8 @@ function submitUpload() {
 .header-stats {
   display: flex;
   align-items: center;
+  margin-left: 150px;
+  margin-right: 20px;
 }
 
 .stat-cards-row {
@@ -862,13 +1214,6 @@ function submitUpload() {
   color: #7f8c8d;
   margin: 0;
   white-space: nowrap;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-left: auto;
 }
 
 /* 统计卡片样式已在页面头部中定义 */
@@ -946,6 +1291,18 @@ function submitUpload() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  position: relative;
+}
+
+.section-title-area {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.select-all-area {
+  display: flex;
+  align-items: center;
 }
 
 .section-title {
@@ -953,11 +1310,6 @@ function submitUpload() {
   font-weight: 600;
   color: #2c3e50;
   margin: 0;
-}
-
-.section-actions {
-  display: flex;
-  align-items: center;
 }
 
 /* 加载和空状态 */
@@ -1017,6 +1369,16 @@ function submitUpload() {
   margin-bottom: 12px;
 }
 
+.resume-card-body {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.resume-content {
+  flex: 1;
+}
+
 .resume-title h3 {
   font-size: 18px;
   font-weight: 700;
@@ -1024,14 +1386,8 @@ function submitUpload() {
   margin: 0 0 6px 0;
 }
 
-.resume-card-content {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
 .resume-info {
-  flex: 1;
+  width: 100%;
 }
 
 .info-item {
@@ -1060,24 +1416,7 @@ function submitUpload() {
   font-weight: 400 !important;
 }
 
-.resume-preview {
-  width: 100px;
-  height: 70px;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f9fa;
-}
 
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #94a3b8;
-  font-size: 11px;
-}
 
 .resume-card-footer {
   display: flex;
@@ -1145,14 +1484,6 @@ function submitUpload() {
 }
 
 /* 禁用状态样式 */
-.disabled-item {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.disabled-item:hover {
-  background-color: transparent !important;
-}
 
 /* 预览对话框样式 */
 .preview-dialog {
@@ -1167,12 +1498,227 @@ function submitUpload() {
   color: #64748b;
 }
 
+/* 中间区域样式 */
+.section-center {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 操作按钮区域样式 */
+.action-buttons-section {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* 简历选择样式 */
+.resume-selection {
+  display: flex;
+  align-items: center;
+  margin-right: 12px;
+}
+
+.resume-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.resume-title {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resume-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.action-item {
+  width: 80px;
+  height: 28px;
+  font-size: 12px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  white-space: nowrap;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.action-item:hover {
+  opacity: 0.8;
+}
+
+.action-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 预览按钮 - 蓝色 */
+.action-item.preview {
+  background: #409eff;
+}
+
+/* 编辑按钮 - 绿色 */
+.action-item.edit {
+  background: #67c23a;
+}
+
+/* 下载按钮 - 橙色 */
+.action-item.download {
+  background: #e6a23c;
+}
+
+/* 分析按钮 - 灰色 */
+.action-item.analyze {
+  background: #909399;
+}
+
+/* 删除按钮 - 红色 */
+.action-item.delete {
+  background: #f56c6c;
+}
+
+/* 预览按钮悬停提示 */
+.action-item.preview.no-preview {
+  position: relative;
+}
+
+.action-item.preview.no-preview::before {
+  content: '不支持预览';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.preview.no-preview::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.preview.no-preview:hover::before,
+.action-item.preview.no-preview:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 编辑按钮悬停提示 */
+.action-item.edit.dev-in-progress {
+  position: relative;
+}
+
+.action-item.edit.dev-in-progress::before {
+  content: '该功能正在开发中';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.edit.dev-in-progress::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.edit.dev-in-progress:hover::before,
+.action-item.edit.dev-in-progress:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 .preview-container {
   height: 600px;
   overflow: hidden;
 }
 
 .preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* 分析对话框样式 */
+.analyze-dialog {
+}
+
+.analyze-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #64748b;
+}
+
+.analyze-container {
+  height: 700px;
+  overflow: hidden;
+}
+
+.analyze-iframe {
   width: 100%;
   height: 100%;
   border: none;
@@ -1210,14 +1756,7 @@ function submitUpload() {
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .resume-card-content {
-    flex-direction: column;
-  }
-  
-  .resume-preview {
-    width: 100%;
-    height: 60px;
-  }
+
 }
 
 @media (max-width: 768px) {
@@ -1226,20 +1765,12 @@ function submitUpload() {
     gap: 16px;
     text-align: center;
   }
-  
-  .header-actions {
-    width: 100%;
-    justify-content: center;
-  }
-  
+
   .section-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  
-  .section-actions {
-    justify-content: space-between;
-  }
+
 }
 </style> 

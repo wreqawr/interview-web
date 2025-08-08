@@ -177,13 +177,20 @@ npm run build
 - **版本管理**：简历版本控制和历史记录
 - **防抖机制**：上传、删除、预览等操作防抖
 
-### 4. AI模拟面试
+### 4. 简历分析功能
+- **AI深度分析**：整体评分、核心优势、主要短板分析
+- **优化建议**：按优先级排序的改进建议
+- **提升潜力评估**：分析简历的提升空间和发展方向
+- **HTML报告展示**：在iframe中渲染分析结果
+- **新窗口查看**：支持在新窗口中打开完整报告
+
+### 5. AI模拟面试
 - **多场景面试模式**：技术面试、行为面试、压力测试
 - **实时音视频交互**：支持视频通话功能
 - **AI面试官问答**：智能问答系统
 - **表情情绪分析**：实时情绪识别
 
-### 5. 评估报告系统
+### 6. 评估报告系统
 - **多维度能力分析**：技能、经验、教育背景分析
 - **岗位匹配度评分**：智能匹配算法
 - **改进建议生成**：个性化改进建议
@@ -270,6 +277,8 @@ export const RESUME_METADATA_URL = `${RESUME_API}/getMyResume`;
 export const RESUME_METADATA_ASYNC_URL = `${RESUME_API}/queryResumeAsyncUploadResult`;
 export const RESUME_DELETE_URL = `${RESUME_API}/delete`;
 export const RESUME_PREVIEW_URL = `${RESUME_API}/preview`;
+export const RESUME_DOWNLOAD_URL = `${RESUME_API}/download`;
+export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 ```
 
 ## 开发指南

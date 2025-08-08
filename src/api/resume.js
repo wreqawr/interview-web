@@ -1,5 +1,5 @@
 import http from './http';
-import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL, RESUME_DELETE_URL, RESUME_PREVIEW_URL } from './endpoints';
+import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL, RESUME_DELETE_URL, RESUME_PREVIEW_URL, RESUME_DOWNLOAD_URL, RESUME_ANALYZE_URL, RESUME_ANALYZE_ASYNC_URL } from './endpoints';
 
 /**
  * 简历上传接口
@@ -41,7 +41,7 @@ export async function queryResumeAsyncResult(taskId, resumeId) {
  */
 export async function deleteResumes(resumeIds) {
   return await http.delete(RESUME_DELETE_URL, {
-    data: resumeIds
+    data:  resumeIds
   });
 }
 
@@ -52,4 +52,34 @@ export async function deleteResumes(resumeIds) {
  */
 export async function getResumePreviewUrl(resumeId) {
   return await http.get(`${RESUME_PREVIEW_URL}/${resumeId}`);
+}
+
+/**
+ * 获取简历下载链接接口
+ * @param {Array<string>} resumeIds - 简历ID数组
+ * @returns {Promise}
+ */
+export async function getResumeDownloadUrls(resumeIds) {
+  const params = new URLSearchParams();
+  resumeIds.forEach(id => params.append('resumeIds', id));
+  return await http.get(`${RESUME_DOWNLOAD_URL}?${params.toString()}`);
+}
+
+/**
+ * 简历分析接口
+ * @param {string} resumeId - 简历ID
+ * @returns {Promise}
+ */
+export async function analyzeResume(resumeId) {
+  return await http.get(`${RESUME_ANALYZE_URL}/${resumeId}`);
+}
+
+/**
+ * 查询简历异步分析结果接口
+ * @param {string} taskId - 任务ID
+ * @param {string} resumeId - 简历ID
+ * @returns {Promise}
+ */
+export async function queryResumeAnalyzeAsyncResult(taskId, resumeId) {
+  return await http.get(`${RESUME_ANALYZE_ASYNC_URL}/${taskId}/${resumeId}`);
 } 

@@ -22,3 +22,9 @@ export const RESUME_METADATA_ASYNC_URL = `${RESUME_API}/queryResumeAsyncUploadRe
 export const RESUME_DELETE_URL = `${RESUME_API}/delete`;
 // 简历预览
 export const RESUME_PREVIEW_URL = `${RESUME_API}/preview`;
+// 简历下载
+export const RESUME_DOWNLOAD_URL = `${RESUME_API}/download`;
+// 简历分析
+export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
+// 获取用户上传简历后的异步任务状态
+export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
