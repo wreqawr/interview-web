@@ -227,14 +227,18 @@
                       <div 
                         class="action-item analyze"
                         @click="handleAnalyze(resume)"
-                        :class="{ disabled: operationLoading.analyze && analyzingResumeId === resume.id }"
+                        :class="{ 
+                          disabled: (operationLoading.analyze && analyzingResumeId === resume.id) || resume.analyzing,
+                          'analyzing': resume.analyzing
+                        }"
                       >
                         <el-icon>
-                          <DataAnalysis v-if="!(operationLoading.analyze && analyzingResumeId === resume.id)" />
+                          <DataAnalysis v-if="!(operationLoading.analyze && analyzingResumeId === resume.id) && !resume.analyzing" />
                           <Loading v-else class="is-loading" />
                         </el-icon>
                         <span>{{ 
-                          operationLoading.analyze && analyzingResumeId === resume.id ? '分析中' : '分析' 
+                          (operationLoading.analyze && analyzingResumeId === resume.id) || resume.analyzing ? '分析中' : 
+                          resume.analyzeCompleted ? '分析结果' : '分析' 
                         }}</span>
                       </div>
                       <div 
@@ -280,7 +284,7 @@
                 <el-pagination
                   v-model:current-page="currentPage"
                   v-model:page-size="pageSize"
-                  :page-sizes="[2, 4, 6]"
+                  :page-sizes="[3, 5, 10]"
                   :total="filteredResumes.length"
                   layout="total, sizes, prev, pager, next, jumper"
                   @size-change="handleSizeChange"
@@ -415,7 +419,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl, getResumeDownloadUrls, analyzeResume } from '@/api/resume'
+import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl, getResumeDownloadUrls, analyzeResume, queryResumeAnalyzeAsyncResult } from '@/api/resume'
 import {
   Upload,
   Plus,
@@ -444,7 +448,8 @@ const uploadRef = ref()
 const loading = ref(false)
 // 轮询任务管理：使用Map存储每个任务的轮询定时器
 const pollingTasks = ref(new Map()) // 存储 {taskId: {interval, pollCount, resumeId}}
-
+// 分析轮询任务管理：使用Map存储每个分析任务的轮询定时器
+const analyzePollingTasks = ref(new Map()) // 存储 {taskId: {interval, pollCount, resumeId}}
 
 // 预览相关
 const previewDialogVisible = ref(false)
@@ -469,7 +474,7 @@ const operationLoading = ref({
 
 // 分页相关
 const currentPage = ref(1)
-const pageSize = ref(2)
+const pageSize = ref(3)
 
 // 简历数据
 const resumes = ref([])
@@ -519,6 +524,9 @@ const transformResumeData = (backendData) => {
       score: resume.rate || 0,
       previewEnabled: resume.previewEnabled || false,
       selected: false, // 添加选择状态
+      analyzing: resume.analyzing || false, // 从后端数据获取分析状态
+      analyzeCompleted: resume.analyzeCompleted || false, // 从后端数据获取分析完成状态
+      analyzeResult: null, // 存储该简历的分析结果
       // 保存原始数据用于详情展示
       originalData: resume
     }
@@ -539,6 +547,9 @@ const fetchResumeList = async () => {
       if (resumes.value.length > 0) {
         selectedResume.value = resumes.value[0]
       }
+      
+      // 暂时不自动检查分析状态，避免触发不必要的分析请求
+      // await checkResumeAnalysisStatus()
     } else {
       ElMessage.error(data.message || '获取简历列表失败')
     }
@@ -553,6 +564,8 @@ const fetchResumeList = async () => {
   }
 }
 
+
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchResumeList()
@@ -561,6 +574,7 @@ onMounted(() => {
 // 组件卸载时清理所有轮询定时器
 onUnmounted(() => {
   stopAllPolling()
+  stopAllAnalyzePolling()
 })
 
 // 计算属性
@@ -900,6 +914,31 @@ const handleAnalyze = async (resume = selectedResume.value) => {
   // 防抖：如果正在分析，直接返回
   if (operationLoading.value.analyze) return
   
+  // 如果简历正在分析中，不允许重复分析
+  if (resume.analyzing) {
+    ElMessage.warning('该简历正在分析中，请稍后重试')
+    return
+  }
+  
+  // 如果简历已经分析完成，直接显示结果
+  if (resume.analyzeCompleted) {
+    // 如果已经有分析结果，直接显示
+    if (resume.analyzeResult) {
+      analyzeHtml.value = resume.analyzeResult
+      analyzeDialogVisible.value = true
+      return
+    }
+    // 否则重新调用分析接口获取结果
+    ElMessage.info('正在获取分析结果...')
+    // 继续执行下面的分析逻辑
+  }
+  
+  // 如果简历正在分析中，检查后端状态
+  if (resume.analyzing) {
+    ElMessage.info('正在检查分析状态...')
+    // 继续执行下面的分析逻辑来检查状态
+  }
+  
   try {
     operationLoading.value.analyze = true
     analyzingResumeId.value = resume.id
@@ -913,9 +952,36 @@ const handleAnalyze = async (resume = selectedResume.value) => {
       ElMessage.success(data.message || '简历分析成功')
       analyzeHtml.value = data.data
       analyzeDialogVisible.value = true
+      
+      // 重置分析状态并设置分析完成状态
+      const targetResume = resumes.value.find(r => r.id === resume.id)
+      if (targetResume) {
+        targetResume.analyzing = false
+        targetResume.analyzeCompleted = true
+        targetResume.analyzeResult = data.data // 保存分析结果到对应简历
+      }
     } else if (data.code === 900) {
       // 异步任务正在执行中
       ElMessage.info(data.message || '正在后台分析中，请稍后！')
+      
+      // 设置简历为分析中状态
+      const targetResume = resumes.value.find(r => r.id === resume.id)
+      if (targetResume) {
+        targetResume.analyzing = true
+      }
+      
+      // 开始轮询查询分析结果（避免重复启动轮询）
+      if (data.data?.taskId) {
+        // 检查是否已经在轮询中
+        const existingTask = Array.from(analyzePollingTasks.value.values()).find(
+          task => task.resumeId === resume.id
+        )
+        if (!existingTask) {
+          await startAnalyzePolling(data.data.taskId, resume.id)
+        } else {
+          console.log(`简历 ${resume.id} 已在轮询中，跳过重复启动`)
+        }
+      }
     } else {
       // 其他错误情况
       ElMessage.error(data.message || '简历分析失败')
@@ -1040,7 +1106,9 @@ const startPolling = async (taskId, resumeId) => {
           }, 10000)
         } else {
           // 第二次轮询后，每5秒轮询一次
-          taskInfo.interval = setInterval(poll, 5000)
+          taskInfo.interval = setTimeout(() => {
+            poll()
+          }, 5000)
         }
         
       } else if (data.code === 901) {
@@ -1072,11 +1140,7 @@ const startPolling = async (taskId, resumeId) => {
 const stopPolling = (taskId) => {
   const taskInfo = pollingTasks.value.get(taskId)
   if (taskInfo && taskInfo.interval) {
-    if (taskInfo.interval._destroyed) {
-      clearTimeout(taskInfo.interval)
-    } else {
-      clearInterval(taskInfo.interval)
-    }
+    clearTimeout(taskInfo.interval)
     pollingTasks.value.delete(taskId)
   }
 }
@@ -1085,14 +1149,111 @@ const stopPolling = (taskId) => {
 const stopAllPolling = () => {
   pollingTasks.value.forEach((taskInfo) => {
     if (taskInfo.interval) {
-      if (taskInfo.interval._destroyed) {
-        clearTimeout(taskInfo.interval)
-      } else {
-        clearInterval(taskInfo.interval)
-      }
+      clearTimeout(taskInfo.interval)
     }
   })
   pollingTasks.value.clear()
+}
+
+// 分析轮询相关方法
+// 开始分析轮询查询
+const startAnalyzePolling = async (taskId, resumeId) => {
+  // 如果该任务已经在轮询中，先停止
+  stopAnalyzePolling(taskId)
+  
+  // 创建新的轮询任务
+  const taskInfo = {
+    interval: null,
+    pollCount: 0,
+    resumeId: resumeId
+  }
+  analyzePollingTasks.value.set(taskId, taskInfo)
+  
+  const poll = async () => {
+    try {
+      const response = await queryResumeAnalyzeAsyncResult(taskId, resumeId)
+      const data = response?.data || response
+      
+      if (data.code === 200) {
+        // 异步任务成功结束
+        stopAnalyzePolling(taskId)
+        ElMessage.success(data.message || '简历分析完成')
+        
+        // 重置分析状态并设置分析完成状态
+        const targetResume = resumes.value.find(r => r.id === resumeId)
+        if (targetResume) {
+          targetResume.analyzing = false
+          targetResume.analyzeCompleted = true
+          targetResume.analyzeResult = data.data // 保存分析结果到对应简历
+        }
+        
+      } else if (data.code === 901) {
+        // 异步任务结束但有错误
+        stopAnalyzePolling(taskId)
+        ElMessage.error(data.message || '简历分析失败')
+        
+        // 重置分析状态
+        const targetResume = resumes.value.find(r => r.id === resumeId)
+        if (targetResume) {
+          targetResume.analyzing = false
+        }
+        
+      } else {
+        // 异步任务还在执行中，继续轮询
+        taskInfo.pollCount++
+        console.log(`分析任务 ${taskId} 执行中，第${taskInfo.pollCount}次轮询，继续等待...`)
+        
+        // 根据轮询次数设置不同的间隔
+        if (taskInfo.pollCount === 1) {
+          // 第一次轮询后，等待10秒进行第二次轮询
+          taskInfo.interval = setTimeout(() => {
+            poll()
+          }, 10000)
+        } else {
+          // 第二次轮询后，每5秒轮询一次
+          taskInfo.interval = setTimeout(() => {
+            poll()
+          }, 5000)
+        }
+      }
+    } catch (error) {
+      console.error(`分析任务 ${taskId} 轮询查询失败:`, error)
+      if (!error.isAuth) {
+        ElMessage.error('查询分析状态失败，请重试')
+      }
+      stopAnalyzePolling(taskId)
+      
+      // 重置分析状态
+      const targetResume = resumes.value.find(r => r.id === resumeId)
+      if (targetResume) {
+        targetResume.analyzing = false
+      }
+    }
+  }
+  
+  // 等待2秒后开始第一次轮询
+  setTimeout(async () => {
+    await poll()
+  }, 2000)
+}
+
+// 停止指定分析任务的轮询
+const stopAnalyzePolling = (taskId) => {
+  const taskInfo = analyzePollingTasks.value.get(taskId)
+  if (taskInfo && taskInfo.interval) {
+    clearTimeout(taskInfo.interval)
+    analyzePollingTasks.value.delete(taskId)
+  }
+}
+
+// 停止所有分析轮询
+const stopAllAnalyzePolling = () => {
+  analyzePollingTasks.value.forEach((taskInfo) => {
+    if (taskInfo.interval) {
+      clearTimeout(taskInfo.interval)
+    }
+  })
+  analyzePollingTasks.value.clear()
 }
 
 
@@ -1685,6 +1846,49 @@ function submitUpload() {
 
 .action-item.edit.dev-in-progress:hover::before,
 .action-item.edit.dev-in-progress:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 分析按钮悬停提示 */
+.action-item.analyze.analyzing {
+  position: relative;
+}
+
+.action-item.analyze.analyzing::before {
+  content: '正在分析中，请稍等';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.analyze.analyzing::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.action-item.analyze.analyzing:hover::before,
+.action-item.analyze.analyzing:hover::after {
   opacity: 1;
   visibility: visible;
 }
