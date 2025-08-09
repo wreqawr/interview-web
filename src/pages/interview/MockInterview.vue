@@ -306,7 +306,7 @@ const hintList = [
 .chat-row.ai .avatar { background: #f59e0b; }
 .chat-row.user .avatar { background: #409eff; }
 .bubble { background: #fff; border-radius: 10px; padding: 10px 12px; max-width: 70%; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.chat-row.user { flex-direction: row-reverse; }
+
 .chat-row.user .bubble { background: #ecf5ff; }
 .meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .meta .time { color: #909399; font-size: 12px; }
