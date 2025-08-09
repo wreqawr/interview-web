@@ -48,6 +48,14 @@ const routes = [
     component: () => import('@/pages/interview/InterviewList.vue'),
     meta: { requiresAuth: true }
   },
+
+  // AI模拟面试页面
+  {
+    path: '/jobseeker/mock-interview',
+    name: 'MockInterview',
+    component: () => import('@/pages/interview/MockInterview.vue'),
+    meta: { requiresAuth: true }
+  },
   
   // 报告列表页面
   {
