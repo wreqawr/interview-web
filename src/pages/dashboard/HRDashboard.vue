@@ -202,43 +202,41 @@
         </div>
       </div>
 
-      <!-- HR助手对话框 -->
-      <el-dialog
-          v-model="assistantOpen"
-          title="HR智能助手"
-          width="400px"
-          :close-on-click-modal="true"
-          :close-on-press-escape="true"
-          class="assistant-dialog"
-          @close="closeAssistantDialog"
-      >
-        <div class="assistant-content">
-          <div class="chat-messages">
-            <div
-                v-for="message in assistantMessages"
-                :key="message.id"
-                class="message"
-                :class="message.type"
-            >
-              <div class="message-content">{{ message.content }}</div>
-              <div class="message-time">{{ message.time }}</div>
-            </div>
+      <!-- HR助手对话框 - 右侧弹出面板 -->
+      <div class="hr-assistant-panel" :class="{ active: assistantOpen }">
+        <div class="panel-header">
+          <div class="header-left">
+            <h3>HR智能助手</h3>
           </div>
-          <div class="quick-templates">
-            <h5>快速话术</h5>
-            <div class="template-buttons">
-              <el-button size="small" @click="useTemplate('interview')">面试邀请</el-button>
-              <el-button size="small" @click="useTemplate('rejection')">婉拒通知</el-button>
-              <el-button size="small" @click="useTemplate('offer')">Offer通知</el-button>
-            </div>
+          <div class="header-controls">
+            <button class="control-btn" @click="closeAssistantDialog">
+              <span>✕</span>
+            </button>
           </div>
         </div>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="closeAssistantDialog">关闭</el-button>
-          </span>
-        </template>
-      </el-dialog>
+        
+        <div class="panel-content">
+          <div class="welcome-message">
+            <div class="welcome-icon">⭐</div>
+            <div class="welcome-text">您好！我是您的智能招聘助手</div>
+            <div class="welcome-subtitle">有什么需要帮助的吗？</div>
+          </div>
+        </div>
+        
+        <div class="panel-input">
+          <div class="input-wrapper">
+            <textarea 
+              class="chat-input" 
+              placeholder="请将您遇到的问题告诉我，使用 Shift + Enter 换行"
+              v-model="inputMessage"
+              rows="3"
+            ></textarea>
+            <button class="send-btn" @click="handleSendMessage" :disabled="!inputMessage.trim()">
+              <span>✈️</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -270,7 +268,7 @@ export default {
         return userStore.userInfo.company.companyName
       }
       // 最后备用：显示默认名称
-      return '示例科技有限公司'
+      return ''
     })
 
     const userInfo = computed(() => userStore.getUserInfo || userStore.userInfo || {})
@@ -444,26 +442,8 @@ export default {
 
     // 智能助手
     const assistantOpen = ref(false)
-    const assistantMessages = ref([
-      {
-        id: 1,
-        type: 'assistant',
-        content: '您好！我是您的智能招聘助手，有什么需要帮助的吗？',
-        time: '刚刚'
-      },
-      {
-        id: 2,
-        type: 'user',
-        content: '帮我生成一个前端工程师的面试邀请',
-        time: '2分钟前'
-      },
-      {
-        id: 3,
-        type: 'assistant',
-        content: '好的，我已经为您生成了面试邀请模板，请查看并确认。',
-        time: '1分钟前'
-      }
-    ])
+    const inputMessage = ref('')
+
 
     const showAssistantDialog = () => {
       assistantOpen.value = true
@@ -473,16 +453,16 @@ export default {
       assistantOpen.value = false
     }
 
-    const useTemplate = (type) => {
-      const templates = {
-        interview: '面试邀请模板',
-        rejection: '婉拒通知模板',
-        offer: 'Offer通知模板'
-      }
-      // 这里可以集成后端模板系统
-      console.log(`使用${templates[type]}`)
+    const handleSendMessage = () => {
+      if (!inputMessage.value.trim()) return
+      
+      // 这里可以添加发送消息的逻辑
+      console.log('发送消息:', inputMessage.value)
+      
+      // 清空输入框
+      inputMessage.value = ''
     }
-
+    
     // 其他
     const currentDate = computed(() => {
       const now = new Date()
@@ -616,10 +596,10 @@ export default {
 
       // 助手
       assistantOpen,
-      assistantMessages,
+      inputMessage,
       showAssistantDialog,
       closeAssistantDialog,
-      useTemplate,
+      handleSendMessage,
 
       // 其他
       handleGlobalSearch,
@@ -788,23 +768,88 @@ html, body {
 
 .aside {
   height: calc(100vh - 100px);
-  padding: 12px;
+  padding: 16px;
   color: var(--text);
   position: sticky;
   top: 80px; /* 调整为与顶部导航栏高度一致 */
   overflow-y: auto;
   max-height: calc(100vh - 100px);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important; /* 增强背景对比度 */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: saturate(120%) blur(20px);
+  -webkit-backdrop-filter: saturate(120%) blur(20px);
 }
 
 .aside-title {
-  font-size: 14px;
-  color: var(--muted);
-  margin: 4px 8px 8px;
+  font-size: 16px;
+  color: #ffffff !important; /* 提高标题对比度 */
+  margin: 8px 8px 16px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: center;
+  padding: 12px 8px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .menu {
   background: transparent;
   border-right: none;
+}
+
+/* 左侧菜单样式优化 - 提高字体可见性 */
+
+/* 确保菜单项有足够的间距和可读性 */
+
+.menu :deep(.el-menu-item span) {
+  font-size: 15px;
+  letter-spacing: 0.6px;
+  font-weight: 500;
+  color: #e2e8f0 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.menu :deep(.el-menu-item:hover span) {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.menu :deep(.el-menu-item.is-active span) {
+  color: #ffffff !important;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 添加菜单项之间的分隔线 */
+
+/* 移除Element Plus默认的菜单样式 */
+
+/* 为菜单添加整体容器样式 */
+.menu {
+  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 添加菜单项的图标样式（如果有的话） */
+.menu :deep(.el-menu-item i) {
+  color: #94a3b8;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.menu :deep(.el-menu-item:hover i) {
+  color: #cbd5e1;
+}
+
+.menu :deep(.el-menu-item.is-active i) {
+  color: #3b82f6;
 }
 
 .main {
@@ -831,8 +876,11 @@ html, body {
 
 .section-header h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
 }
 
 .grid-2 {
@@ -893,7 +941,16 @@ html, body {
 }
 
 .kanban-column {
-  padding: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.kanban-column:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .kanban-header {
@@ -904,13 +961,20 @@ html, body {
 }
 
 .kanban-header .title {
-  font-size: 14px;
-  color: var(--text);
+  font-size: 15px;
+  color: #f1f5f9 !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .kanban-header .count {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 13px;
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  background: rgba(59, 130, 246, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .kanban-list {
@@ -921,15 +985,19 @@ html, body {
 }
 
 .kanban-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 12px;
-  transition: transform .2s ease;
+  padding: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .kanban-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .card-top {
@@ -951,17 +1019,25 @@ html, body {
 
 .name {
   font-weight: 600;
+  color: #ffffff !important;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  margin-bottom: 2px;
 }
 
 .meta {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 13px;
+  color: #e2e8f0 !important;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .tag {
   font-size: 12px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 999px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .card-tags {
@@ -973,11 +1049,20 @@ html, body {
 
 .badge {
   font-size: 12px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 6px;
-  background: rgba(59, 130, 246, 0.18);
-  color: #cfe6ff;
-  border: 1px solid rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.25);
+  color: #dbeafe !important;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.badge:hover {
+  background: rgba(59, 130, 246, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 /* 快速操作区 */
@@ -1061,50 +1146,207 @@ html, body {
   line-height: 1;
 }
 
-/* HR助手对话框样式 */
-.assistant-dialog {
-  border-radius: 12px;
+/* HR助手右侧弹出面板样式 */
+.hr-assistant-panel {
+  position: fixed;
+  right: -420px; /* 默认隐藏在右侧 */
+  top: 80px;
+  width: 400px;
+  height: calc(100vh - 100px);
+  background: #ffffff;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
 }
 
-.assistant-content {
-  max-height: 400px;
-  overflow-y: auto;
+.hr-assistant-panel.active {
+  right: 0;
 }
 
-.chat-messages {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 16px;
+/* 面板头部 */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fafafa;
+  border-radius: 12px 0 0 0;
 }
 
-.message {
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.message-content {
-  font-size: 14px;
-  color: #2c3e50;
-  margin-bottom: 4px;
+.header-left h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.message-time {
-  font-size: 12px;
-  color: #7f8c8d;
-}
 
-.quick-templates h5 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #2c3e50;
-}
-
-.template-buttons {
+.header-controls {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
+
+.control-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+/* 面板内容 */
+.panel-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 欢迎消息 */
+.welcome-message {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.welcome-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #3b82f6;
+}
+
+.welcome-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* 输入区域 */
+.panel-input {
+  padding: 20px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+  border-radius: 0 0 0 12px;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.chat-input {
+  flex: 1;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  color: #374151;
+  resize: none;
+  min-height: 60px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.chat-input:focus {
+  border: 1px solid transparent;
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ec4899) border-box;
+  background-size: 200% 100%;
+  animation: gradientFlow 2s linear infinite;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.chat-input::placeholder {
+  color: #9ca3af;
+}
+
+.send-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+}
+
+.send-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.send-btn:active {
+  transform: translateY(0);
+}
+
+.send-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.send-btn:disabled:hover {
+  background: #d1d5db;
+  transform: none;
+  box-shadow: none;
+}
+
+
+
+
 
 /* 过渡 */
 

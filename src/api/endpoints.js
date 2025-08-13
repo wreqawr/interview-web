@@ -3,6 +3,8 @@ export const BASE_URL = "http://localhost:8081/api";
 export const AUTH_API = `${BASE_URL}/auth`;
 // 简历接口
 export const RESUME_API = `${BASE_URL}/resume`;
+// ai接口
+export const AI_API = `${BASE_URL}/ai`;
 
 // 登录
 export const LOGIN_URL = `${AUTH_API}/login`;
@@ -28,3 +30,5 @@ export const RESUME_DOWNLOAD_URL = `${RESUME_API}/download`;
 export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 // 获取用户上传简历后的异步任务状态
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
+// ai聊天助手
+export const AI_CHAT_URL = `${AI_API}/chat`;
