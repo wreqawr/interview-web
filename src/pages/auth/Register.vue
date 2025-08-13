@@ -105,13 +105,13 @@
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button 
-                type="primary" 
-                class="modern-login-btn" 
-                size="large" 
-                :loading="registerLoading"
-                :disabled="registerLoading"
-                @click="onRegister"
+              <el-button
+                  type="primary"
+                  class="modern-login-btn"
+                  size="large"
+                  :loading="registerLoading"
+                  :disabled="registerLoading"
+                  @click="onRegister"
               >
                 {{ registerLoading ? '注册中...' : '注册' }}
               </el-button>
@@ -129,8 +129,8 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {User, Lock, Message, Avatar, OfficeBuilding, Hide, View, Key} from '@element-plus/icons-vue';
-import {register, getPublicKey, encryptPassword} from '@/api/auth';
+import {Avatar, Hide, Key, Lock, Message, OfficeBuilding, User, View} from '@element-plus/icons-vue';
+import {encryptPassword, getPublicKey, register} from '@/api/auth';
 import {getCaptcha} from '@/api/captcha';
 import {getTimestamp} from '@/utils/tools';
 import {ElMessage} from 'element-plus';
@@ -183,7 +183,7 @@ async function refreshCaptcha() {
 async function onRegister() {
   // 防抖：如果正在注册，直接返回
   if (registerLoading.value) return
-  
+
   registerForm.value.validate(async (valid) => {
     if (valid) {
       try {

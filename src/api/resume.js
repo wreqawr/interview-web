@@ -1,5 +1,14 @@
 import http from './http';
-import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL, RESUME_DELETE_URL, RESUME_PREVIEW_URL, RESUME_DOWNLOAD_URL, RESUME_ANALYZE_URL, RESUME_ANALYZE_ASYNC_URL } from './endpoints';
+import {
+  RESUME_ANALYZE_ASYNC_URL,
+  RESUME_ANALYZE_URL,
+  RESUME_DELETE_URL,
+  RESUME_DOWNLOAD_URL,
+  RESUME_METADATA_ASYNC_URL,
+  RESUME_METADATA_URL,
+  RESUME_PREVIEW_URL,
+  RESUME_UPLOAD_URL
+} from './endpoints';
 
 /**
  * 简历上传接口
@@ -7,13 +16,13 @@ import { RESUME_UPLOAD_URL, RESUME_METADATA_URL, RESUME_METADATA_ASYNC_URL, RESU
  * @returns {Promise}
  */
 export async function uploadResume(file) {
-  const formData = new FormData();
-  formData.append('resume', file);
-  return await http.post(RESUME_UPLOAD_URL, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
+    const formData = new FormData();
+    formData.append('resume', file);
+    return await http.post(RESUME_UPLOAD_URL, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
 }
 
 /**
@@ -21,7 +30,7 @@ export async function uploadResume(file) {
  * @returns {Promise}
  */
 export async function getResumeList() {
-  return await http.get(RESUME_METADATA_URL);
+    return await http.get(RESUME_METADATA_URL);
 }
 
 /**
@@ -31,7 +40,7 @@ export async function getResumeList() {
  * @returns {Promise}
  */
 export async function queryResumeAsyncResult(taskId, resumeId) {
-  return await http.get(`${RESUME_METADATA_ASYNC_URL}/${taskId}/${resumeId}`);
+    return await http.get(`${RESUME_METADATA_ASYNC_URL}/${taskId}/${resumeId}`);
 }
 
 /**
@@ -40,9 +49,9 @@ export async function queryResumeAsyncResult(taskId, resumeId) {
  * @returns {Promise}
  */
 export async function deleteResumes(resumeIds) {
-  return await http.delete(RESUME_DELETE_URL, {
-    data:  resumeIds
-  });
+    return await http.delete(RESUME_DELETE_URL, {
+        data: resumeIds
+    });
 }
 
 /**
@@ -51,7 +60,7 @@ export async function deleteResumes(resumeIds) {
  * @returns {Promise}
  */
 export async function getResumePreviewUrl(resumeId) {
-  return await http.get(`${RESUME_PREVIEW_URL}/${resumeId}`);
+    return await http.get(`${RESUME_PREVIEW_URL}/${resumeId}`);
 }
 
 /**
@@ -60,9 +69,9 @@ export async function getResumePreviewUrl(resumeId) {
  * @returns {Promise}
  */
 export async function getResumeDownloadUrls(resumeIds) {
-  const params = new URLSearchParams();
-  resumeIds.forEach(id => params.append('resumeIds', id));
-  return await http.get(`${RESUME_DOWNLOAD_URL}?${params.toString()}`);
+    const params = new URLSearchParams();
+    resumeIds.forEach(id => params.append('resumeIds', id));
+    return await http.get(`${RESUME_DOWNLOAD_URL}?${params.toString()}`);
 }
 
 /**
@@ -71,7 +80,7 @@ export async function getResumeDownloadUrls(resumeIds) {
  * @returns {Promise}
  */
 export async function analyzeResume(resumeId) {
-  return await http.get(`${RESUME_ANALYZE_URL}/${resumeId}`);
+    return await http.get(`${RESUME_ANALYZE_URL}/${resumeId}`);
 }
 
 /**
@@ -81,5 +90,5 @@ export async function analyzeResume(resumeId) {
  * @returns {Promise}
  */
 export async function queryResumeAnalyzeAsyncResult(taskId, resumeId) {
-  return await http.get(`${RESUME_ANALYZE_ASYNC_URL}/${taskId}/${resumeId}`);
+    return await http.get(`${RESUME_ANALYZE_ASYNC_URL}/${taskId}/${resumeId}`);
 } 

@@ -10,7 +10,9 @@
         <div class="stat-cards-row">
           <div class="stat-card">
             <div class="stat-icon resume-icon">
-              <el-icon><Document /></el-icon>
+              <el-icon>
+                <Document/>
+              </el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ resumes.length }}</div>
@@ -19,7 +21,9 @@
           </div>
           <div class="stat-card">
             <div class="stat-icon version-icon">
-              <el-icon><Files /></el-icon>
+              <el-icon>
+                <Files/>
+              </el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ resumes.length }}</div>
@@ -28,7 +32,9 @@
           </div>
           <div class="stat-card">
             <div class="stat-icon view-icon">
-              <el-icon><View /></el-icon>
+              <el-icon>
+                <View/>
+              </el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ totalViews }}</div>
@@ -37,7 +43,9 @@
           </div>
           <div class="stat-card">
             <div class="stat-icon score-icon">
-              <el-icon><Star /></el-icon>
+              <el-icon>
+                <Star/>
+              </el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ averageScore }}</div>
@@ -61,57 +69,67 @@
               </div>
               <div class="section-center">
                 <div class="select-all-area">
-                  <el-checkbox 
-                    v-model="selectAll"
-                    :indeterminate="isIndeterminate"
-                    @change="handleSelectAll"
+                  <el-checkbox
+                      v-model="selectAll"
+                      :indeterminate="isIndeterminate"
+                      @change="handleSelectAll"
                   >
                     全选
                   </el-checkbox>
                 </div>
                 <el-select v-model="sortBy" placeholder="排序方式" size="small">
-                  <el-option label="最新创建" value="createTime" />
-                  <el-option label="最近修改" value="updateTime" />
-                  <el-option label="使用频率" value="usage" />
+                  <el-option label="最新创建" value="createTime"/>
+                  <el-option label="最近修改" value="updateTime"/>
+                  <el-option label="使用频率" value="usage"/>
                 </el-select>
                 <el-input
-                  v-model="searchKeyword"
-                  placeholder="搜索简历"
-                  size="small"
-                  style="width: 200px;"
+                    v-model="searchKeyword"
+                    placeholder="搜索简历"
+                    size="small"
+                    style="width: 200px;"
                 >
                   <template #prefix>
-                    <el-icon><Search /></el-icon>
+                    <el-icon>
+                      <Search/>
+                    </el-icon>
                   </template>
                 </el-input>
               </div>
               <div class="action-buttons-section">
                 <el-button type="primary" size="small" @click="handleUpload">
-                  <el-icon><Upload /></el-icon>
+                  <el-icon>
+                    <Upload/>
+                  </el-icon>
                   上传简历
                 </el-button>
                 <el-button type="success" size="small" @click="handleCreate">
-                  <el-icon><Plus /></el-icon>
+                  <el-icon>
+                    <Plus/>
+                  </el-icon>
                   创建简历
                 </el-button>
-                <el-button 
-                  type="warning" 
-                  size="small" 
-                  @click="handleBatchDownload"
-                  :disabled="selectedResumes.length === 0 || operationLoading.download"
-                  :loading="operationLoading.download"
+                <el-button
+                    type="warning"
+                    size="small"
+                    @click="handleBatchDownload"
+                    :disabled="selectedResumes.length === 0 || operationLoading.download"
+                    :loading="operationLoading.download"
                 >
-                  <el-icon><Download /></el-icon>
+                  <el-icon>
+                    <Download/>
+                  </el-icon>
                   {{ operationLoading.download ? '下载中...' : `批量下载 (${selectedResumes.length})` }}
                 </el-button>
-                <el-button 
-                  type="danger" 
-                  size="small" 
-                  @click="handleBatchDelete"
-                  :disabled="selectedResumes.length === 0 || operationLoading.delete"
-                  :loading="operationLoading.delete"
+                <el-button
+                    type="danger"
+                    size="small"
+                    @click="handleBatchDelete"
+                    :disabled="selectedResumes.length === 0 || operationLoading.delete"
+                    :loading="operationLoading.delete"
                 >
-                  <el-icon><Delete /></el-icon>
+                  <el-icon>
+                    <Delete/>
+                  </el-icon>
                   {{ operationLoading.delete ? '删除中...' : `批量删除 (${selectedResumes.length})` }}
                 </el-button>
               </div>
@@ -120,33 +138,35 @@
             <!-- 简历卡片列表 -->
             <div v-if="loading" class="loading-container">
               <div class="loading-placeholder">
-                <el-icon class="is-loading"><Loading /></el-icon>
+                <el-icon class="is-loading">
+                  <Loading/>
+                </el-icon>
                 <p>正在加载简历数据...</p>
               </div>
             </div>
             <div v-else-if="resumes.length === 0" class="empty-container">
-              <el-empty description="暂无简历数据" />
+              <el-empty description="暂无简历数据"/>
             </div>
             <div v-else class="resume-cards">
-              <div 
-                v-for="resume in paginatedResumes" 
-                :key="resume.id"
-                class="resume-card"
-                :class="{ active: selectedResume?.id === resume.id }"
+              <div
+                  v-for="resume in paginatedResumes"
+                  :key="resume.id"
+                  class="resume-card"
+                  :class="{ active: selectedResume?.id === resume.id }"
               >
                 <div class="resume-card-header">
                   <div class="resume-selection">
-                    <el-checkbox 
-                      v-model="resume.selected" 
-                      @change="updateSelectedResumes"
-                      @click.stop
+                    <el-checkbox
+                        v-model="resume.selected"
+                        @change="updateSelectedResumes"
+                        @click.stop
                     />
                   </div>
                   <div class="resume-title" @click="selectResume(resume)">
                     <h3>{{ resume.title }}</h3>
-                    <el-tag 
-                      :type="resume.status === 'active' ? 'success' : 'info'" 
-                      size="small"
+                    <el-tag
+                        :type="resume.status === 'active' ? 'success' : 'info'"
+                        size="small"
                     >
                       {{ resume.status === 'active' ? '当前使用' : '历史版本' }}
                     </el-tag>
@@ -179,9 +199,9 @@
                       <div class="info-item">
                         <span class="label">预览支持：</span>
                         <span class="value">
-                          <el-tag 
-                            :type="resume.previewEnabled ? 'success' : 'info'" 
-                            size="small"
+                          <el-tag
+                              :type="resume.previewEnabled ? 'success' : 'info'"
+                              size="small"
                           >
                             {{ resume.previewEnabled ? '支持预览' : '不支持预览' }}
                           </el-tag>
@@ -191,64 +211,67 @@
                   </div>
                   <div class="resume-actions">
                     <div class="action-items">
-                      <div 
-                        class="action-item preview"
-                        @click="handlePreview(resume)"
-                        :class="{ disabled: !resume.previewEnabled || operationLoading.preview, 'no-preview': !resume.previewEnabled }"
+                      <div
+                          class="action-item preview"
+                          @click="handlePreview(resume)"
+                          :class="{ disabled: !resume.previewEnabled || operationLoading.preview, 'no-preview': !resume.previewEnabled }"
                       >
                         <el-icon>
-                          <View v-if="resume.previewEnabled && !operationLoading.preview" />
-                          <Lock v-else-if="!resume.previewEnabled" />
-                          <Loading v-else class="is-loading" />
+                          <View v-if="resume.previewEnabled && !operationLoading.preview"/>
+                          <Lock v-else-if="!resume.previewEnabled"/>
+                          <Loading v-else class="is-loading"/>
                         </el-icon>
-                        <span>{{ 
-                          operationLoading.preview ? '预览中...' : '预览' 
-                        }}</span>
+                        <span>{{
+                            operationLoading.preview ? '预览中...' : '预览'
+                          }}</span>
                       </div>
-                      <div 
-                        class="action-item edit"
-                        @click="handleEdit(resume)"
-                        :class="{ disabled: true, 'dev-in-progress': true }"
+                      <div
+                          class="action-item edit"
+                          @click="handleEdit(resume)"
+                          :class="{ disabled: true, 'dev-in-progress': true }"
                       >
-                        <el-icon><Edit /></el-icon>
+                        <el-icon>
+                          <Edit/>
+                        </el-icon>
                         <span>编辑</span>
                       </div>
-                      <div 
-                        class="action-item download"
-                        @click="handleDownload(resume)"
-                        :class="{ disabled: operationLoading.download }"
+                      <div
+                          class="action-item download"
+                          @click="handleDownload(resume)"
+                          :class="{ disabled: operationLoading.download }"
                       >
                         <el-icon>
-                          <Download v-if="!operationLoading.download" />
-                          <Loading v-else class="is-loading" />
+                          <Download v-if="!operationLoading.download"/>
+                          <Loading v-else class="is-loading"/>
                         </el-icon>
                         <span>{{ operationLoading.download ? '下载中...' : '下载' }}</span>
                       </div>
-                      <div 
-                        class="action-item analyze"
-                        @click="handleAnalyze(resume)"
-                        :class="{ 
+                      <div
+                          class="action-item analyze"
+                          @click="handleAnalyze(resume)"
+                          :class="{
                           disabled: (operationLoading.analyze && analyzingResumeId === resume.id) || resume.analyzing,
                           'analyzing': resume.analyzing
                         }"
                       >
                         <el-icon>
-                          <DataAnalysis v-if="!(operationLoading.analyze && analyzingResumeId === resume.id) && !resume.analyzing" />
-                          <Loading v-else class="is-loading" />
+                          <DataAnalysis
+                              v-if="!(operationLoading.analyze && analyzingResumeId === resume.id) && !resume.analyzing"/>
+                          <Loading v-else class="is-loading"/>
                         </el-icon>
-                        <span>{{ 
-                          (operationLoading.analyze && analyzingResumeId === resume.id) || resume.analyzing ? '分析中' : 
-                          resume.analyzeCompleted ? '分析结果' : '分析' 
-                        }}</span>
+                        <span>{{
+                            (operationLoading.analyze && analyzingResumeId === resume.id) || resume.analyzing ? '分析中' :
+                                resume.analyzeCompleted ? '分析结果' : '分析'
+                          }}</span>
                       </div>
-                      <div 
-                        class="action-item delete"
-                        @click="handleDelete(resume)"
-                        :class="{ disabled: operationLoading.delete }"
+                      <div
+                          class="action-item delete"
+                          @click="handleDelete(resume)"
+                          :class="{ disabled: operationLoading.delete }"
                       >
                         <el-icon>
-                          <Delete v-if="!operationLoading.delete" />
-                          <Loading v-else class="is-loading" />
+                          <Delete v-if="!operationLoading.delete"/>
+                          <Loading v-else class="is-loading"/>
                         </el-icon>
                         <span>{{ operationLoading.delete ? '删除中...' : '删除' }}</span>
                       </div>
@@ -259,36 +282,36 @@
                 <div class="resume-card-footer">
                   <div class="resume-stats">
                     <span class="stat">
-                      <el-icon><View /></el-icon>
+                      <el-icon><View/></el-icon>
                       {{ resume.viewCount }} 次查看
                     </span>
                     <span class="stat">
-                      <el-icon><Download /></el-icon>
+                      <el-icon><Download/></el-icon>
                       {{ resume.downloadCount }} 次下载
                     </span>
                   </div>
                   <div class="resume-score">
-                    <el-rate 
-                      v-model="resume.score" 
-                      disabled 
-                      show-score 
-                      text-color="#ff9900"
-                      score-template="{value}"
+                    <el-rate
+                        v-model="resume.score"
+                        disabled
+                        show-score
+                        text-color="#ff9900"
+                        score-template="{value}"
                     />
                   </div>
                 </div>
               </div>
-              
+
               <!-- 分页组件 -->
               <div class="pagination-container">
                 <el-pagination
-                  v-model:current-page="currentPage"
-                  v-model:page-size="pageSize"
-                  :page-sizes="[3, 5, 10]"
-                  :total="filteredResumes.length"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handleSizeChange"
-                  @current-change="handleCurrentChange"
+                    v-model:current-page="currentPage"
+                    v-model:page-size="pageSize"
+                    :page-sizes="[3, 5, 10]"
+                    :total="filteredResumes.length"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
                 />
               </div>
             </div>
@@ -300,19 +323,21 @@
     <!-- 上传对话框 -->
     <el-dialog v-model="uploadDialogVisible" title="上传简历" width="500px">
       <el-upload
-        ref="uploadRef"
-        class="upload-area"
-        drag
-        :http-request="customUpload"
-        :on-remove="handleRemove"
-        v-model:file-list="uploadFiles"
-        :limit="1"
-        :before-upload="beforeUpload"
-        :show-file-list="true"
-        :auto-upload="false"
-        accept=".pdf,.doc,.docx"
+          ref="uploadRef"
+          class="upload-area"
+          drag
+          :http-request="customUpload"
+          :on-remove="handleRemove"
+          v-model:file-list="uploadFiles"
+          :limit="1"
+          :before-upload="beforeUpload"
+          :show-file-list="true"
+          :auto-upload="false"
+          accept=".pdf,.doc,.docx"
       >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <el-icon class="el-icon--upload">
+          <upload-filled/>
+        </el-icon>
         <div class="el-upload__text">
           将PDF/Word文件拖到此处，或<em>点击选择</em>
         </div>
@@ -325,11 +350,11 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="uploadDialogVisible = false">取消</el-button>
-          <el-button 
-            type="primary" 
-            :disabled="uploadFiles.length === 0 || operationLoading.upload"
-            :loading="operationLoading.upload"
-            @click="submitUpload"
+          <el-button
+              type="primary"
+              :disabled="uploadFiles.length === 0 || operationLoading.upload"
+              :loading="operationLoading.upload"
+              @click="submitUpload"
           >
             {{ operationLoading.upload ? '上传中...' : '上传简历' }}
           </el-button>
@@ -338,31 +363,33 @@
     </el-dialog>
 
     <!-- 预览对话框 -->
-    <el-dialog 
-      v-model="previewDialogVisible" 
-      title="简历预览" 
-      width="80%" 
-      :close-on-click-modal="false"
-      :close-on-press-escape="true"
-      class="preview-dialog"
+    <el-dialog
+        v-model="previewDialogVisible"
+        title="简历预览"
+        width="80%"
+        :close-on-click-modal="false"
+        :close-on-press-escape="true"
+        class="preview-dialog"
     >
       <div v-if="previewLoading" class="preview-loading">
-        <el-icon class="is-loading"><Loading /></el-icon>
+        <el-icon class="is-loading">
+          <Loading/>
+        </el-icon>
         <p>正在加载预览...</p>
       </div>
       <div v-else-if="previewUrl" class="preview-container">
-        <iframe 
-          :src="previewUrl" 
-          class="preview-iframe"
-          allowfullscreen
+        <iframe
+            :src="previewUrl"
+            class="preview-iframe"
+            allowfullscreen
         ></iframe>
       </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="previewDialogVisible = false">关闭</el-button>
-          <el-button 
-            type="primary" 
-            @click="openInNewTab"
+          <el-button
+              type="primary"
+              @click="openInNewTab"
           >
             在新窗口打开
           </el-button>
@@ -371,45 +398,49 @@
     </el-dialog>
 
     <!-- 分析对话框 -->
-    <el-dialog 
-      v-model="analyzeDialogVisible" 
-      title="简历分析" 
-      width="90%" 
-      :close-on-click-modal="false"
-      :close-on-press-escape="true"
-      class="analyze-dialog"
+    <el-dialog
+        v-model="analyzeDialogVisible"
+        title="简历分析"
+        width="90%"
+        :close-on-click-modal="false"
+        :close-on-press-escape="true"
+        class="analyze-dialog"
     >
       <div v-if="analyzeLoading" class="analyze-loading">
-        <el-icon class="is-loading"><Loading /></el-icon>
+        <el-icon class="is-loading">
+          <Loading/>
+        </el-icon>
         <p>正在分析简历...</p>
       </div>
       <div v-else-if="analyzeHtml" class="analyze-container">
-        <iframe 
-          :srcdoc="analyzeHtml" 
-          class="analyze-iframe"
-          allowfullscreen
+        <iframe
+            :srcdoc="analyzeHtml"
+            class="analyze-iframe"
+            allowfullscreen
         ></iframe>
       </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="analyzeDialogVisible = false">关闭</el-button>
-          <el-button 
-            type="primary" 
-            @click="openAnalyzeInNewTab"
+          <el-button
+              type="primary"
+              @click="openAnalyzeInNewTab"
           >
             在新窗口打开
           </el-button>
         </span>
       </template>
     </el-dialog>
-    
+
     <!-- 全局加载遮罩 -->
-    <div 
-      v-if="isAnyOperationLoading" 
-      class="global-loading-overlay"
+    <div
+        v-if="isAnyOperationLoading"
+        class="global-loading-overlay"
     >
       <div class="loading-content">
-        <el-icon class="is-loading"><Loading /></el-icon>
+        <el-icon class="is-loading">
+          <Loading/>
+        </el-icon>
         <p>操作进行中，请稍候...</p>
       </div>
     </div>
@@ -417,25 +448,33 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { uploadResume, getResumeList, queryResumeAsyncResult, deleteResumes, getResumePreviewUrl, getResumeDownloadUrls, analyzeResume, queryResumeAnalyzeAsyncResult } from '@/api/resume'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {ElMessage, ElMessageBox} from 'element-plus'
 import {
-  Upload,
-  Plus,
-  Document,
-  Files,
-  View,
-  Star,
-  Search,
-
-  Edit,
-  Download,
+  analyzeResume,
+  deleteResumes,
+  getResumeDownloadUrls,
+  getResumeList,
+  getResumePreviewUrl,
+  queryResumeAnalyzeAsyncResult,
+  queryResumeAsyncResult,
+  uploadResume
+} from '@/api/resume'
+import {
   DataAnalysis,
   Delete,
-  UploadFilled,
+  Document,
+  Download,
+  Edit,
+  Files,
   Loading,
-  Lock
+  Lock,
+  Plus,
+  Search,
+  Star,
+  Upload,
+  UploadFilled,
+  View
 } from '@element-plus/icons-vue'
 
 // 响应式数据
@@ -487,7 +526,7 @@ const transformResumeData = (backendData) => {
       const mb = bytes / (1024 * 1024)
       return `${mb.toFixed(1)}MB`
     }
-    
+
     // 格式化文件类型
     const formatMimeType = (mimeType) => {
       const typeMap = {
@@ -497,7 +536,7 @@ const transformResumeData = (backendData) => {
       }
       return typeMap[mimeType] || mimeType
     }
-    
+
     // 格式化时间：YYYY-MM-DD hh:mm:ss
     const formatDateTime = (dateTimeStr) => {
       const date = new Date(dateTimeStr)
@@ -509,7 +548,7 @@ const transformResumeData = (backendData) => {
       const seconds = String(date.getSeconds()).padStart(2, '0')
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     }
-    
+
     return {
       id: resume.resumeId,
       title: resume.resumeTitle || '未命名简历',
@@ -540,14 +579,14 @@ const fetchResumeList = async () => {
     operationLoading.value.refresh = true
     const response = await getResumeList()
     const data = response?.data || response
-    
+
     if (data.code === 200 && data.data) {
       resumes.value = transformResumeData(data.data)
       // 默认选择第一个简历
       if (resumes.value.length > 0) {
         selectedResume.value = resumes.value[0]
       }
-      
+
       // 暂时不自动检查分析状态，避免触发不必要的分析请求
       // await checkResumeAnalysisStatus()
     } else {
@@ -563,7 +602,6 @@ const fetchResumeList = async () => {
     operationLoading.value.refresh = false
   }
 }
-
 
 
 // 页面加载时获取数据
@@ -583,8 +621,8 @@ const filteredResumes = computed(() => {
 
   // 搜索过滤
   if (searchKeyword.value) {
-    result = result.filter(resume => 
-      resume.title.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    result = result.filter(resume =>
+        resume.title.toLowerCase().includes(searchKeyword.value.toLowerCase())
     )
   }
 
@@ -674,77 +712,77 @@ const handleBatchDownload = async () => {
     ElMessage.warning('请先选择要下载的简历')
     return
   }
-  
+
   // 防抖：如果正在下载，直接返回
   if (operationLoading.value.download) return
-  
+
   try {
     operationLoading.value.download = true
-    
+
     // 获取选中的简历ID列表
     const resumeIds = selectedResumes.value.map(resume => resume.id)
-    
+
     // 获取下载链接
     const response = await getResumeDownloadUrls(resumeIds)
     const data = response?.data || response
-    
+
     if (data.code === 200 && data.data && data.data.length > 0) {
       // 限制同时下载的文件数量为3个
       const maxConcurrentDownloads = 3
       const downloadInfos = data.data
-      
+
       // 分批下载，每批最多3个文件
       for (let i = 0; i < downloadInfos.length; i += maxConcurrentDownloads) {
         const batch = downloadInfos.slice(i, i + maxConcurrentDownloads)
-        
+
         // 并发下载当前批次
         const downloadPromises = batch.map(downloadInfo => {
           return new Promise((resolve) => {
-            const { downloadUrl, downloadFileName } = downloadInfo
-            
+            const {downloadUrl, downloadFileName} = downloadInfo
+
             // 使用fetch下载文件并设置正确的文件名
             fetch(downloadUrl)
-              .then(fileResponse => {
-                if (fileResponse.ok) {
-                  return fileResponse.blob()
-                } else {
-                  throw new Error('文件下载失败')
-                }
-              })
-              .then(blob => {
-                // 创建下载链接
-                const url = window.URL.createObjectURL(blob)
-                const link = document.createElement('a')
-                link.href = url
-                link.download = downloadFileName
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-                
-                // 清理URL对象
-                window.URL.revokeObjectURL(url)
-                
-                // 显示下载成功消息
-                ElMessage.success(`${downloadFileName}下载成功！`)
-                resolve()
-              })
-              .catch(error => {
-                console.error(`下载文件失败: ${downloadFileName}`, error)
-                ElMessage.error(`${downloadFileName}下载失败`)
-                resolve()
-              })
+                .then(fileResponse => {
+                  if (fileResponse.ok) {
+                    return fileResponse.blob()
+                  } else {
+                    throw new Error('文件下载失败')
+                  }
+                })
+                .then(blob => {
+                  // 创建下载链接
+                  const url = window.URL.createObjectURL(blob)
+                  const link = document.createElement('a')
+                  link.href = url
+                  link.download = downloadFileName
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+
+                  // 清理URL对象
+                  window.URL.revokeObjectURL(url)
+
+                  // 显示下载成功消息
+                  ElMessage.success(`${downloadFileName}下载成功！`)
+                  resolve()
+                })
+                .catch(error => {
+                  console.error(`下载文件失败: ${downloadFileName}`, error)
+                  ElMessage.error(`${downloadFileName}下载失败`)
+                  resolve()
+                })
           })
         })
-        
+
         // 等待当前批次完成
         await Promise.all(downloadPromises)
-        
+
         // 如果不是最后一批，等待一小段时间再下载下一批
         if (i + maxConcurrentDownloads < downloadInfos.length) {
           await new Promise(resolve => setTimeout(resolve, 1000))
         }
       }
-      
+
       ElMessage.success(`批量下载完成，共下载 ${downloadInfos.length} 个文件`)
     } else {
       ElMessage.error(data.message || '获取下载链接失败')
@@ -764,31 +802,31 @@ const handleBatchDelete = async () => {
     ElMessage.warning('请先选择要删除的简历')
     return
   }
-  
+
   // 防抖：如果正在删除，直接返回
   if (operationLoading.value.delete) return
-  
+
   try {
     // 确认删除
     const resumeNames = selectedResumes.value.map(resume => resume.title).join('、')
     await ElMessageBox.confirm(
-      `确定要删除以下简历吗？\n${resumeNames}`,
-      '确认批量删除',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-        dangerouslyUseHTMLString: false,
-        customClass: 'batch-delete-dialog'
-      }
+        `确定要删除以下简历吗？\n${resumeNames}`,
+        '确认批量删除',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+          dangerouslyUseHTMLString: false,
+          customClass: 'batch-delete-dialog'
+        }
     )
-    
+
     // 调用删除API
     operationLoading.value.delete = true
     const resumeIds = selectedResumes.value.map(resume => resume.id)
     const response = await deleteResumes(resumeIds)
     const data = response?.data || response
-    
+
     if (data.code === 200) {
       ElMessage.success(`批量删除成功，共删除 ${selectedResumes.value.length} 个简历`)
       // 重新加载简历列表
@@ -821,19 +859,18 @@ const handleCreate = () => {
 }
 
 
-
 const handlePreview = async (resume = selectedResume.value) => {
   if (!resume) return
-  
+
   // 防抖：如果正在加载，直接返回
   if (operationLoading.value.preview) return
-  
+
   try {
     operationLoading.value.preview = true
     previewLoading.value = true
     const response = await getResumePreviewUrl(resume.id)
     const data = response?.data || response
-    
+
     if (data.code === 200 && data.data?.previewUrl) {
       previewUrl.value = data.data.previewUrl
       previewDialogVisible.value = true
@@ -858,27 +895,27 @@ const handleEdit = (resume = selectedResume.value) => {
 
 const handleDownload = async (resume = selectedResume.value) => {
   if (!resume) return
-  
+
   // 防抖：如果正在下载，直接返回
   if (operationLoading.value.download) return
-  
+
   try {
     operationLoading.value.download = true
-    
+
     // 获取下载链接
     const response = await getResumeDownloadUrls([resume.id])
     const data = response?.data || response
-    
+
     if (data.code === 200 && data.data && data.data.length > 0) {
       // 获取下载信息
       const downloadInfo = data.data[0]
-      const { downloadUrl, downloadFileName } = downloadInfo
-      
+      const {downloadUrl, downloadFileName} = downloadInfo
+
       // 使用fetch下载文件并设置正确的文件名
       const fileResponse = await fetch(downloadUrl)
       if (fileResponse.ok) {
         const blob = await fileResponse.blob()
-        
+
         // 创建下载链接
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -887,10 +924,10 @@ const handleDownload = async (resume = selectedResume.value) => {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
-        
+
         // 清理URL对象
         window.URL.revokeObjectURL(url)
-        
+
         ElMessage.success(`${downloadFileName}下载成功！`)
       } else {
         ElMessage.error('文件下载失败')
@@ -910,16 +947,16 @@ const handleDownload = async (resume = selectedResume.value) => {
 
 const handleAnalyze = async (resume = selectedResume.value) => {
   if (!resume) return
-  
+
   // 防抖：如果正在分析，直接返回
   if (operationLoading.value.analyze) return
-  
+
   // 如果简历正在分析中，不允许重复分析
   if (resume.analyzing) {
     ElMessage.warning('该简历正在分析中，请稍后重试')
     return
   }
-  
+
   // 如果简历已经分析完成，直接显示结果
   if (resume.analyzeCompleted) {
     // 如果已经有分析结果，直接显示
@@ -932,27 +969,27 @@ const handleAnalyze = async (resume = selectedResume.value) => {
     ElMessage.info('正在获取分析结果...')
     // 继续执行下面的分析逻辑
   }
-  
+
   // 如果简历正在分析中，检查后端状态
   if (resume.analyzing) {
     ElMessage.info('正在检查分析状态...')
     // 继续执行下面的分析逻辑来检查状态
   }
-  
+
   try {
     operationLoading.value.analyze = true
     analyzingResumeId.value = resume.id
     analyzeLoading.value = true
-    
+
     const response = await analyzeResume(resume.id)
     const data = response?.data || response
-    
+
     if (data.code === 200) {
       // 分析成功，显示结果
       ElMessage.success(data.message || '简历分析成功')
       analyzeHtml.value = data.data
       analyzeDialogVisible.value = true
-      
+
       // 重置分析状态并设置分析完成状态
       const targetResume = resumes.value.find(r => r.id === resume.id)
       if (targetResume) {
@@ -963,18 +1000,18 @@ const handleAnalyze = async (resume = selectedResume.value) => {
     } else if (data.code === 900) {
       // 异步任务正在执行中
       ElMessage.info(data.message || '正在后台分析中，请稍后！')
-      
+
       // 设置简历为分析中状态
       const targetResume = resumes.value.find(r => r.id === resume.id)
       if (targetResume) {
         targetResume.analyzing = true
       }
-      
+
       // 开始轮询查询分析结果（避免重复启动轮询）
       if (data.data?.taskId) {
         // 检查是否已经在轮询中
         const existingTask = Array.from(analyzePollingTasks.value.values()).find(
-          task => task.resumeId === resume.id
+            task => task.resumeId === resume.id
         )
         if (!existingTask) {
           await startAnalyzePolling(data.data.taskId, resume.id)
@@ -1015,23 +1052,23 @@ const openAnalyzeInNewTab = () => {
 const handleDelete = async (resume) => {
   // 防抖：如果正在删除，直接返回
   if (operationLoading.value.delete) return
-  
+
   try {
     await ElMessageBox.confirm(
-      `确定要删除简历"${resume.title}"吗？`,
-      '确认删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
+        `确定要删除简历"${resume.title}"吗？`,
+        '确认删除',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
     )
-    
+
     // 调用删除API
     operationLoading.value.delete = true
     const response = await deleteResumes([resume.id])
     const data = response?.data || response
-    
+
     if (data.code === 200) {
       ElMessage.success('删除成功')
       // 重新加载简历列表
@@ -1067,7 +1104,7 @@ const handleCurrentChange = (newPage) => {
 const startPolling = async (taskId, resumeId) => {
   // 如果该任务已经在轮询中，先停止
   stopPolling(taskId)
-  
+
   // 创建新的轮询任务
   const taskInfo = {
     interval: null,
@@ -1075,29 +1112,29 @@ const startPolling = async (taskId, resumeId) => {
     resumeId: resumeId
   }
   pollingTasks.value.set(taskId, taskInfo)
-  
+
   const poll = async () => {
     try {
       const response = await queryResumeAsyncResult(taskId, resumeId)
       const data = response?.data || response
-      
+
       if (data.code === 200) {
         // 异步任务成功结束
         stopPolling(taskId)
         ElMessage.success('简历已解析完毕')
-        
+
         // 将新解析的简历添加到列表开头
         const newResume = transformResumeData([data.data])[0]
         resumes.value.unshift(newResume)
-        
+
         // 选择新上传的简历
         selectedResume.value = newResume
-        
+
       } else if (data.code === 900) {
         // 异步任务还在执行中，继续轮询
         taskInfo.pollCount++
         console.log(`任务 ${taskId} 解析中，第${taskInfo.pollCount}次轮询，继续等待...`)
-        
+
         // 根据轮询次数设置不同的间隔
         if (taskInfo.pollCount === 1) {
           // 第一次轮询后，等待10秒进行第二次轮询
@@ -1110,12 +1147,12 @@ const startPolling = async (taskId, resumeId) => {
             poll()
           }, 5000)
         }
-        
+
       } else if (data.code === 901) {
         // 异步任务结束但有错误
         stopPolling(taskId)
         ElMessage.error(data.message || '简历解析失败')
-        
+
       } else {
         // 其他错误情况
         stopPolling(taskId)
@@ -1129,7 +1166,7 @@ const startPolling = async (taskId, resumeId) => {
       stopPolling(taskId)
     }
   }
-  
+
   // 等待2秒后开始第一次轮询
   setTimeout(async () => {
     await poll()
@@ -1160,7 +1197,7 @@ const stopAllPolling = () => {
 const startAnalyzePolling = async (taskId, resumeId) => {
   // 如果该任务已经在轮询中，先停止
   stopAnalyzePolling(taskId)
-  
+
   // 创建新的轮询任务
   const taskInfo = {
     interval: null,
@@ -1168,17 +1205,17 @@ const startAnalyzePolling = async (taskId, resumeId) => {
     resumeId: resumeId
   }
   analyzePollingTasks.value.set(taskId, taskInfo)
-  
+
   const poll = async () => {
     try {
       const response = await queryResumeAnalyzeAsyncResult(taskId, resumeId)
       const data = response?.data || response
-      
+
       if (data.code === 200) {
         // 异步任务成功结束
         stopAnalyzePolling(taskId)
         ElMessage.success(data.message || '简历分析完成')
-        
+
         // 重置分析状态并设置分析完成状态
         const targetResume = resumes.value.find(r => r.id === resumeId)
         if (targetResume) {
@@ -1186,23 +1223,23 @@ const startAnalyzePolling = async (taskId, resumeId) => {
           targetResume.analyzeCompleted = true
           targetResume.analyzeResult = data.data // 保存分析结果到对应简历
         }
-        
+
       } else if (data.code === 901) {
         // 异步任务结束但有错误
         stopAnalyzePolling(taskId)
         ElMessage.error(data.message || '简历分析失败')
-        
+
         // 重置分析状态
         const targetResume = resumes.value.find(r => r.id === resumeId)
         if (targetResume) {
           targetResume.analyzing = false
         }
-        
+
       } else {
         // 异步任务还在执行中，继续轮询
         taskInfo.pollCount++
         console.log(`分析任务 ${taskId} 执行中，第${taskInfo.pollCount}次轮询，继续等待...`)
-        
+
         // 根据轮询次数设置不同的间隔
         if (taskInfo.pollCount === 1) {
           // 第一次轮询后，等待10秒进行第二次轮询
@@ -1222,7 +1259,7 @@ const startAnalyzePolling = async (taskId, resumeId) => {
         ElMessage.error('查询分析状态失败，请重试')
       }
       stopAnalyzePolling(taskId)
-      
+
       // 重置分析状态
       const targetResume = resumes.value.find(r => r.id === resumeId)
       if (targetResume) {
@@ -1230,7 +1267,7 @@ const startAnalyzePolling = async (taskId, resumeId) => {
       }
     }
   }
-  
+
   // 等待2秒后开始第一次轮询
   setTimeout(async () => {
     await poll()
@@ -1257,12 +1294,11 @@ const stopAllAnalyzePolling = () => {
 }
 
 
-
 // 上传相关方法
 async function customUpload(option) {
   // 防抖：如果正在上传，直接返回
   if (operationLoading.value.upload) return
-  
+
   try {
     operationLoading.value.upload = true
     const response = await uploadResume(option.file)
@@ -1275,7 +1311,7 @@ async function customUpload(option) {
       // 上传成功后关闭对话框并清空文件列表
       uploadDialogVisible.value = false
       uploadFiles.value = []
-      
+
       // 开始轮询查询解析结果
       if (data.data?.taskId && data.data?.resumeId) {
         await startPolling(data.data.taskId, data.data.resumeId)
@@ -1576,7 +1612,6 @@ function submitUpload() {
   white-space: nowrap;
   font-weight: 400 !important;
 }
-
 
 
 .resume-card-footer {

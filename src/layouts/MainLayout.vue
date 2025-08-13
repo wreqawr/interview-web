@@ -2,7 +2,7 @@
   <div>
     <header>AI模拟面试系统</header>
     <main>
-      <router-view />
+      <router-view/>
     </main>
   </div>
 </template>
@@ -18,6 +18,7 @@ header {
   padding: 16px;
   font-size: 20px;
 }
+
 main {
   padding: 24px;
 }

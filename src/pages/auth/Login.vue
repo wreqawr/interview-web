@@ -103,13 +103,13 @@
               </div>
             </el-form-item>
             <el-form-item>
-              <el-button 
-                type="primary" 
-                class="modern-login-btn" 
-                size="large" 
-                :loading="loginLoading"
-                :disabled="loginLoading"
-                @click="onLogin"
+              <el-button
+                  type="primary"
+                  class="modern-login-btn"
+                  size="large"
+                  :loading="loginLoading"
+                  :disabled="loginLoading"
+                  @click="onLogin"
               >
                 {{ loginLoading ? '登录中...' : '登录' }}
               </el-button>
@@ -126,15 +126,15 @@ import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {Hide, Key, Lock, User, View} from '@element-plus/icons-vue'
 import {getCaptcha} from '@/api/captcha'
-import {login, getPublicKey, encryptPassword} from '@/api/auth'
+import {encryptPassword, getPublicKey, login} from '@/api/auth'
 import {getTimestamp} from '@/utils/tools'
 import {ElMessage} from 'element-plus'
 import {useUserStore} from '@/stores/user'
 
 const router = useRouter()
 const form = ref({
-  username: 'minglg',
-  password: 'minglg123',
+  username: 'silence',
+  password: 'silence123',
   captcha: '1234'
 })
 const rules = {
@@ -172,7 +172,7 @@ const loginForm = ref(null)
 async function onLogin() {
   // 防抖：如果正在登录，直接返回
   if (loginLoading.value) return
-  
+
   loginForm.value.validate(async (valid) => {
     if (valid) {
       try {

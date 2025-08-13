@@ -7,22 +7,22 @@
         <el-tag type="warning" effect="dark">Beta</el-tag>
       </div>
       <div class="header-center">
-        <el-select 
-          v-model="context.resumeId" 
-          placeholder="选择简历" 
-          size="small" 
-          style="width: 220px"
-          @change="handleResumeChange"
+        <el-select
+            v-model="context.resumeId"
+            placeholder="选择简历"
+            size="small"
+            style="width: 220px"
+            @change="handleResumeChange"
         >
-          <el-option 
-            v-for="resume in resumeOptions" 
-            :key="resume.value" 
-            :label="resume.label" 
-            :value="resume.value" 
+          <el-option
+              v-for="resume in resumeOptions"
+              :key="resume.value"
+              :label="resume.label"
+              :value="resume.value"
           />
         </el-select>
         <el-select v-model="context.jobId" placeholder="选择岗位" size="small" style="width: 220px">
-          <el-option v-for="j in jobOptions" :key="j.value" :label="j.label" :value="j.value" />
+          <el-option v-for="j in jobOptions" :key="j.value" :label="j.label" :value="j.value"/>
         </el-select>
       </div>
       <div class="header-right">
@@ -30,7 +30,8 @@
         <div class="button-group">
           <el-button size="small" type="success" :disabled="isRunning" @click="handleStart">开始</el-button>
           <el-button size="small" type="warning" :disabled="!isRunning" @click="handlePause">暂停</el-button>
-          <el-button size="small" type="danger" :disabled="!isRunning && messages.length===0" @click="handleEnd">结束</el-button>
+          <el-button size="small" type="danger" :disabled="!isRunning && messages.length===0" @click="handleEnd">结束
+          </el-button>
         </div>
       </div>
     </div>
@@ -44,11 +45,13 @@
             <div class="panel-header">简历概览</div>
           </template>
           <div v-if="loading" class="resume-loading">
-            <el-icon class="is-loading"><Loading /></el-icon>
+            <el-icon class="is-loading">
+              <Loading/>
+            </el-icon>
             <span>加载简历中...</span>
           </div>
           <div v-else-if="!currentResume" class="resume-empty">
-            <el-empty description="请先选择简历" />
+            <el-empty description="请先选择简历"/>
           </div>
           <div v-else class="resume-brief">
             <div class="resume-title">{{ currentResume.title }}</div>
@@ -69,13 +72,13 @@
               <div class="info-item">
                 <span class="label">评分：</span>
                 <span class="value">
-                  <el-rate 
-                    v-model="currentResume.score" 
-                    disabled 
-                    show-score 
-                    text-color="#ff9900"
-                    score-template="{value}"
-                    size="small"
+                  <el-rate
+                      v-model="currentResume.score"
+                      disabled
+                      show-score
+                      text-color="#ff9900"
+                      score-template="{value}"
+                      size="small"
                   />
                 </span>
               </div>
@@ -103,7 +106,9 @@
             <div class="avatar" :class="msg.role">{{ msg.role === 'ai' ? 'AI' : '我' }}</div>
             <div class="bubble">
               <div class="meta">
-                <el-tag size="small" :type="msg.role==='ai' ? 'warning' : 'info'">{{ msg.role === 'ai' ? '面试官' : '候选人' }}</el-tag>
+                <el-tag size="small" :type="msg.role==='ai' ? 'warning' : 'info'">
+                  {{ msg.role === 'ai' ? '面试官' : '候选人' }}
+                </el-tag>
                 <span class="time">{{ msg.time }}</span>
               </div>
               <div class="content" v-html="msg.html"></div>
@@ -121,14 +126,14 @@
           </div>
           <div class="editor">
             <el-input
-              v-model="inputText"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入你的回答，或点击上方快捷工具插入模板"
-              @keydown.enter.exact.prevent="handleSend"
+                v-model="inputText"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入你的回答，或点击上方快捷工具插入模板"
+                @keydown.enter.exact.prevent="handleSend"
             />
             <div class="actions">
-              <el-checkbox v-model="options.instantFeedback" label="即时反馈" size="small" />
+              <el-checkbox v-model="options.instantFeedback" label="即时反馈" size="small"/>
               <el-button type="primary" :disabled="!canSend" @click="handleSend">发送</el-button>
             </div>
           </div>
@@ -142,11 +147,11 @@
             <div class="panel-header">面试进度</div>
           </template>
           <el-steps direction="vertical" :active="activeStep" finish-status="success">
-            <el-step title="开场" description="寒暄与背景" />
-            <el-step title="简历导向" description="经历与项目" />
-            <el-step title="技术深挖" description="知识与能力" />
-            <el-step title="行为面试" description="沟通与协作" />
-            <el-step title="收尾" description="反问与总结" />
+            <el-step title="开场" description="寒暄与背景"/>
+            <el-step title="简历导向" description="经历与项目"/>
+            <el-step title="技术深挖" description="知识与能力"/>
+            <el-step title="行为面试" description="沟通与协作"/>
+            <el-step title="收尾" description="反问与总结"/>
           </el-steps>
         </el-card>
 
@@ -164,11 +169,11 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import {computed, nextTick, onMounted, ref} from 'vue'
+import {ElMessage} from 'element-plus'
+import {Loading} from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getResumeList } from '@/api/resume'
+import {getResumeList} from '@/api/resume'
 
 const context = ref({
   resumeId: null,
@@ -181,8 +186,8 @@ const resumes = ref([])
 const resumeOptions = ref([])
 
 const jobOptions = ref([
-  { label: '前端开发工程师', value: 'j1' },
-  { label: '全栈工程师', value: 'j2' }
+  {label: '前端开发工程师', value: 'j1'},
+  {label: '全栈工程师', value: 'j2'}
 ])
 
 const isRunning = ref(false)
@@ -203,7 +208,7 @@ const messages = ref([
 ])
 
 const inputText = ref('')
-const options = ref({ instantFeedback: true })
+const options = ref({instantFeedback: true})
 const canSend = computed(() => !!inputText.value.trim() && isRunning.value)
 const chatRef = ref(null)
 
@@ -216,7 +221,7 @@ const fetchResumeList = async () => {
     loading.value = true
     const response = await getResumeList()
     const data = response?.data || response
-    
+
     if (data.code === 200 && data.data) {
       // 转换简历数据格式
       resumes.value = data.data.map((resume) => {
@@ -225,7 +230,7 @@ const fetchResumeList = async () => {
           const mb = bytes / (1024 * 1024)
           return `${mb.toFixed(1)}MB`
         }
-        
+
         // 格式化文件类型
         const formatMimeType = (mimeType) => {
           const typeMap = {
@@ -235,7 +240,7 @@ const fetchResumeList = async () => {
           }
           return typeMap[mimeType] || mimeType
         }
-        
+
         // 格式化时间：YYYY-MM-DD hh:mm:ss
         const formatDateTime = (dateTimeStr) => {
           const date = new Date(dateTimeStr)
@@ -247,7 +252,7 @@ const fetchResumeList = async () => {
           const seconds = String(date.getSeconds()).padStart(2, '0')
           return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
         }
-        
+
         return {
           id: resume.resumeId,
           title: resume.resumeTitle || '未命名简历',
@@ -259,13 +264,13 @@ const fetchResumeList = async () => {
           originalData: resume
         }
       })
-      
+
       // 生成简历选项
       resumeOptions.value = resumes.value.map(resume => ({
         label: `${resume.title}（${resume.createTime.split(' ')[0]}）`,
         value: resume.id
       }))
-      
+
       // 默认选择第一个简历
       if (resumes.value.length > 0 && !context.value.resumeId) {
         context.value.resumeId = resumes.value[0].id
@@ -369,7 +374,7 @@ onMounted(() => {
   border-bottom: 1px solid #f0f0f0;
   padding: 0 20px;
   height: 70px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-left {
@@ -423,7 +428,7 @@ onMounted(() => {
   flex-direction: column;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -458,9 +463,9 @@ onMounted(() => {
   padding: 20px 0;
 }
 
-.resume-title { 
-  font-weight: 600; 
-  margin-bottom: 6px; 
+.resume-title {
+  font-weight: 600;
+  margin-bottom: 6px;
   font-size: 16px;
   color: #303133;
 }
@@ -523,7 +528,7 @@ onMounted(() => {
   border-radius: 10px;
   padding: 10px 12px;
   max-width: 70%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f0f0f0;
 }
 
@@ -597,12 +602,12 @@ onMounted(() => {
     padding: 16px;
     gap: 16px;
   }
-  
+
   .main-content {
     flex-direction: column;
     padding: 16px;
   }
-  
+
   .left-panel, .right-panel {
     width: 100%;
   }
