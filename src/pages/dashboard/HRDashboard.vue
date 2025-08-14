@@ -209,17 +209,43 @@
             <h3>HR智能助手</h3>
           </div>
           <div class="header-controls">
-            <button class="control-btn" @click="closeAssistantDialog">
-              <span>✕</span>
-            </button>
+            <img 
+              :src="clearChatIcon"
+              alt="清空聊天"
+              class="control-icon"
+              @click="clearChat"
+              title="清空聊天"
+            />
+            <img 
+              :src="closeChatIcon"
+              alt="关闭"
+              class="control-icon"
+              @click="closeAssistantDialog"
+              title="关闭"
+            />
           </div>
         </div>
         
         <div class="panel-content">
-          <div class="welcome-message">
+          <div class="welcome-message" v-if="assistantMessages.length === 0">
             <div class="welcome-icon">⭐</div>
             <div class="welcome-text">您好！我是您的智能招聘助手</div>
             <div class="welcome-subtitle">有什么需要帮助的吗？</div>
+          </div>
+          
+          <div class="chat-messages" v-if="assistantMessages.length > 0">
+            <div
+                v-for="message in assistantMessages"
+                :key="message.id"
+                class="message"
+                :class="message.type"
+            >
+              <div class="message-content">
+                <span v-if="message.type === 'assistant'" class="assistant-icon">⭐</span>
+                {{ message.content }}
+              </div>
+              <div class="message-time">{{ message.time }}</div>
+            </div>
           </div>
         </div>
         
@@ -230,10 +256,17 @@
               placeholder="请将您遇到的问题告诉我，使用 Shift + Enter 换行"
               v-model="inputMessage"
               rows="3"
+              @keydown.enter.exact="handleEnterKey"
+              @keydown.shift.enter="handleShiftEnter"
             ></textarea>
-            <button class="send-btn" @click="handleSendMessage" :disabled="!inputMessage.trim()">
-              <span>✈️</span>
-            </button>
+            <img 
+              :src="inputMessage.trim() ? sendEnableIcon : sendDisableIcon"
+              :alt="inputMessage.trim() ? '发送' : '发送(禁用)'"
+              class="send-icon"
+              :class="{ 'disabled': !inputMessage.trim() }"
+              @click="inputMessage.trim() ? handleSendMessage() : null"
+              :style="{ cursor: inputMessage.trim() ? 'pointer' : 'not-allowed' }"
+            />
           </div>
         </div>
       </div>
@@ -247,6 +280,10 @@ import {useRoute, useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import * as echarts from 'echarts'
 import {getRoleFeatures} from '@/constants/permissions'
+import sendEnableIcon from '@/assets/chat/send-enable.svg'
+import sendDisableIcon from '@/assets/chat/send-disable.svg'
+import clearChatIcon from '@/assets/chat/clear-chat.svg'
+import closeChatIcon from '@/assets/chat/close-chat.svg'
 
 
 export default {
@@ -443,6 +480,7 @@ export default {
     // 智能助手
     const assistantOpen = ref(false)
     const inputMessage = ref('')
+    const assistantMessages = ref([])
 
 
     const showAssistantDialog = () => {
@@ -456,11 +494,54 @@ export default {
     const handleSendMessage = () => {
       if (!inputMessage.value.trim()) return
       
-      // 这里可以添加发送消息的逻辑
-      console.log('发送消息:', inputMessage.value)
+      // 添加用户消息到聊天框
+      const userMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: inputMessage.value.trim(),
+        time: '刚刚'
+      }
+      assistantMessages.value.push(userMessage)
+      
+      // 模拟AI回复
+      setTimeout(() => {
+        const assistantMessage = {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: '我理解您的问题，让我为您提供专业的HR建议...',
+          time: '刚刚'
+        }
+        assistantMessages.value.push(assistantMessage)
+      }, 1000)
       
       // 清空输入框
       inputMessage.value = ''
+    }
+
+    const handleEnterKey = (e) => {
+      // 检查是否有输入法候选项
+      const hasComposition = e.isComposing || e.keyCode === 229
+      
+      // 如果有输入法候选项，不阻止默认行为，让输入法处理
+      if (hasComposition) {
+        return
+      }
+      
+      // 如果没有输入法候选项，则发送消息
+      e.preventDefault()
+      if (inputMessage.value.trim()) {
+        handleSendMessage()
+      }
+    }
+
+    const handleShiftEnter = () => {
+      // 允许Shift+Enter换行，不做任何处理
+      // 或者可以在这里添加换行逻辑
+    }
+
+    const clearChat = () => {
+      // 清空聊天记录
+      assistantMessages.value = []
     }
     
     // 其他
@@ -597,9 +678,17 @@ export default {
       // 助手
       assistantOpen,
       inputMessage,
+      assistantMessages,
       showAssistantDialog,
       closeAssistantDialog,
       handleSendMessage,
+      handleEnterKey,
+      handleShiftEnter,
+      clearChat,
+      sendEnableIcon,
+      sendDisableIcon,
+      clearChatIcon,
+      closeChatIcon,
 
       // 其他
       handleGlobalSearch,
@@ -1194,26 +1283,26 @@ html, body {
 
 .header-controls {
   display: flex;
-  gap: 8px;
-}
-
-.control-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #f3f4f6;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  gap: 12px;
 }
 
-.control-btn:hover {
-  background: #e5e7eb;
-  transform: scale(1.05);
+.control-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  display: block;
+  vertical-align: middle;
+}
+
+.control-icon:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 /* 面板内容 */
@@ -1251,6 +1340,58 @@ html, body {
   font-size: 16px;
   color: #6b7280;
   line-height: 1.5;
+}
+
+/* 聊天消息 */
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.message-content {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.message.user .message-content {
+  background: #3b82f6;
+  color: white;
+  border-bottom-right-radius: 6px;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.message.assistant .message-content {
+  background: #f3f4f6;
+  color: #374151;
+  border-bottom-left-radius: 6px;
+  align-self: flex-start;
+}
+
+.assistant-icon {
+  margin-right: 6px;
+  color: #8b5cf6;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0 4px;
+  align-self: flex-end;
 }
 
 /* 输入区域 */
@@ -1305,43 +1446,28 @@ html, body {
   color: #9ca3af;
 }
 
-.send-btn {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  cursor: pointer;
+.send-icon {
+  width: 24px;
+  height: 24px;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  height: 44px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
 }
 
-.send-btn:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+.send-icon:hover:not(.disabled) {
+  transform: translateY(-2px);
 }
 
-.send-btn:active {
+
+
+.send-icon:active:not(.disabled) {
   transform: translateY(0);
 }
 
-.send-btn:disabled {
-  background: #d1d5db;
-  color: #9ca3af;
+.send-icon.disabled {
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.send-btn:disabled:hover {
-  background: #d1d5db;
-  transform: none;
-  box-shadow: none;
+  opacity: 0.6;
 }
 
 
