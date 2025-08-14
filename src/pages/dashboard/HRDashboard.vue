@@ -253,19 +253,20 @@
           <div class="input-wrapper">
             <textarea 
               class="chat-input" 
-              placeholder="请将您遇到的问题告诉我，使用 Shift + Enter 换行"
+              :placeholder="isChatLoading ? 'AI正在思考中，请稍候...' : '请将您遇到的问题告诉我，使用 Shift + Enter 换行'"
               v-model="inputMessage"
               rows="3"
+              :disabled="isChatLoading"
               @keydown.enter.exact="handleEnterKey"
               @keydown.shift.enter="handleShiftEnter"
             ></textarea>
             <img 
-              :src="inputMessage.trim() ? sendEnableIcon : sendDisableIcon"
-              :alt="inputMessage.trim() ? '发送' : '发送(禁用)'"
+              :src="inputMessage.trim() && !isChatLoading ? sendEnableIcon : sendDisableIcon"
+              :alt="inputMessage.trim() && !isChatLoading ? '发送' : '发送(禁用)'"
               class="send-icon"
-              :class="{ 'disabled': !inputMessage.trim() }"
-              @click="inputMessage.trim() ? handleSendMessage() : null"
-              :style="{ cursor: inputMessage.trim() ? 'pointer' : 'not-allowed' }"
+              :class="{ 'disabled': !inputMessage.trim() || isChatLoading }"
+              @click="inputMessage.trim() && !isChatLoading ? handleSendMessage() : null"
+              :style="{ cursor: inputMessage.trim() && !isChatLoading ? 'pointer' : 'not-allowed' }"
             />
           </div>
         </div>
@@ -284,6 +285,7 @@ import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
 import closeChatIcon from '@/assets/chat/close-chat.svg'
+import aiApi from '@/api/ai'
 
 
 export default {
@@ -481,7 +483,8 @@ export default {
     const assistantOpen = ref(false)
     const inputMessage = ref('')
     const assistantMessages = ref([])
-
+    const conversationId = ref(`hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
+    const isChatLoading = ref(false)
 
     const showAssistantDialog = () => {
       assistantOpen.value = true
@@ -491,31 +494,117 @@ export default {
       assistantOpen.value = false
     }
 
-    const handleSendMessage = () => {
-      if (!inputMessage.value.trim()) return
+    const handleSendMessage = async () => {
+      if (!inputMessage.value.trim() || isChatLoading.value) return
+      
+      const userMessageText = inputMessage.value.trim()
       
       // 添加用户消息到聊天框
+      const userMessageId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       const userMessage = {
-        id: Date.now(),
+        id: userMessageId,
         type: 'user',
-        content: inputMessage.value.trim(),
-        time: '刚刚'
+        content: userMessageText,
+        time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(userMessage)
       
-      // 模拟AI回复
-      setTimeout(() => {
-        const assistantMessage = {
-          id: Date.now() + 1,
-          type: 'assistant',
-          content: '我理解您的问题，让我为您提供专业的HR建议...',
-          time: '刚刚'
-        }
-        assistantMessages.value.push(assistantMessage)
-      }, 1000)
+      console.log('创建用户消息，ID:', userMessageId)
       
       // 清空输入框
       inputMessage.value = ''
+      
+      // 添加AI回复占位符
+      const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const assistantMessage = {
+        id: assistantMessageId,
+        type: 'assistant',
+        content: '',
+        time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+      }
+      assistantMessages.value.push(assistantMessage)
+      
+      console.log('创建AI回复消息，ID:', assistantMessageId)
+      console.log('当前消息列表:', assistantMessages.value.map(msg => ({ id: msg.id, type: msg.type, content: msg.content })))
+      
+      // 设置加载状态
+      isChatLoading.value = true
+      
+      try {
+        console.log('开始调用AI聊天接口...')
+        
+        // 调用后端AI聊天接口
+        const response = await aiApi.chatStream({
+          conversationId: conversationId.value,
+          userMessage: userMessageText
+        })
+        
+        console.log('AI聊天接口响应:', response)
+        console.log('响应状态:', response.status, response.statusText)
+        console.log('响应头:', Object.fromEntries(response.headers.entries()))
+        console.log('响应类型:', response.type)
+        console.log('响应URL:', response.url)
+        
+        // 处理流式响应
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        
+        let isReading = true
+        
+        while (isReading) {
+          const { done, value } = await reader.read()
+          if (done) {
+            isReading = false
+            break
+          }
+          
+          const chunk = decoder.decode(value)
+          console.log('收到流式数据块:', chunk)
+          
+          if (chunk && chunk.trim()) {
+            // 直接更新AI回复内容，实现流式打字机效果
+            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+            if (messageIndex !== -1) {
+              console.log('更新消息内容，当前内容长度:', assistantMessages.value[messageIndex].content.length)
+              console.log('新数据块:', chunk)
+              
+              // 将新数据追加到现有内容
+              assistantMessages.value[messageIndex].content += chunk
+              
+              console.log('更新后内容长度:', assistantMessages.value[messageIndex].content.length)
+              console.log('更新后内容:', assistantMessages.value[messageIndex].content)
+              
+              // 强制触发视图更新
+              await nextTick()
+              
+              // 添加小延迟模拟打字机效果（可选）
+              await new Promise(resolve => setTimeout(resolve, 10))
+            } else {
+              console.warn('未找到对应的消息:', assistantMessageId)
+            }
+          } else {
+            console.log('收到空数据块或空白数据:', chunk)
+          }
+        }
+        
+      } catch (error) {
+        console.error('AI聊天请求失败:', error)
+        // 显示错误消息
+        const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+        if (messageIndex !== -1) {
+          if (error.message.includes('401')) {
+            assistantMessages.value[messageIndex].content = '认证失败，请重新登录。'
+          } else if (error.message.includes('403')) {
+            assistantMessages.value[messageIndex].content = '权限不足，无法访问AI助手。'
+          } else if (error.message.includes('500')) {
+            assistantMessages.value[messageIndex].content = '服务器内部错误，请稍后再试。'
+          } else {
+            assistantMessages.value[messageIndex].content = `抱歉，我遇到了一些问题：${error.message}`
+          }
+        }
+      } finally {
+        isChatLoading.value = false
+      }
     }
 
     const handleEnterKey = (e) => {
@@ -542,6 +631,8 @@ export default {
     const clearChat = () => {
       // 清空聊天记录
       assistantMessages.value = []
+      // 重置对话ID
+      conversationId.value = `hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     }
     
     // 其他
@@ -679,6 +770,7 @@ export default {
       assistantOpen,
       inputMessage,
       assistantMessages,
+      isChatLoading,
       showAssistantDialog,
       closeAssistantDialog,
       handleSendMessage,
@@ -1468,6 +1560,17 @@ html, body {
 .send-icon.disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* 加载状态样式 */
+.chat-input:disabled {
+  background-color: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.chat-input:disabled::placeholder {
+  color: #d1d5db;
 }
 
 
