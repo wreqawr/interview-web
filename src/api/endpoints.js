@@ -1,4 +1,8 @@
-export const BASE_URL = "http://localhost:8081/api";
+import { getApiBaseUrl, ENV_INFO } from '@/config/env';
+
+// 使用环境配置获取API基础URL
+export const BASE_URL = getApiBaseUrl();
+
 // 认证接口
 export const AUTH_API = `${BASE_URL}/auth`;
 // 简历接口
@@ -10,6 +14,8 @@ export const AI_API = `${BASE_URL}/ai`;
 export const LOGIN_URL = `${AUTH_API}/login`;
 // 注册
 export const REGISTER_URL = `${AUTH_API}/register`;
+// 退出
+export const LOGOUT_URL = `${AUTH_API}/logout`;
 // 公钥
 export const PUB_KEY_URL = `${AUTH_API}/publicKey`;
 // 验证码
@@ -32,3 +38,6 @@ export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
 // ai聊天助手
 export const AI_CHAT_URL = `${AI_API}/chat`;
+
+// 导出环境信息，方便调试
+export { ENV_INFO };

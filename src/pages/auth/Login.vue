@@ -253,6 +253,8 @@ html, body {
   min-height: 100vh;
   overflow: hidden;
   display: flex;
+  /* 确保覆盖body背景 */
+  background: #fff;
 }
 
 .login-left {
@@ -268,6 +270,8 @@ html, body {
   z-index: 1;
   background: #fff;
   border-radius: 0 48px 48px 0;
+  /* 确保完全覆盖背景 */
+  box-shadow: 0 0 0 100px #fff;
 }
 
 .gradient-bg {
@@ -281,6 +285,17 @@ html, body {
   z-index: 0;
   border-radius: 0 48px 48px 0;
   overflow: hidden;
+  /* 优化圆角渲染 */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  /* 使用更精确的抗锯齿处理 */
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  /* 确保边缘清晰 */
+  outline: none;
+  /* 添加微妙的阴影来掩盖边缘色差 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .blur-circle {

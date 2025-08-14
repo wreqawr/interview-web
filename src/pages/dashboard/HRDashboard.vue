@@ -272,6 +272,27 @@
         </div>
       </div>
     </div>
+    
+    <!-- 公告弹窗 -->
+    <div v-if="announcementVisible" class="announcement-overlay" @click="closeAnnouncement">
+      <div class="announcement-modal" @click.stop>
+        <div class="announcement-header">
+          <h3>📢 系统公告</h3>
+          <button class="close-btn" @click="closeAnnouncement">✕</button>
+        </div>
+        <div class="announcement-content">
+          <div class="announcement-icon">🎉</div>
+          <div class="announcement-title">本次新增功能</div>
+          <div class="announcement-text">HR智能助手</div>
+          <div class="announcement-description">
+            全新的AI智能助手，为您提供专业的HR咨询服务！
+          </div>
+        </div>
+        <div class="announcement-footer">
+          <button class="confirm-btn" @click="closeAnnouncement">我知道了</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -281,11 +302,13 @@ import {useRoute, useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import * as echarts from 'echarts'
 import {getRoleFeatures} from '@/constants/permissions'
+import {LOGOUT_URL} from '@/api/endpoints'
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
 import closeChatIcon from '@/assets/chat/close-chat.svg'
-import aiApi from '@/api/ai'
+import { aiApi } from '@/api/ai'
+
 
 
 export default {
@@ -485,9 +508,20 @@ export default {
     const assistantMessages = ref([])
     const conversationId = ref(`hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
     const isChatLoading = ref(false)
+    
+    // 公告弹窗
+    const announcementVisible = ref(false)
 
     const showAssistantDialog = () => {
       assistantOpen.value = true
+    }
+    
+    const showAnnouncement = () => {
+      announcementVisible.value = true
+    }
+    
+    const closeAnnouncement = () => {
+      announcementVisible.value = false
     }
 
     const closeAssistantDialog = () => {
@@ -500,108 +534,82 @@ export default {
       const userMessageText = inputMessage.value.trim()
       
       // 添加用户消息到聊天框
-      const userMessageId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       const userMessage = {
-        id: userMessageId,
+        id: Date.now(),
         type: 'user',
         content: userMessageText,
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(userMessage)
       
-      console.log('创建用户消息，ID:', userMessageId)
-      
       // 清空输入框
       inputMessage.value = ''
       
-      // 添加AI回复占位符
-      const assistantMessageId = `assistant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const assistantMessage = {
-        id: assistantMessageId,
+      // 显示AI正在思考状态
+      const thinkingMessage = {
+        id: Date.now() + 1,
         type: 'assistant',
-        content: '',
+        content: '正在思考中...',
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
-      assistantMessages.value.push(assistantMessage)
-      
-      console.log('创建AI回复消息，ID:', assistantMessageId)
-      console.log('当前消息列表:', assistantMessages.value.map(msg => ({ id: msg.id, type: msg.type, content: msg.content })))
+      assistantMessages.value.push(thinkingMessage)
       
       // 设置加载状态
       isChatLoading.value = true
       
       try {
-        console.log('开始调用AI聊天接口...')
-        
         // 调用后端AI聊天接口
-        const response = await aiApi.chatStream({
+        const result = await aiApi.chat({
           conversationId: conversationId.value,
           userMessage: userMessageText
         })
         
-        console.log('AI聊天接口响应:', response)
-        console.log('响应状态:', response.status, response.statusText)
-        console.log('响应头:', Object.fromEntries(response.headers.entries()))
-        console.log('响应类型:', response.type)
-        console.log('响应URL:', response.url)
+        // 移除思考状态消息
+        assistantMessages.value.pop()
         
-        // 处理流式响应
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        
-        let isReading = true
-        
-        while (isReading) {
-          const { done, value } = await reader.read()
-          if (done) {
-            isReading = false
-            break
+        // 添加AI回复
+        if (result.code === 200 && result.data) {
+          const assistantMessage = {
+            id: Date.now() + 2,
+            type: 'assistant',
+            content: result.data,
+            time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
           }
-          
-          const chunk = decoder.decode(value)
-          console.log('收到流式数据块:', chunk)
-          
-          if (chunk && chunk.trim()) {
-            // 直接更新AI回复内容，实现流式打字机效果
-            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-            if (messageIndex !== -1) {
-              console.log('更新消息内容，当前内容长度:', assistantMessages.value[messageIndex].content.length)
-              console.log('新数据块:', chunk)
-              
-              // 将新数据追加到现有内容
-              assistantMessages.value[messageIndex].content += chunk
-              
-              console.log('更新后内容长度:', assistantMessages.value[messageIndex].content.length)
-              console.log('更新后内容:', assistantMessages.value[messageIndex].content)
-              
-              // 强制触发视图更新
-              await nextTick()
-              
-              // 添加小延迟模拟打字机效果（可选）
-              await new Promise(resolve => setTimeout(resolve, 10))
-            } else {
-              console.warn('未找到对应的消息:', assistantMessageId)
-            }
-          } else {
-            console.log('收到空数据块或空白数据:', chunk)
+          assistantMessages.value.push(assistantMessage)
+        } else {
+          // 处理请求失败情况，显示服务端返回的错误信息
+          const errorMessage = {
+            id: Date.now() + 2,
+            type: 'assistant',
+            content: result.message || '抱歉，我遇到了一些问题，请稍后再试。',
+            time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
           }
+          assistantMessages.value.push(errorMessage)
         }
-        
       } catch (error) {
-        console.error('AI聊天请求失败:', error)
+        console.error('发送消息失败:', error)
+        
+        // 移除思考状态消息
+        assistantMessages.value.pop()
+        
         // 显示错误消息
-        const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-        if (messageIndex !== -1) {
-          if (error.message.includes('401')) {
-            assistantMessages.value[messageIndex].content = '认证失败，请重新登录。'
-          } else if (error.message.includes('403')) {
-            assistantMessages.value[messageIndex].content = '权限不足，无法访问AI助手。'
-          } else if (error.message.includes('500')) {
-            assistantMessages.value[messageIndex].content = '服务器内部错误，请稍后再试。'
-          } else {
-            assistantMessages.value[messageIndex].content = `抱歉，我遇到了一些问题：${error.message}`
-          }
+        let errorContent = '网络连接出现问题，请检查网络后重试。'
+        
+        if (error.message.includes('401')) {
+          errorContent = '认证失败，请重新登录。'
+        } else if (error.message.includes('403')) {
+          errorContent = '权限不足，无法访问AI助手。'
+        } else if (error.message.includes('500')) {
+          errorContent = '服务器内部错误，请稍后再试。'
         }
+        
+        const errorMessage = {
+          id: Date.now() + 2,
+          type: 'assistant',
+          content: errorContent,
+          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        }
+        assistantMessages.value.push(errorMessage)
       } finally {
         isChatLoading.value = false
       }
@@ -650,8 +658,38 @@ export default {
     const goTo = (path) => router.push(path)
     const openSettings = () => {
     }
-    const logout = () => {
-      router.push('/login')
+    const logout = async () => {
+      try {
+        // 调用退出登录接口
+        const response = await fetch(LOGOUT_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': sessionStorage.getItem('Authorization') || '',
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          
+          if (result.code === 200) {
+            // 退出成功，清除JWT并跳转
+            console.log('退出登录成功:', result.message)
+            sessionStorage.removeItem('Authorization')
+            router.push('/login')
+          } else {
+            // 退出失败，显示错误信息
+            console.warn('退出登录失败:', result.message)
+            alert(`退出登录失败: ${result.message}`)
+          }
+        } else {
+          console.warn('退出登录请求失败:', response.status)
+          alert('退出登录请求失败，请重试')
+        }
+      } catch (error) {
+        console.error('退出登录异常:', error)
+        alert('退出登录异常，请重试')
+      }
     }
 
     const goToResource = (key) => {
@@ -714,6 +752,11 @@ export default {
       setTimeout(() => {
         fixScrollIssues()
       }, 500)
+      
+      // 显示公告弹窗
+      setTimeout(() => {
+        showAnnouncement()
+      }, 1000)
     })
 
     // 监听路由变化，确保每次进入页面都能正常滚动
@@ -781,6 +824,11 @@ export default {
       sendDisableIcon,
       clearChatIcon,
       closeChatIcon,
+      
+      // 公告弹窗
+      announcementVisible,
+      showAnnouncement,
+      closeAnnouncement,
 
       // 其他
       handleGlobalSearch,
@@ -1560,6 +1608,146 @@ html, body {
 .send-icon.disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* 公告弹窗样式 */
+.announcement-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.3) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.announcement-modal {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 0;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: announcementSlideIn 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.announcement-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+  z-index: -1;
+}
+
+@keyframes announcementSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.announcement-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px 24px 16px;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.announcement-header h3 {
+  color: white;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.announcement-content {
+  padding: 32px 24px;
+  text-align: center;
+  color: white;
+}
+
+.announcement-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.announcement-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  opacity: 0.9;
+}
+
+.announcement-text {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.announcement-description {
+  font-size: 14px;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.announcement-footer {
+  padding: 16px 24px 24px;
+  text-align: center;
+}
+
+.confirm-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 12px 32px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
 }
 
 /* 加载状态样式 */

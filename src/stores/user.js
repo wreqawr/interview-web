@@ -92,7 +92,7 @@ export const useUserStore = defineStore('user', () => {
     // 设置token
     const setToken = (newToken) => {
         token.value = newToken;
-        localStorage.setItem('token', newToken);
+        // 不再存储到localStorage，统一使用sessionStorage中的Authorization
 
         // 解析并设置用户信息
         const user = getUserInfoFromToken(newToken);
@@ -112,9 +112,9 @@ export const useUserStore = defineStore('user', () => {
         userPermissions.value = permissions;
     };
 
-    // 从localStorage恢复token
+    // 从sessionStorage恢复token
     const restoreToken = () => {
-        const savedToken = localStorage.getItem('token');
+        const savedToken = sessionStorage.getItem('Authorization');
         if (savedToken && !isTokenExpired(savedToken)) {
             setToken(savedToken);
             return true;
@@ -127,7 +127,7 @@ export const useUserStore = defineStore('user', () => {
         token.value = '';
         userInfo.value = null;
         userRoles.value = [];
-        localStorage.removeItem('token');
+        // 不再清理localStorage，统一清理sessionStorage中的Authorization
     };
 
     // 刷新用户信息

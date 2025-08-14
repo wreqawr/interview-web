@@ -1,30 +1,16 @@
-version: '3.8'
+networks:
+  interview-net:
+    external: true
 
 services:
+  # 前端应用（已包含nginx）
   interview-web:
-    build: .
-    ports:
-      - "8080:8080"
+    image: interview-web:latest
     container_name: interview-web
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    # 如果需要连接后端服务，可以取消注释下面的配置
-    # depends_on:
-    #   - backend
-    # networks:
-    #   - interview-network
-
-  # 后端服务（如果需要）
-  # backend:
-  #   image: your-backend-image
-  #   ports:
-  #     - "8081:8081"
-  #   container_name: interview-backend
-  #   restart: unless-stopped
-  #   networks:
-  #     - interview-network
-
-# networks:
-#   interview-network:
-#     driver: bridge 
+    ports:
+      - "10077:8080"  # 映射到宿主机的10077端口
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - interview-net
