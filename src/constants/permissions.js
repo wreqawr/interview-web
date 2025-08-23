@@ -538,7 +538,7 @@ export const ROLE_FEATURES = {
             name: 'AI模拟面试',
             icon: '@/assets/function/jobseeker/ai-interview.svg',
             type: 'warning',
-            path: '/jobseeker/mock-interview',
+            path: '/interview/preparation',
             description: 'AI驱动的面试模拟训练',
             permissions: [
                 PERMISSION_CODES.MOCK_TECHNICAL_START,

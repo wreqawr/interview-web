@@ -102,6 +102,12 @@ export function getRoleHomePageByToken(token) {
         if (primaryRole === 'ROLE_HR') {
             return '/hr-dashboard';
         }
+        if (primaryRole === 'ROLE_JOB_SEEKER') {
+            return '/candidate-dashboard';
+        }
+        if (primaryRole === 'ROLE_ADMIN') {
+            return '/dashboard'; // 管理员可以继续使用通用dashboard
+        }
     }
     return '/dashboard';
 } 

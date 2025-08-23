@@ -35,6 +35,14 @@ const routes = [
         meta: {requiresAuth: true, role: 'ROLE_HR'}
     },
 
+    // 求职者专用Dashboard页面
+    {
+        path: '/candidate-dashboard',
+        name: 'CandidateDashboard',
+        component: () => import('@/pages/dashboard/CandidateDashboard.vue'),
+        meta: {requiresAuth: true, role: 'ROLE_JOB_SEEKER'}
+    },
+
 
     // 简历管理页面（包含上传功能）
     {
@@ -62,7 +70,30 @@ const routes = [
     {
         path: '/jobseeker/mock-interview',
         name: 'MockInterview',
-        component: () => import('@/pages/interview/MockInterview.vue'),
+        redirect: '/interview/preparation'
+    },
+
+    // 面试准备页面
+    {
+        path: '/interview/preparation',
+        name: 'InterviewPreparation',
+        component: () => import('@/pages/interview/InterviewPreparation.vue'),
+        meta: {requiresAuth: true}
+    },
+
+    // 面试进行页面
+    {
+        path: '/interview/live',
+        name: 'LiveInterview',
+        component: () => import('@/pages/interview/LiveInterview.vue'),
+        meta: {requiresAuth: true}
+    },
+
+    // 面试结果页面
+    {
+        path: '/interview/results',
+        name: 'InterviewResults',
+        component: () => import('@/pages/interview/InterviewResults.vue'),
         meta: {requiresAuth: true}
     },
 
@@ -108,6 +139,12 @@ router.beforeEach(async (to, from, next) => {
         // 如果访问的是通用dashboard且用户是HR角色，重定向到HR专用dashboard
         if (to.path === '/dashboard' && userStore.hasUserRole('ROLE_HR')) {
             next('/hr-dashboard')
+            return
+        }
+
+        // 如果访问的是通用dashboard且用户是求职者角色，重定向到求职者专用dashboard
+        if (to.path === '/dashboard' && userStore.hasUserRole('ROLE_JOB_SEEKER')) {
+            next('/candidate-dashboard')
             return
         }
     }

@@ -233,7 +233,7 @@
             <div class="welcome-subtitle">有什么需要帮助的吗？</div>
           </div>
           
-          <div class="chat-messages" v-if="assistantMessages.length > 0">
+          <div class="chat-messages" v-if="assistantMessages.length > 0" ref="chatMessagesRef">
             <div
                 v-for="message in assistantMessages"
                 :key="message.id"
@@ -508,12 +508,42 @@ export default {
     const assistantMessages = ref([])
     const conversationId = ref(`hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
     const isChatLoading = ref(false)
+    const chatMessagesRef = ref(null) // 新增：用于引用聊天消息区域
     
     // 公告弹窗
     const announcementVisible = ref(false)
 
+    // 自动滚动到聊天底部
+    const scrollToBottom = () => {
+      nextTick(() => {
+        if (chatMessagesRef.value) {
+          console.log('执行滚动到底部，当前scrollHeight:', chatMessagesRef.value.scrollHeight)
+          // 使用平滑滚动效果
+          chatMessagesRef.value.scrollTo({
+            top: chatMessagesRef.value.scrollHeight,
+            behavior: 'smooth'
+          })
+          
+          // 备用方案：如果scrollTo不支持，使用scrollTop
+          setTimeout(() => {
+            if (chatMessagesRef.value) {
+              chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight
+              console.log('备用滚动完成，scrollTop设置为:', chatMessagesRef.value.scrollTop)
+            }
+          }, 100)
+        } else {
+          console.log('chatMessagesRef未找到')
+        }
+      })
+    }
+
     const showAssistantDialog = () => {
       assistantOpen.value = true
+      
+      // 对话框打开后滚动到底部
+      nextTick(() => {
+        scrollToBottom()
+      })
     }
     
     const showAnnouncement = () => {
@@ -541,6 +571,11 @@ export default {
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(userMessage)
+      
+      // 滚动到用户消息 - 添加延迟确保DOM更新
+      setTimeout(() => {
+        scrollToBottom()
+      }, 50)
       
       // 清空输入框
       inputMessage.value = ''
@@ -576,6 +611,11 @@ export default {
             time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
           }
           assistantMessages.value.push(assistantMessage)
+          
+          // 滚动到AI回复 - 添加延迟确保DOM更新
+          setTimeout(() => {
+            scrollToBottom()
+          }, 50)
         } else {
           // 处理请求失败情况，显示服务端返回的错误信息
           const errorMessage = {
@@ -585,6 +625,11 @@ export default {
             time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
           }
           assistantMessages.value.push(errorMessage)
+          
+          // 滚动到错误消息 - 添加延迟确保DOM更新
+          setTimeout(() => {
+            scrollToBottom()
+          }, 50)
         }
       } catch (error) {
         console.error('发送消息失败:', error)
@@ -610,8 +655,14 @@ export default {
           time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
         }
         assistantMessages.value.push(errorMessage)
+        
+        // 滚动到错误消息 - 添加延迟确保DOM更新
+        setTimeout(() => {
+          scrollToBottom()
+        }, 50)
       } finally {
         isChatLoading.value = false
+        scrollToBottom() // 消息发送后滚动到底部
       }
     }
 
@@ -641,6 +692,7 @@ export default {
       assistantMessages.value = []
       // 重置对话ID
       conversationId.value = `hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      scrollToBottom() // 清空聊天后滚动到底部
     }
     
     // 其他
@@ -738,6 +790,11 @@ export default {
       console.log('滚动问题修复完成')
     }
 
+    // 监听消息变化，自动滚动到底部
+    watch(assistantMessages, () => {
+      scrollToBottom()
+    }, { deep: true })
+
     onMounted(async () => {
       await nextTick()
       initRadar()
@@ -824,6 +881,7 @@ export default {
       sendDisableIcon,
       clearChatIcon,
       closeChatIcon,
+      chatMessagesRef, // 新增：暴露给模板
       
       // 公告弹窗
       announcementVisible,
@@ -1453,14 +1511,20 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  align-items: center;
-  justify-content: center;
+  /* 移除居中对齐，让聊天消息正常显示 */
+  align-items: stretch;
+  justify-content: flex-start;
+  min-height: 0; /* 确保flex子元素可以正确收缩 */
 }
 
 /* 欢迎消息 */
 .welcome-message {
   text-align: center;
   padding: 40px 20px;
+  /* 当有欢迎消息时，让它居中显示 */
+  align-self: center;
+  justify-self: center;
+  margin: auto;
 }
 
 .welcome-icon {
@@ -1488,6 +1552,11 @@ html, body {
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  /* 确保聊天消息区域可以滚动 */
+  overflow-y: auto;
+  max-height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 

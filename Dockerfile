@@ -17,7 +17,7 @@ RUN npm ci
 COPY . .
 
 # 构建应用
-RUN npm run build
+RUN npm run build:prod
 
 # 生产阶段 - 使用更轻量的nginx镜像
 FROM nginx:alpine-slim
