@@ -37,7 +37,7 @@ export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 // 获取用户上传简历后的异步任务状态
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
 // ai聊天助手
-export const AI_CHAT_URL = `${AI_API}/chat`;
+export const AI_CHAT_URL = `http://localhost:8082/api/ai/chat`;
 
 // 导出环境信息，方便调试
 export { ENV_INFO };

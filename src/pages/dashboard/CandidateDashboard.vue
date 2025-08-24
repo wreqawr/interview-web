@@ -383,66 +383,86 @@ export default {
       
       inputMessage.value = ''
       
-      // 显示AI思考状态
-      const thinkingMessage = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: '正在思考中...',
-        time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-      }
-      assistantMessages.value.push(thinkingMessage)
-      
       isChatLoading.value = true
       
+      // 创建AI回复消息（直接显示，不显示思考状态）
+      const assistantMessageId = Date.now() + 1
+      const assistantMessage = {
+        id: assistantMessageId,
+        type: 'assistant',
+        content: '',
+        time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+      }
+      assistantMessages.value.push(assistantMessage)
+      
       try {
-        const result = await aiApi.chat({
+        // 调用后端AI聊天接口（流式响应）
+        await aiApi.chat({
           conversationId: conversationId.value,
-          userMessage: userMessageText
+          userMessage: userMessageText,
+          taskType: 'GENERAL_CHAT',
+          params: {},
+          onData: (data) => {
+            // 实时更新AI回复内容
+            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+            if (messageIndex !== -1) {
+              assistantMessages.value[messageIndex].content += data
+              // 实时滚动到底部
+              nextTick(() => {
+                scrollToBottom()
+              })
+            }
+          },
+          onComplete: () => {
+            // 流式响应完成
+            console.log('AI回复完成')
+            isChatLoading.value = false
+            scrollToBottom()
+          },
+          onError: (error) => {
+            console.error('AI聊天流式响应错误:', error)
+            
+            // 更新AI回复为错误信息
+            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+            if (messageIndex !== -1) {
+              let errorContent = '抱歉，我遇到了一些问题，请稍后再试。'
+              
+              if (error.message.includes('401')) {
+                errorContent = '认证失败，请重新登录。'
+              } else if (error.message.includes('403')) {
+                errorContent = '权限不足，无法访问AI助手。'
+              } else if (error.message.includes('500')) {
+                errorContent = '服务器内部错误，请稍后再试。'
+              } else if (error.message.includes('NetworkError')) {
+                errorContent = '网络连接出现问题，请检查网络后重试。'
+              }
+              
+              assistantMessages.value[messageIndex].content = errorContent
+            }
+            
+            isChatLoading.value = false
+            scrollToBottom()
+          }
         })
-        
-        assistantMessages.value.pop()
-        
-        if (result.code === 200 && result.data) {
-          const assistantMessage = {
-            id: Date.now() + 2,
-            type: 'assistant',
-            content: result.data,
-            time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-          }
-          assistantMessages.value.push(assistantMessage)
-          
-          setTimeout(() => {
-            scrollToBottom()
-          }, 50)
-        } else {
-          const errorMessage = {
-            id: Date.now() + 2,
-            type: 'assistant',
-            content: result.message || '抱歉，我遇到了一些问题，请稍后再试。',
-            time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-          }
-          assistantMessages.value.push(errorMessage)
-          
-          setTimeout(() => {
-            scrollToBottom()
-          }, 50)
-        }
       } catch (error) {
         console.error('发送消息失败:', error)
-        assistantMessages.value.pop()
         
-        const errorMessage = {
-          id: Date.now() + 2,
-          type: 'assistant',
-          content: '网络连接出现问题，请检查网络后重试。',
-          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        // 更新AI回复为错误信息
+        const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+        if (messageIndex !== -1) {
+          let errorContent = '网络连接出现问题，请检查网络后重试。'
+          
+          if (error.message.includes('401')) {
+            errorContent = '认证失败，请重新登录。'
+          } else if (error.message.includes('403')) {
+            errorContent = '权限不足，无法访问AI助手。'
+          } else if (error.message.includes('500')) {
+            errorContent = '服务器内部错误，请稍后再试。'
+          }
+          
+          assistantMessages.value[messageIndex].content = errorContent
         }
-        assistantMessages.value.push(errorMessage)
         
-        setTimeout(() => {
-          scrollToBottom()
-        }, 50)
-      } finally {
         isChatLoading.value = false
         scrollToBottom()
       }
