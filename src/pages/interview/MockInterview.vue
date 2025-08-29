@@ -325,6 +325,11 @@ import {ElMessage} from 'element-plus'
 import {VideoPlay, VideoPause, Clock, ChatDotRound, Light, Promotion} from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import {getResumeList} from '@/api/resume'
+// 导入SVG图标以解决404错误
+// import resumeVersionIcon from '@/assets/resume/resume-version.svg'
+// import interviewCountIcon from '@/assets/interview/interview-count.svg'
+// import comprehensiveScoreIcon from '@/assets/other/comprehensive-score.svg'
+// import getOfferIcon from '@/assets/other/get-offer.svg'
 
 const context = ref({
   resumeId: null,

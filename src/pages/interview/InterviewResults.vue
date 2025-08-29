@@ -442,8 +442,44 @@ const goHome = () => {
   router.push('/')
 }
 
+// 滚动解锁函数
+const unlockScroll = () => {
+  try {
+    const body = document.body
+    const html = document.documentElement
+    
+    // 移除可能影响滚动的类
+    body.classList.remove('el-popup-parent--hidden')
+    body.classList.remove('el-overflow-hidden')
+    
+    // 清理内联样式
+    if (body.style.overflow) body.style.overflow = ''
+    if (body.style.position) body.style.position = ''
+    if (html.style.overflow) html.style.overflow = ''
+    if (html.style.position) html.style.position = ''
+    
+    // 强制设置可滚动
+    body.style.overflow = 'auto'
+    html.style.overflow = 'auto'
+    
+    // 检查并清理页面内可能影响滚动的元素
+    const pageElements = document.querySelectorAll('.interview-results-page *')
+    pageElements.forEach(el => {
+      if (el.style && el.style.overflow === 'hidden') {
+        el.style.overflow = ''
+      }
+    })
+  } catch (e) { /* 忽略 */ }
+}
+
 // 页面加载时初始化
 onMounted(async () => {
+  // 进入页面强制解锁滚动并做多次延迟兜底
+  unlockScroll()
+  setTimeout(unlockScroll, 50)
+  setTimeout(unlockScroll, 200)
+  setTimeout(unlockScroll, 500)
+  
   // 解析路由参数
   try {
     if (route.query.duration) {

@@ -48,110 +48,108 @@
           </div>
           
           <div class="config-form">
-            <!-- 职位选择 -->
-            <div class="form-group">
-              <label class="form-label">
-                <el-icon><Briefcase /></el-icon>
-                目标职位
-              </label>
-              <el-select
-                v-model="interviewConfig.position"
-                placeholder="请选择目标职位"
-                size="large"
-                class="form-select"
-                filterable
-                allow-create
-                @change="handlePositionChange"
-              >
-                <el-option
-                  v-for="position in positionOptions"
-                  :key="position.value"
-                  :label="position.label"
-                  :value="position.value"
+            <!-- 简历和职位选择 - 左右结构 -->
+            <div class="form-row">
+              <!-- 左边：选择简历 -->
+              <div class="form-group form-group-left">
+                <label class="form-label">
+                  <el-icon><Document /></el-icon>
+                  选择简历
+                </label>
+                <el-select
+                  v-model="interviewConfig.resumeId"
+                  placeholder="请选择简历"
+                  size="large"
+                  class="form-select"
+                  :loading="resumeLoading"
+                  :disabled="resumes.length === 0"
+                  @change="handleResumeChange"
                 >
-                  <div class="position-option">
-                    <span class="position-icon">{{ position.icon }}</span>
-                    <span class="position-label">{{ position.label }}</span>
-                    <span class="position-desc">{{ position.description }}</span>
-                  </div>
-                </el-option>
-              </el-select>
-            </div>
-
-            <!-- 面试类型选择 -->
-            <div class="form-group">
-              <label class="form-label">
-                <el-icon><ChatDotRound /></el-icon>
-                面试类型
-              </label>
-              <div class="interview-type-tabs">
-                <el-radio-group v-model="interviewConfig.type" @change="handleTypeChange">
-                  <el-radio-button 
-                    v-for="type in interviewTypes" 
-                    :key="type.value" 
-                    :label="type.value"
-                    class="type-radio"
+                  <el-option
+                    v-for="resume in resumes"
+                    :key="resume.id"
+                    :label="resume.title"
+                    :value="resume.id"
                   >
-                    <div class="type-content">
-                      <span class="type-icon">{{ type.icon }}</span>
-                      <span class="type-name">{{ type.name }}</span>
-                      <span class="type-desc">{{ type.description }}</span>
+                    <div class="resume-option">
+                      <span class="resume-icon">📄</span>
+                      <div class="resume-info">
+                        <span class="resume-title">{{ resume.title }}</span>
+                        <span class="resume-meta">{{ resume.format }} · {{ resume.updateTime }} · 评分: {{ resume.score }}</span>
+                      </div>
                     </div>
-                  </el-radio-button>
-                </el-radio-group>
-              </div>
-            </div>
-
-            <!-- 难度选择 -->
-            <div class="form-group">
-              <label class="form-label">
-                <el-icon><TrendCharts /></el-icon>
-                难度级别
-              </label>
-              <div class="difficulty-selector">
-                <el-radio-group v-model="interviewConfig.difficulty" @change="handleDifficultyChange">
-                  <el-radio-button 
-                    v-for="level in difficultyLevels" 
-                    :key="level.value" 
-                    :label="level.value"
-                    class="difficulty-radio"
-                  >
-                    <div class="difficulty-content">
-                      <span class="difficulty-icon">{{ level.icon }}</span>
-                      <span class="difficulty-name">{{ level.name }}</span>
-                      <span class="difficulty-desc">{{ level.description }}</span>
-                    </div>
-                  </el-radio-button>
-                </el-radio-group>
-              </div>
-            </div>
-
-            <!-- AI面试官选择 -->
-            <div class="form-group">
-              <label class="form-label">
-                <el-icon><UserFilled /></el-icon>
-                选择你的面试官
-              </label>
-              <div class="interviewer-selection">
-                <div 
-                  v-for="interviewer in interviewers" 
-                  :key="interviewer.id"
-                  class="interviewer-option"
-                  :class="{ active: interviewConfig.interviewer === interviewer.id }"
-                  @click="selectInterviewer(interviewer.id)"
-                >
-                  <div class="interviewer-avatar">
-                    <span class="avatar-emoji">{{ interviewer.avatar }}</span>
-                  </div>
-                  <div class="interviewer-info">
-                    <h4 class="interviewer-name">{{ interviewer.name }}</h4>
-                    <p class="interviewer-style">{{ interviewer.style }}</p>
-                    <p class="interviewer-desc">{{ interviewer.description }}</p>
-                  </div>
-                  <div class="selection-indicator">
-                    <el-icon v-if="interviewConfig.interviewer === interviewer.id"><Select /></el-icon>
-                  </div>
+                  </el-option>
+                </el-select>
+                <div v-if="resumes.length === 0" class="no-resume-tip">
+                  <el-icon><Document /></el-icon>
+                  <span>暂无简历，请先上传简历</span>
                 </div>
+              </div>
+
+              <!-- 中间：选择职位 -->
+              <div class="form-group form-group-center">
+                <label class="form-label">
+                  <el-icon><Briefcase /></el-icon>
+                  目标职位
+                </label>
+                <el-select
+                  v-model="interviewConfig.position"
+                  placeholder="请选择目标职位"
+                  size="large"
+                  class="form-select"
+                  filterable
+                  allow-create
+                  @change="handlePositionChange"
+                >
+                  <el-option
+                    v-for="position in positionOptions"
+                    :key="position.value"
+                    :label="position.label"
+                    :value="position.value"
+                  >
+                    <div class="position-option">
+                      <span class="position-icon">{{ position.icon }}</span>
+                      <span class="position-label">{{ position.label }}</span>
+                      <span class="position-desc">{{ position.description }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
+              </div>
+
+              <!-- 右边：选择面试模式 -->
+              <div class="form-group form-group-right">
+                <label class="form-label">
+                  <el-icon><VideoPlay /></el-icon>
+                  面试模式
+                </label>
+                <el-select
+                  v-model="interviewConfig.mode"
+                  placeholder="请选择面试模式"
+                  size="large"
+                  class="form-select"
+                  @change="handleModeChange"
+                >
+                  <el-option
+                    value="video"
+                    label="视频面试"
+                  >
+                    <div class="mode-option">
+                      <span class="mode-icon">🎥</span>
+                      <span class="mode-label">视频面试</span>
+                      <span class="mode-desc">实时视频对话，更真实的面试体验</span>
+                    </div>
+                  </el-option>
+                  <el-option
+                    value="chat"
+                    label="文字聊天"
+                  >
+                    <div class="mode-option">
+                      <span class="mode-icon">💬</span>
+                      <span class="mode-label">文字聊天</span>
+                      <span class="mode-desc">纯文字对话，更轻松自然的交流</span>
+                    </div>
+                  </el-option>
+                </el-select>
               </div>
             </div>
           </div>
@@ -275,13 +273,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getResumeList } from '@/api/resume'
+import { useInterviewStore } from '@/stores/interview'
 import {
-  Clock, User, QuestionFilled, Briefcase, ChatDotRound, TrendCharts,
-  UserFilled, Select, ArrowDown, ArrowUp, Light, VideoPlay,
+  Clock, User, QuestionFilled, Briefcase, Document,
+  ArrowDown, ArrowUp, Light, VideoPlay,
   VideoCamera, View
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const interviewStore = useInterviewStore()
 
 // 导航菜单
 const activeMenu = ref('home')
@@ -289,13 +290,50 @@ const activeMenu = ref('home')
 // 面试配置
 const interviewConfig = ref({
   position: '',
-  type: 'technical',
-  difficulty: 'intermediate',
-  interviewer: 'professional'
+  resumeId: '',
+  mode: 'video' // 新增面试模式，默认为视频面试
 })
 
+// 简历数据
+const resumes = ref([])
+const resumeLoading = ref(false)
+
+// 获取简历列表
+const fetchResumeList = async () => {
+  try {
+    resumeLoading.value = true
+    const response = await getResumeList()
+    const data = response?.data || response
+
+    if (data.code === 200 && data.data) {
+      // 转换简历数据格式
+      resumes.value = data.data.map(resume => ({
+        id: resume.resumeId,
+        title: resume.resumeTitle || '未命名简历',
+        format: resume.mimeType === 'application/pdf' ? 'PDF' : 
+                resume.mimeType === 'application/msword' ? 'DOC' : 
+                resume.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' : '未知',
+        updateTime: new Date(resume.updatedAt).toLocaleDateString('zh-CN'),
+        score: resume.rate || 0
+      }))
+      
+      // 默认选择第一个简历
+      if (resumes.value.length > 0) {
+        interviewConfig.value.resumeId = resumes.value[0].id
+      }
+    } else {
+      ElMessage.error(data.message || '获取简历列表失败')
+    }
+  } catch (error) {
+    console.error('获取简历列表失败:', error)
+    ElMessage.error('获取简历列表失败，请重试')
+  } finally {
+    resumeLoading.value = false
+  }
+}
+
 // 展开状态
-const questionsExpanded = ref(false)
+const questionsExpanded = ref(true)
 
 // 设备状态
 const micWorking = ref(false)
@@ -313,75 +351,17 @@ const positionOptions = ref([
   { value: 'devops', label: 'DevOps工程师', icon: '🚀', description: '负责运维与部署' }
 ])
 
-// 面试类型
-const interviewTypes = ref([
-  { value: 'technical', name: '技术面试', icon: '⚡', description: '专业技能与知识考察' },
-  { value: 'behavioral', name: '行为面试', icon: '👥', description: '个人经历与行为模式' },
-  { value: 'comprehensive', name: '综合面试', icon: '🎯', description: '技术+行为综合考察' },
-  { value: 'stress', name: '压力面试', icon: '🔥', description: '高压环境下的表现' }
-])
-
-// 难度级别
-const difficultyLevels = ref([
-  { value: 'junior', name: '初级', icon: '🌱', description: '校招/应届生水平' },
-  { value: 'intermediate', name: '中级', icon: '🌿', description: '社招/有经验水平' },
-  { value: 'senior', name: '高级', icon: '🌳', description: '专家/资深水平' }
-])
-
-// AI面试官
-const interviewers = ref([
-  {
-    id: 'professional',
-    name: 'Sarah Chen',
-    avatar: '👩‍💼',
-    style: '专业型',
-    description: '严谨专业，注重细节，适合技术面试'
-  },
-  {
-    id: 'friendly',
-    name: 'Mike Johnson',
-    avatar: '👨‍💻',
-    style: '友善型',
-    description: '温和耐心，鼓励表达，适合行为面试'
-  },
-  {
-    id: 'serious',
-    name: 'Emma Wilson',
-    avatar: '👩‍⚖️',
-    style: '严肃型',
-    description: '严格认真，压力测试，适合压力面试'
-  }
-])
-
 // 示例问题
-const sampleQuestions = computed(() => {
-  const questions = {
-    technical: [
-      '请介绍一下你的技术栈和项目经验',
-      '如何优化前端页面的性能？',
-      '请解释一下你最近解决的一个技术难题',
-      '你对新技术的学习方法是什么？'
-    ],
-    behavioral: [
-      '请描述一个你遇到的最大挑战',
-      '在团队中如何处理意见分歧？',
-      '请分享一个你失败的经历和学到的教训',
-      '你的职业规划是什么？'
-    ],
-    comprehensive: [
-      '请做一下自我介绍',
-      '为什么选择我们公司？',
-      '你认为自己的优势和劣势是什么？',
-      '有什么问题想问我们的吗？'
-    ],
-    stress: [
-      '如果明天就要上线，但发现重大bug怎么办？',
-      '你的代码被同事批评了，你会怎么做？',
-      '如果项目延期了，你会如何向领导解释？'
-    ]
-  }
-  return questions[interviewConfig.value.type] || questions.comprehensive
-})
+const sampleQuestions = computed(() => [
+  '请介绍一下你的技术栈和项目经验',
+  '如何优化前端页面的性能？',
+  '请解释一下你最近解决的一个技术难题',
+  '你对新技术的学习方法是什么？',
+  '请描述一个你遇到的最大挑战',
+  '在团队中如何处理意见分歧？',
+  '请分享一个你失败的经历和学到的教训',
+  '你的职业规划是什么？'
+])
 
 // 面试技巧
 const interviewTips = ref([
@@ -406,29 +386,32 @@ const interviewTips = ref([
 // 是否可以开始面试
 const canStartInterview = computed(() => {
   return interviewConfig.value.position && 
-         interviewConfig.value.type && 
-         interviewConfig.value.difficulty && 
-         interviewConfig.value.interviewer
+         interviewConfig.value.resumeId && 
+         interviewConfig.value.mode
 })
 
-// 处理职位变化
-const handlePositionChange = (value) => {
-  console.log('选择职位:', value)
+// 处理职位选择变化
+const handlePositionChange = (position) => {
+  interviewConfig.value.position = position
+  // 同时更新store中的配置
+  interviewStore.setInterviewConfig({ position })
 }
 
-// 处理面试类型变化
-const handleTypeChange = (value) => {
-  console.log('选择面试类型:', value)
+// 处理简历选择变化
+const handleResumeChange = (resumeId) => {
+  interviewConfig.value.resumeId = resumeId
+  // 找到对应的简历信息并存储
+  const selectedResume = resumes.value.find(resume => resume.id === resumeId)
+  if (selectedResume) {
+    interviewStore.setResumeInfo(selectedResume)
+  }
+  interviewStore.setInterviewConfig({ resumeId })
 }
 
-// 处理难度变化
-const handleDifficultyChange = (value) => {
-  console.log('选择难度:', value)
-}
-
-// 选择面试官
-const selectInterviewer = (id) => {
-  interviewConfig.value.interviewer = id
+// 处理面试模式变化
+const handleModeChange = (mode) => {
+  interviewConfig.value.mode = mode
+  interviewStore.setInterviewConfig({ mode })
 }
 
 // 处理菜单选择
@@ -444,17 +427,23 @@ const startInterview = () => {
     return
   }
   
-  // 检查设备状态
-  if (!micWorking.value || !cameraWorking.value) {
-    ElMessage.warning('请先确保设备正常工作')
-    return
-  }
+  // 将完整配置保存到store
+  interviewStore.setInterviewConfig(interviewConfig.value)
   
-  // 跳转到面试页面，传递配置参数
-  router.push({
-    path: '/interview/live',
-    query: { config: JSON.stringify(interviewConfig.value) }
-  })
+  // 根据面试模式跳转到不同页面
+  if (interviewConfig.value.mode === 'video') {
+    // 视频面试模式：检查设备状态
+    if (!micWorking.value || !cameraWorking.value) {
+      ElMessage.warning('请先确保设备正常工作')
+      return
+    }
+    
+    // 跳转到视频面试页面，不传递URL参数
+    router.push('/interview/live')
+  } else if (interviewConfig.value.mode === 'chat') {
+    // 文字聊天模式：直接跳转，不传递URL参数
+    router.push('/interview/chat')
+  }
 }
 
 // 预览面试流程
@@ -486,8 +475,44 @@ const checkDevices = async () => {
   }
 }
 
+// 滚动解锁函数
+const unlockScroll = () => {
+  try {
+    const body = document.body
+    const html = document.documentElement
+    
+    // 移除可能影响滚动的类
+    body.classList.remove('el-popup-parent--hidden')
+    body.classList.remove('el-overflow-hidden')
+    
+    // 清理内联样式
+    if (body.style.overflow) body.style.overflow = ''
+    if (body.style.position) body.style.position = ''
+    if (html.style.overflow) html.style.overflow = ''
+    if (html.style.position) html.style.position = ''
+    
+    // 强制设置可滚动
+    body.style.overflow = 'auto'
+    html.style.overflow = 'auto'
+    
+    // 检查并清理页面内可能影响滚动的元素
+    const pageElements = document.querySelectorAll('.interview-preparation-page *')
+    pageElements.forEach(el => {
+      if (el.style && el.style.overflow === 'hidden') {
+        el.style.overflow = ''
+      }
+    })
+  } catch (e) { /* 忽略 */ }
+}
+
 onMounted(() => {
   checkDevices()
+  fetchResumeList()
+  // 进入页面强制解锁滚动并做多次延迟兜底
+  unlockScroll()
+  setTimeout(unlockScroll, 50)
+  setTimeout(unlockScroll, 200)
+  setTimeout(unlockScroll, 500)
 })
 </script> 
 
@@ -508,9 +533,11 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .navbar-left .logo {
@@ -530,29 +557,29 @@ onMounted(() => {
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 55px 20px 20px; /* 进一步减少顶部内边距，让欢迎文字更靠近顶部 */
 }
 
 /* 欢迎区域样式 */
 .welcome-section {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 20px; /* 进一步减少底部间距 */
   position: relative;
 }
 
 .main-title {
-  font-size: 48px;
+  font-size: 36px; /* 减少标题字体大小 */
   font-weight: 700;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 10px; /* 进一步减少标题底部间距 */
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   line-height: 1.2;
 }
 
 .subtitle {
-  font-size: 20px;
+  font-size: 16px; /* 减少副标题字体大小 */
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 40px;
+  margin-bottom: 20px; /* 进一步减少副标题底部间距 */
   line-height: 1.5;
 }
 
@@ -603,55 +630,108 @@ onMounted(() => {
 
 /* 配置区域样式 */
 .configuration-section {
-  margin-bottom: 50px;
+  margin-bottom: 25px; /* 减少底部间距 */
 }
 
 .config-card {
   background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border-radius: 15px; /* 减少圆角 */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* 减少阴影 */
   overflow: hidden;
 }
 
 .card-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  padding: 30px;
+  padding: 15px; /* 进一步减少内边距 */
   text-align: center;
 }
 
 .card-header h2 {
-  font-size: 32px;
+  font-size: 24px; /* 减少标题字体大小 */
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0; /* 减少标题底部间距 */
 }
 
 .card-header p {
-  font-size: 18px;
+  font-size: 14px; /* 减少描述字体大小 */
   margin: 0;
   opacity: 0.9;
 }
 
 .config-form {
-  padding: 40px;
+  padding: 20px 25px; /* 减少顶部内边距，保持左右内边距 */
+}
+
+.form-row {
+  display: flex;
+  gap: 20px; /* 减少左右间距 */
+  margin-bottom: 25px; /* 减少底部间距 */
 }
 
 .form-group {
-  margin-bottom: 40px;
+  flex: 1;
+}
+
+.form-group-left {
+  /* Add specific styles if needed for left group */
+}
+
+.form-group-center {
+  /* Add specific styles if needed for center group */
+}
+
+.form-group-right {
+  /* Add specific styles if needed for right group */
 }
 
 .form-label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
+  gap: 8px; /* 减少图标和文字间距 */
+  font-size: 16px; /* 减少标签字体大小 */
   font-weight: 600;
   color: #333;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* 减少标签底部间距 */
 }
 
 .form-select {
   width: 100%;
+}
+
+.resume-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.resume-icon {
+  font-size: 24px;
+}
+
+.resume-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.resume-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.resume-meta {
+  color: #666;
+  font-size: 14px;
+}
+
+.no-resume-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #999;
+  font-size: 14px;
+  margin-top: 10px;
 }
 
 .position-option {
@@ -676,180 +756,27 @@ onMounted(() => {
   margin-left: auto;
 }
 
-/* 面试类型选择样式 */
-.interview-type-tabs {
-  margin-top: 15px;
-}
-
-.type-radio {
-  margin-right: 15px;
-  margin-bottom: 15px;
-}
-
-.type-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 20px;
-  min-width: 140px;
-  text-align: center;
-}
-
-.type-icon {
-  font-size: 32px;
-}
-
-.type-name {
-  font-weight: 600;
-  color: #333;
-}
-
-.type-desc {
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-
-/* 难度选择样式 */
-.difficulty-selector {
-  margin-top: 15px;
-}
-
-.difficulty-radio {
-  margin-right: 20px;
-  margin-bottom: 15px;
-}
-
-.difficulty-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 25px 20px;
-  min-width: 120px;
-  text-align: center;
-}
-
-.difficulty-icon {
-  font-size: 28px;
-}
-
-.difficulty-name {
-  font-weight: 600;
-  color: #333;
-}
-
-.difficulty-desc {
-  font-size: 12px;
-  color: #666;
-  line-height: 1.4;
-}
-
-/* 面试官选择样式 */
-.interviewer-selection {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 15px;
-}
-
-.interviewer-option {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  border: 2px solid #e1e5e9;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.interviewer-option:hover {
-  border-color: #667eea;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-}
-
-.interviewer-option.active {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
-}
-
-.interviewer-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.avatar-emoji {
-  font-size: 32px;
-}
-
-.interviewer-info {
-  flex: 1;
-}
-
-.interviewer-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 5px 0;
-}
-
-.interviewer-style {
-  font-size: 14px;
-  color: #667eea;
-  font-weight: 500;
-  margin: 0 0 8px 0;
-}
-
-.interviewer-desc {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.4;
-  margin: 0;
-}
-
-.selection-indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #667eea;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 /* 准备区域样式 */
 .preparation-section {
-  margin-bottom: 50px;
+  margin-bottom: 25px; /* 减少底部间距 */
 }
 
 .preparation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* 减少最小宽度 */
+  gap: 20px; /* 减少卡片间距 */
 }
 
 .prep-card {
   background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px; /* 减少圆角 */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 减少阴影 */
   overflow: hidden;
 }
 
 .prep-card .card-header {
   background: #f8f9fa;
-  padding: 20px;
+  padding: 15px; /* 减少内边距 */
   border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
@@ -859,9 +786,9 @@ onMounted(() => {
 .prep-card .card-header h3 {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px; /* 减少图标和文字间距 */
   margin: 0;
-  font-size: 20px;
+  font-size: 18px; /* 减少标题字体大小 */
   color: #333;
 }
 
@@ -871,14 +798,14 @@ onMounted(() => {
 }
 
 .questions-content {
-  padding: 20px;
+  padding: 15px; /* 减少内边距 */
 }
 
 .question-item {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
-  padding: 15px 0;
+  gap: 12px; /* 减少间距 */
+  padding: 10px 0; /* 减少上下内边距 */
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -887,8 +814,8 @@ onMounted(() => {
 }
 
 .question-number {
-  width: 30px;
-  height: 30px;
+  width: 24px; /* 减少数字圆圈大小 */
+  height: 24px;
   border-radius: 50%;
   background: #667eea;
   color: #fff;
@@ -897,23 +824,25 @@ onMounted(() => {
   justify-content: center;
   font-weight: 600;
   flex-shrink: 0;
+  font-size: 12px; /* 减少数字字体大小 */
 }
 
 .question-text {
   flex: 1;
-  line-height: 1.6;
+  line-height: 1.5; /* 减少行高 */
   color: #333;
+  font-size: 14px; /* 减少问题字体大小 */
 }
 
 .tips-content {
-  padding: 20px;
+  padding: 15px; /* 减少内边距 */
 }
 
 .tip-item {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
-  padding: 15px 0;
+  gap: 12px; /* 减少间距 */
+  padding: 10px 0; /* 减少上下内边距 */
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -922,7 +851,7 @@ onMounted(() => {
 }
 
 .tip-icon {
-  font-size: 24px;
+  font-size: 20px; /* 减少图标大小 */
   flex-shrink: 0;
 }
 
@@ -931,46 +860,46 @@ onMounted(() => {
 }
 
 .tip-title {
-  font-size: 16px;
+  font-size: 14px; /* 减少标题字体大小 */
   font-weight: 600;
   color: #333;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0; /* 减少标题底部间距 */
 }
 
 .tip-desc {
-  font-size: 14px;
+  font-size: 13px; /* 减少描述字体大小 */
   color: #666;
-  line-height: 1.5;
+  line-height: 1.4; /* 减少行高 */
   margin: 0;
 }
 
 /* 行动区域样式 */
 .action-section {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 25px; /* 减少底部间距 */
 }
 
 .action-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 15px;
+  gap: 15px; /* 减少按钮间距 */
+  margin-bottom: 12px; /* 减少底部间距 */
 }
 
 .start-interview-btn {
-  padding: 20px 40px;
-  font-size: 20px;
+  padding: 16px 32px; /* 减少按钮内边距 */
+  font-size: 18px; /* 减少按钮字体大小 */
   font-weight: 600;
   border-radius: 50px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); /* 减少阴影 */
   transition: all 0.3s ease;
 }
 
 .start-interview-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4); /* 减少悬停阴影 */
 }
 
 .start-interview-btn:disabled {
@@ -981,19 +910,19 @@ onMounted(() => {
 }
 
 .preview-btn {
-  padding: 20px 40px;
-  font-size: 20px;
+  padding: 16px 32px; /* 减少按钮内边距 */
+  font-size: 18px; /* 减少按钮字体大小 */
   font-weight: 600;
   border-radius: 50px;
   background: linear-gradient(135deg, #52c41a 0%, #95de64 100%);
   border: none;
-  box-shadow: 0 10px 30px rgba(82, 196, 26, 0.3);
+  box-shadow: 0 8px 25px rgba(82, 196, 26, 0.3); /* 减少阴影 */
   transition: all 0.3s ease;
 }
 
 .preview-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 15px 40px rgba(82, 196, 26, 0.4);
+  box-shadow: 0 12px 35px rgba(82, 196, 26, 0.4); /* 减少悬停阴影 */
 }
 
 .preview-btn:disabled {
@@ -1004,46 +933,46 @@ onMounted(() => {
 }
 
 .action-hint {
-  margin-top: 15px;
+  margin-top: 12px; /* 减少顶部间距 */
   color: #666;
-  font-size: 14px;
+  font-size: 13px; /* 减少提示字体大小 */
 }
 
 /* 设备检测样式 */
 .device-check-section {
-  margin-bottom: 40px;
+  margin-bottom: 25px; /* 减少底部间距 */
 }
 
 .device-check-card {
   background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px; /* 减少圆角 */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 减少阴影 */
   overflow: hidden;
 }
 
 .check-header {
   background: #f8f9fa;
-  padding: 20px;
+  padding: 15px; /* 减少内边距 */
   border-bottom: 1px solid #e9ecef;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
+  gap: 8px; /* 减少间距 */
+  font-size: 16px; /* 减少标题字体大小 */
   font-weight: 600;
   color: #333;
 }
 
 .check-content {
-  padding: 20px;
+  padding: 15px; /* 减少内边距 */
   display: flex;
-  gap: 30px;
+  gap: 25px; /* 减少间距 */
 }
 
 .check-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 16px;
+  gap: 8px; /* 减少间距 */
+  font-size: 14px; /* 减少字体大小 */
   color: #333;
 }
 
@@ -1056,10 +985,10 @@ onMounted(() => {
 }
 
 .device-note {
-  padding: 0 20px 20px;
+  padding: 0 15px 15px; /* 减少内边距 */
   margin: 0;
   color: #666;
-  font-size: 14px;
+  font-size: 13px; /* 减少字体大小 */
   text-align: center;
 }
 
@@ -1070,32 +999,34 @@ onMounted(() => {
   }
   
   .main-content {
-    padding: 20px 15px;
+    padding: 55px 15px 20px; /* 保持减少后的顶部内边距 */
   }
   
   .main-title {
-    font-size: 32px;
+    font-size: 28px; /* 进一步减少小屏幕标题大小 */
   }
   
   .subtitle {
-    font-size: 16px;
+    font-size: 14px; /* 进一步减少小屏幕副标题大小 */
   }
   
   .config-form {
     padding: 20px;
   }
-  
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px; /* 减少小屏幕下的间距 */
+  }
+
   .preparation-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .interviewer-selection {
-    grid-template-columns: 1fr;
+    gap: 15px; /* 减少小屏幕下的间距 */
   }
   
   .check-content {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px; /* 减少小屏幕下的间距 */
   }
 }
 
@@ -1107,26 +1038,24 @@ onMounted(() => {
     gap: 15px;
   }
   
+  .main-content {
+    padding: 75px 15px 20px; /* 为更高的导航栏增加更多顶部内边距 */
+  }
+  
   .main-title {
-    font-size: 28px;
+    font-size: 24px; /* 进一步减少超小屏幕标题大小 */
   }
   
   .card-header {
-    padding: 20px;
+    padding: 15px; /* 减少小屏幕下的内边距 */
   }
   
   .card-header h2 {
-    font-size: 24px;
+    font-size: 20px; /* 减少小屏幕下的标题大小 */
   }
   
-  .type-radio, .difficulty-radio {
-    margin-right: 0;
-    margin-bottom: 10px;
-  }
-  
-  .type-content, .difficulty-content {
-    min-width: auto;
-    padding: 15px;
+  .config-form {
+    padding: 15px; /* 减少小屏幕下的内边距 */
   }
 }
 </style> 

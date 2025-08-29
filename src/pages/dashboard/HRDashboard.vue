@@ -301,7 +301,7 @@ import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import * as echarts from 'echarts'
-import {getRoleFeatures} from '@/constants/permissions'
+// 移除对getRoleFeatures的导入，改为使用用户状态管理器
 import {LOGOUT_URL} from '@/api/endpoints'
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
@@ -339,8 +339,8 @@ export default {
       return name.charAt(0).toUpperCase()
     })
 
-    // 角色功能（左侧菜单）- 使用集中权限映射
-    const hrFeatures = computed(() => getRoleFeatures('ROLE_HR'))
+    // 角色功能（左侧菜单）- 使用用户状态管理器
+    const hrFeatures = computed(() => userStore.userFeatures)
     const activeMenu = ref(hrFeatures.value[0]?.key || 'resume_screening')
     const handleMenuSelect = (key) => {
       activeMenu.value = key
@@ -374,13 +374,13 @@ export default {
           {name: '人才质量评分', max: 100}
         ],
         splitNumber: 5,
-        axisName: {color: '#cfe6ff', fontSize: 12},
+        axisName: {color: '#2d3748', fontSize: 12},
         splitArea: {
           show: true,
-          areaStyle: {color: ['rgba(52,152,219,0.08)', 'rgba(52,152,219,0.12)']}
+          areaStyle: {color: ['rgba(45, 55, 72, 0.08)', 'rgba(45, 55, 72, 0.12)']}
         },
-        axisLine: {lineStyle: {color: 'rgba(255,255,255,0.3)'}},
-        splitLine: {lineStyle: {color: 'rgba(255,255,255,0.3)'}}
+        axisLine: {lineStyle: {color: 'rgba(45, 55, 72, 0.3)'}},
+        splitLine: {lineStyle: {color: 'rgba(45, 55, 72, 0.3)'}}
       },
       series: [
         {
@@ -933,14 +933,14 @@ html, body {
 }
 
 .hr-cockpit {
-  --bg: #0f172a;
-  --panel: rgba(13, 22, 40, 0.4);
-  --panel-strong: rgba(13, 22, 40, 0.6);
+  --bg: #f8fafc;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.9);
   --primary: #3b82f6;
   --accent: #22c55e;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  background: rgba(15, 23, 42, 0.95); /* 与顶部导航栏背景色保持一致 */
+  --text: #1a202c;
+  --muted: #2d3748;
+  background: rgba(248, 250, 252, 0.95);
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
@@ -948,10 +948,10 @@ html, body {
 }
 
 .glass {
-  background: var(--panel);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: saturate(120%) blur(14px);
   -webkit-backdrop-filter: saturate(120%) blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 14px;
 }
 
@@ -967,16 +967,16 @@ html, body {
   align-items: center;
   padding: 10px 24px;
   margin: 0;
-  color: #ffffff;
-  background: rgba(15, 23, 42, 0.6); /* 改为半透明 */
+  color: #1a202c;
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: saturate(120%) blur(20px);
   -webkit-backdrop-filter: saturate(120%) blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 添加微妙的底部边框 */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
   border-radius: 0;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); /* 调整阴影效果 */
-  height: 60px; /* 调整导航栏高度到60px */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  height: 60px;
 }
 
 .topbar .left {
@@ -993,12 +993,12 @@ html, body {
 
 .company .name {
   font-weight: 600;
-  color: #ffffff;
+  color: #1a202c;
 }
 
 .company .meta {
   font-size: 12px;
-  color: #cbd5e1;
+  color: #2d3748;
 }
 
 .topbar .center {
@@ -1019,13 +1019,13 @@ html, body {
 }
 
 .quick-indicators .indicator {
-  color: #ffffff;
+  color: #1a202c;
   font-size: 12px;
   font-weight: 500;
 }
 
 .today {
-  color: #cbd5e1;
+  color: #2d3748;
   font-size: 12px;
 }
 
@@ -1058,29 +1058,29 @@ html, body {
   padding: 16px;
   color: var(--text);
   position: sticky;
-  top: 80px; /* 调整为与顶部导航栏高度一致 */
+  top: 80px;
   overflow-y: auto;
   max-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important; /* 增强背景对比度 */
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: saturate(120%) blur(20px);
   -webkit-backdrop-filter: saturate(120%) blur(20px);
 }
 
 .aside-title {
   font-size: 16px;
-  color: #ffffff !important; /* 提高标题对比度 */
+  color: #1a202c;
   margin: 8px 8px 16px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-align: center;
   padding: 12px 8px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
   border-radius: 10px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .menu {
@@ -1096,20 +1096,20 @@ html, body {
   font-size: 15px;
   letter-spacing: 0.6px;
   font-weight: 500;
-  color: #e2e8f0 !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  color: #2d3748;
+  text-shadow: none;
   transition: all 0.3s ease;
 }
 
 .menu :deep(.el-menu-item:hover span) {
-  color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #1a202c;
+  text-shadow: none;
 }
 
 .menu :deep(.el-menu-item.is-active span) {
-  color: #ffffff !important;
+  color: #1a202c;
   font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: none;
 }
 
 /* 添加菜单项之间的分隔线 */
@@ -1119,20 +1119,20 @@ html, body {
 /* 为菜单添加整体容器样式 */
 .menu {
   padding: 8px 0;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.02);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* 添加菜单项的图标样式（如果有的话） */
 .menu :deep(.el-menu-item i) {
-  color: #94a3b8;
+  color: #2d3748;
   margin-right: 8px;
   transition: all 0.3s ease;
 }
 
 .menu :deep(.el-menu-item:hover i) {
-  color: #cbd5e1;
+  color: #1a202c;
 }
 
 .menu :deep(.el-menu-item.is-active i) {
@@ -1165,8 +1165,8 @@ html, body {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  color: #1a202c;
+  text-shadow: none;
   letter-spacing: 0.5px;
 }
 
@@ -1249,14 +1249,14 @@ html, body {
 
 .kanban-header .title {
   font-size: 15px;
-  color: #f1f5f9 !important;
+  color: #1a202c;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .kanban-header .count {
   font-size: 13px;
-  color: #cbd5e1 !important;
+  color: #2d3748;
   font-weight: 500;
   background: rgba(59, 130, 246, 0.2);
   padding: 2px 8px;
@@ -1306,17 +1306,17 @@ html, body {
 
 .name {
   font-weight: 600;
-  color: #ffffff !important;
+  color: #1a202c;
   font-size: 14px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: none;
   margin-bottom: 2px;
 }
 
 .meta {
   font-size: 13px;
-  color: #e2e8f0 !important;
+  color: #2d3748;
   font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .tag {
@@ -1324,7 +1324,7 @@ html, body {
   padding: 3px 10px;
   border-radius: 999px;
   font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .card-tags {
@@ -1339,10 +1339,10 @@ html, body {
   padding: 3px 10px;
   border-radius: 6px;
   background: rgba(59, 130, 246, 0.25);
-  color: #dbeafe !important;
+  color: #1a202c;
   border: 1px solid rgba(59, 130, 246, 0.35);
   font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
   transition: all 0.2s ease;
 }
 

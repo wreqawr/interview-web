@@ -44,28 +44,34 @@
             <el-col :span="6" v-for="stat in userStatistics" :key="stat.key">
               <el-card class="stat-card" shadow="hover">
                 <div class="stat-content">
-                  <div class="stat-icon" :style="stat.icon.includes('@/assets/') ? {} : { background: stat.color }">
+                  <div class="stat-icon">
                     <img
-                        v-if="stat.icon === '@/assets/resume/resume-version.svg'"
+                        v-if="typeof stat.icon === 'string' && stat.icon === '@/assets/resume/resume-version.svg'"
                         :src="resumeVersionIcon"
                         :alt="stat.name"
                         class="svg-icon"
                     />
                     <img
-                        v-else-if="stat.icon === '@/assets/interview/interview-count.svg'"
+                        v-else-if="typeof stat.icon === 'string' && stat.icon === '@/assets/interview/interview-count.svg'"
                         :src="interviewCountIcon"
                         :alt="stat.name"
                         class="svg-icon"
                     />
                     <img
-                        v-else-if="stat.icon === '@/assets/other/comprehensive-score.svg'"
+                        v-else-if="typeof stat.icon === 'string' && stat.icon === '@/assets/other/comprehensive-score.svg'"
                         :src="comprehensiveScoreIcon"
                         :alt="stat.name"
                         class="svg-icon"
                     />
                     <img
-                        v-else-if="stat.icon === '@/assets/other/get-offer.svg'"
+                        v-else-if="typeof stat.icon === 'string' && stat.icon === '@/assets/other/get-offer.svg'"
                         :src="getOfferIcon"
+                        :alt="stat.name"
+                        class="svg-icon"
+                    />
+                    <img
+                        v-else-if="typeof stat.icon === 'string'"
+                        :src="stat.icon"
                         :alt="stat.name"
                         class="svg-icon"
                     />
@@ -137,146 +143,21 @@
                   >
                     <div class="feature-icon-large">
                       <img
-                          v-if="feature.icon === '@/assets/resume/resume-management.svg'"
-                          :src="resumeManagementIcon"
+                          v-if="typeof feature.icon === 'string' && feature.icon.startsWith('@/assets/')"
+                          :src="getIconSrc(feature.icon)"
                           :alt="feature.name"
                           class="svg-icon-large"
                       />
                       <img
-                          v-else-if="feature.icon === '@/assets/resume/resume-version.svg'"
-                          :src="resumeVersionIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/interview/interview-count.svg'"
-                          :src="interviewCountIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/user-management.svg'"
-                          :src="userManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/company-management.svg'"
-                          :src="companyManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/system-setting.svg'"
-                          :src="systemSettingIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/data-management.svg'"
-                          :src="dataManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/system-monitor.svg'"
-                          :src="systemMonitorIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/candidate-management.svg'"
-                          :src="candidateManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobs-management.svg'"
-                          :src="jobsManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/communication-management.svg'"
-                          :src="communicationManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/data-analyze.svg'"
-                          :src="dataAnalyzeIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/resume-select.svg'"
-                          :src="resumeSelectIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/interview-management.svg'"
-                          :src="interviewManagementIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/interview-assessment.svg'"
-                          :src="interviewAssessmentIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/company-info.svg'"
-                          :src="companyInfoIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/user-profile.svg'"
-                          :src="userProfileIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/interview-appointment.svg'"
-                          :src="interviewAppointmentIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/ai-interview.svg'"
-                          :src="aiInterviewIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/realtime-interview.svg'"
-                          :src="realtimeInterviewIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/interview-record.svg'"
-                          :src="interviewRecordIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/interview-report.svg'"
-                          :src="interviewReportIcon"
-                          :alt="feature.name"
-                          class="svg-icon-large"
-                      />
-                      <img
-                          v-else-if="feature.icon === '@/assets/function/jobseeker/study-center.svg'"
-                          :src="studyCenterIcon"
+                          v-else-if="typeof feature.icon === 'string'"
+                          :src="feature.icon"
                           :alt="feature.name"
                           class="svg-icon-large"
                       />
                       <component
                           v-else
                           :is="feature.icon"
+                          class="svg-icon-large"
                       />
                     </div>
                     <div class="feature-info-large">
@@ -316,7 +197,7 @@ import {useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import {ElMessage} from 'element-plus'
 import {ArrowLeft, ArrowRight, User} from '@element-plus/icons-vue'
-import {getRoleFeatures} from '@/constants/permissions'
+// 移除对getRoleFeatures的导入，改为使用用户状态管理器
 import resumeManagementIcon from '@/assets/function/jobseeker/resume-management.svg'
 import resumeVersionIcon from '@/assets/resume/resume-version.svg'
 import interviewCountIcon from '@/assets/interview/interview-count.svg'
@@ -374,9 +255,9 @@ const userFeatures = computed(() => {
     return []
   }
 
-  // 从permissions.js中获取角色功能
-  const roleFeatures = getRoleFeatures(role)
-  console.log('从permissions.js获取的功能:', roleFeatures)
+  // 使用用户状态管理器获取角色功能，而不是直接调用权限函数
+  const roleFeatures = userStore.userFeatures
+  console.log('从用户状态管理器获取的功能:', roleFeatures)
 
   return [{
     key: 'carousel_features',
@@ -478,6 +359,40 @@ const stopAutoPlay = () => {
   }
 }
 
+// 获取图标源
+const getIconSrc = (iconPath) => {
+  // 创建图标路径到图标对象的映射
+  const iconMap = {
+    '@/assets/resume/resume-version.svg': resumeVersionIcon,
+    '@/assets/interview/interview-count.svg': interviewCountIcon,
+    '@/assets/other/comprehensive-score.svg': comprehensiveScoreIcon,
+    '@/assets/other/get-offer.svg': getOfferIcon,
+    '@/assets/function/jobseeker/resume-management.svg': resumeManagementIcon,
+    '@/assets/function/admin/user-management.svg': userManagementIcon,
+    '@/assets/function/admin/company-management.svg': companyManagementIcon,
+    '@/assets/function/admin/system-setting.svg': systemSettingIcon,
+    '@/assets/function/admin/data-management.svg': dataManagementIcon,
+    '@/assets/function/admin/system-monitor.svg': systemMonitorIcon,
+    '@/assets/function/hr/candidate-management.svg': candidateManagementIcon,
+    '@/assets/function/hr/jobs-management.svg': jobsManagementIcon,
+    '@/assets/function/hr/communication-management.svg': communicationManagementIcon,
+    '@/assets/function/hr/data-analyze.svg': dataAnalyzeIcon,
+    '@/assets/function/hr/resume-select.svg': resumeSelectIcon,
+    '@/assets/function/hr/interview-management.svg': interviewManagementIcon,
+    '@/assets/function/hr/interview-assessment.svg': interviewAssessmentIcon,
+    '@/assets/function/hr/company-info.svg': companyInfoIcon,
+    '@/assets/function/jobseeker/user-profile.svg': userProfileIcon,
+    '@/assets/function/jobseeker/interview-appointment.svg': interviewAppointmentIcon,
+    '@/assets/function/jobseeker/ai-interview.svg': aiInterviewIcon,
+    '@/assets/function/jobseeker/realtime-interview.svg': realtimeInterviewIcon,
+    '@/assets/function/jobseeker/interview-record.svg': interviewRecordIcon,
+    '@/assets/function/jobseeker/interview-report.svg': interviewReportIcon,
+    '@/assets/function/jobseeker/study-center.svg': studyCenterIcon
+  }
+  
+  return iconMap[iconPath] || iconPath
+}
+
 // 确保页面滚动正常工作
 onMounted(() => {
   // 确保body可以正常滚动
@@ -526,15 +441,16 @@ onUnmounted(() => {
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
+  margin-right: 20px;
   color: white;
-  font-size: 24px;
+  font-size: 32px;
+  background: transparent; /* 确保背景透明 */
 }
 
 .stat-info {
@@ -542,16 +458,16 @@ onUnmounted(() => {
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   color: #303133;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .stat-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: bold;
-  color: #909399;
+  color: #2d3748;
 }
 
 .features-section {
@@ -598,12 +514,12 @@ onUnmounted(() => {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+  background: linear-gradient(135deg, #3182ce 0%, #38a169 100%);
   border: none;
   color: white;
   font-size: 12px;
   font-weight: bold;
-  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 6px 16px rgba(49, 130, 206, 0.3);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   flex-direction: column;
@@ -622,7 +538,7 @@ onUnmounted(() => {
 
 .carousel-btn:not(.disabled):hover {
   transform: scale(1.1);
-  box-shadow: 0 12px 30px rgba(64, 158, 255, 0.4);
+  box-shadow: 0 12px 30px rgba(49, 130, 206, 0.4);
 }
 
 .carousel-btn:not(.disabled):active {
@@ -694,13 +610,13 @@ onUnmounted(() => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .indicator:hover {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   transform: scale(1.2);
 }
 
@@ -710,7 +626,7 @@ onUnmounted(() => {
 }
 
 .feature-card-content {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   padding: 25px;
   width: 100%;
@@ -723,7 +639,7 @@ onUnmounted(() => {
   justify-content: center;
   text-align: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   transition: transform 0.2s ease-out, opacity 0.2s ease-out;
@@ -738,9 +654,9 @@ onUnmounted(() => {
 
 .active-slide .feature-card-content {
   transform: scale(1) translateZ(0);
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 1);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
 }
@@ -748,9 +664,9 @@ onUnmounted(() => {
 .prev-slide .feature-card-content {
   transform: scale(0.75) translateZ(0);
   opacity: 0.6;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
 }
@@ -758,9 +674,9 @@ onUnmounted(() => {
 .next-slide .feature-card-content {
   transform: scale(0.75) translateZ(0);
   opacity: 0.6;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
 }
@@ -821,8 +737,20 @@ onUnmounted(() => {
 
 /* 统计卡片中的SVG图标样式 */
 .stat-icon .svg-icon {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
+  background: transparent; /* 确保SVG图标背景透明 */
+}
+
+/* 移除SVG图标的背景，但保持原有颜色 */
+.stat-icon .svg-icon svg {
+  background: transparent !important;
+}
+
+/* 移除背景元素，但保持图标本身的颜色 */
+.stat-icon .svg-icon svg defs,
+.stat-icon .svg-icon svg linearGradient {
+  display: none !important;
 }
 
 .feature-info-large {
@@ -833,19 +761,19 @@ onUnmounted(() => {
 .feature-name-large {
   font-size: 20px;
   font-weight: 700;
-  color: #2c3e50;
+  color: #1a202c;
   margin-bottom: 8px;
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+  text-shadow: none;
 }
 
 .feature-desc-large {
   font-size: 12px;
-  color: #34495e;
+  color: #4a5568;
   line-height: 1.5;
   max-width: 240px;
   margin: 0 auto;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+  text-shadow: none;
 }
 
 .feature-status-large {

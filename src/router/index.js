@@ -89,6 +89,14 @@ const routes = [
         meta: {requiresAuth: true}
     },
 
+    // 文字聊天面试页面
+    {
+        path: '/interview/chat',
+        name: 'InterviewChat',
+        component: () => import('@/pages/interview/InterviewChat.vue'),
+        meta: {requiresAuth: true}
+    },
+
     // 面试结果页面
     {
         path: '/interview/results',
@@ -150,6 +158,41 @@ router.beforeEach(async (to, from, next) => {
     }
 
     next()
+})
+
+// 全局后置钩子 - 解决页面滚动锁定问题
+router.afterEach(() => {
+    // 延迟执行，确保DOM完全渲染
+    setTimeout(() => {
+        try {
+            const body = document.body
+            const html = document.documentElement
+            
+            // 移除 Element Plus 弹层可能添加的类名
+            body.classList.remove('el-popup-parent--hidden')
+            body.classList.remove('el-overflow-hidden')
+            
+            // 清理可能残留的内联样式导致无法滚动
+            if (body.style.overflow) body.style.overflow = ''
+            if (body.style.position) body.style.position = ''
+            if (html.style.overflow) html.style.overflow = ''
+            if (html.style.position) html.style.position = ''
+            
+            // 强制设置可滚动
+            body.style.overflow = 'auto'
+            html.style.overflow = 'auto'
+            
+            // 移除可能影响滚动的其他类
+            const elements = document.querySelectorAll('*')
+            elements.forEach(el => {
+                if (el.style && el.style.overflow === 'hidden') {
+                    el.style.overflow = ''
+                }
+            })
+        } catch (e) {
+            // 忽略SSR或极端环境下的document不可用
+        }
+    }, 100)
 })
 
 export default router 

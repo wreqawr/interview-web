@@ -253,23 +253,17 @@
 </template>
 
 <script setup>
-import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {ElMessage} from 'element-plus'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { useInterviewStore } from '@/stores/interview'
 import {
-  ArrowRight,
-  Clock,
-  Refresh,
-  User,
-  UserFilled,
-  VideoCamera,
-  VideoPlay,
-  View,
-  Warning
+  Clock, User, UserFilled, VideoCamera,
+  VideoPlay, Refresh, View, Warning, ArrowRight
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
-const route = useRoute()
+const interviewStore = useInterviewStore()
 
 // 面试状态
 const isConnected = ref(true)
@@ -292,11 +286,10 @@ const endDialogVisible = ref(false)
 const userVideo = ref(null)
 
 // 面试配置
-const interviewConfig = ref({})
-const currentInterviewer = ref({
-  name: 'Sarah Chen',
-  avatar: '👩‍💼',
-  style: '专业型'
+const interviewConfig = ref({
+  position: '',
+  resumeId: '',
+  mode: 'video'
 })
 
 // 当前问题
@@ -464,25 +457,6 @@ const viewResults = () => {
   })
 }
 
-// 初始化摄像头
-const initCamera = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: true, 
-      audio: true 
-    })
-    
-    if (userVideo.value) {
-      userVideo.value.srcObject = stream
-    }
-    
-    ElMessage.success('摄像头初始化成功')
-  } catch (error) {
-    console.error('摄像头初始化失败:', error)
-    ElMessage.error('摄像头初始化失败，请检查设备权限')
-  }
-}
-
 // 模拟用户回答
 const simulateUserAnswer = () => {
   const answers = [
@@ -495,16 +469,86 @@ const simulateUserAnswer = () => {
   userTranscript.value = answers[Math.floor(Math.random() * answers.length)]
 }
 
-// 页面加载时初始化
-onMounted(async () => {
-  // 解析路由参数
+// 滚动解锁函数
+const unlockScroll = () => {
   try {
-    if (route.query.config) {
-      interviewConfig.value = JSON.parse(route.query.config)
-    }
-  } catch (error) {
-    console.error('解析配置参数失败:', error)
+    const body = document.body
+    const html = document.documentElement
+    
+    // 移除可能影响滚动的类
+    body.classList.remove('el-popup-parent--hidden')
+    body.classList.remove('el-overflow-hidden')
+    
+    // 清理内联样式
+    if (body.style.overflow) body.style.overflow = ''
+    if (body.style.position) body.style.position = ''
+    if (html.style.overflow) html.style.overflow = ''
+    if (html.style.position) html.style.position = ''
+    
+    // 强制设置可滚动
+    body.style.overflow = 'auto'
+    html.style.overflow = 'auto'
+    
+    // 检查并清理页面内可能影响滚动的元素
+    const pageElements = document.querySelectorAll('.live-interview-page *')
+    pageElements.forEach(el => {
+      if (el.style && el.style.overflow === 'hidden') {
+        el.style.overflow = ''
+      }
+    })
+  } catch (e) { /* 忽略 */ }
+}
+
+// 检查面试配置
+const checkInterviewConfig = () => {
+  const config = interviewStore.interviewConfig
+  
+  // 检查是否有必要的配置
+  if (!config.position || !config.resumeId || !config.mode) {
+    ElMessage.error('面试配置不完整，请返回重新配置')
+    router.push('/interview/preparation')
+    return false
   }
+  
+  // 检查面试模式是否正确
+  if (config.mode !== 'video') {
+    ElMessage.error('当前页面仅支持视频面试模式')
+    router.push('/interview/preparation')
+    return false
+  }
+  
+  // 更新本地配置
+  interviewConfig.value = { ...config }
+  
+  // 开始面试
+  interviewStore.startInterview()
+  
+  return true
+}
+
+// 面试官信息
+const currentInterviewer = ref({
+  name: 'offer侠',
+  avatar: '👩‍💼',
+  style: '专业型'
+})
+
+// 初始化面试
+const initializeInterview = async () => {
+  // 从store获取当前问题
+  currentQuestion.value = interviewStore.interviewState.currentQuestionIndex === 0 ? 
+    '请简单介绍一下你自己，以及为什么选择这个职位？' : 
+    '请详细描述你的技术经验和项目经历'
+  
+  aiTranscript.value = currentQuestion.value
+  userTranscript.value = ''
+  
+  // 从store获取AI状态
+  aiStatus.value = 'speaking'
+  
+  // 从store获取面试进度
+  currentQuestionIndex.value = interviewStore.interviewState.currentQuestionIndex
+  totalQuestions.value = interviewStore.interviewState.totalQuestions
   
   // 初始化摄像头
   await initCamera()
@@ -512,31 +556,82 @@ onMounted(async () => {
   // 开始计时
   startTimer()
   
-  // 模拟面试流程
-  setTimeout(() => {
-    aiStatus.value = 'speaking'
-    setTimeout(() => {
-      aiStatus.value = 'listening'
-    }, 2000)
-  }, 1000)
-  
-  // 定期模拟用户回答
+  // 模拟用户回答
   setInterval(() => {
     if (aiStatus.value === 'listening' && !isPaused.value) {
       simulateUserAnswer()
     }
   }, 8000)
+}
+
+// 初始化摄像头
+const initCamera = async () => {
+  try {
+    // 请求摄像头和麦克风权限
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: true, 
+      audio: true 
+    })
+    
+    // 将视频流绑定到video元素
+    if (userVideo.value) {
+      userVideo.value.srcObject = stream
+      // 确保视频加载完成后播放
+      userVideo.value.onloadedmetadata = () => {
+        userVideo.value.play().catch(e => console.log('视频播放失败:', e))
+      }
+    }
+    
+    ElMessage.success('摄像头初始化成功')
+  } catch (error) {
+    console.error('摄像头初始化失败:', error)
+    ElMessage.error('摄像头初始化失败，请检查设备权限设置')
+    
+    // 如果摄像头失败，至少尝试获取音频
+    try {
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (userVideo.value) {
+        userVideo.value.srcObject = audioStream
+      }
+      ElMessage.warning('摄像头不可用，但麦克风已启用')
+    } catch (audioError) {
+      console.error('音频初始化也失败:', audioError)
+      ElMessage.error('无法访问摄像头和麦克风，请检查浏览器权限设置')
+    }
+  }
+}
+
+// 页面加载时初始化
+onMounted(() => {
+  // 检查面试配置
+  if (!checkInterviewConfig()) {
+    return
+  }
+  
+  // 初始化面试
+  initializeInterview()
+  
+  // 解锁滚动
+  unlockScroll()
+  setTimeout(unlockScroll, 50)
+  setTimeout(unlockScroll, 200)
+  setTimeout(unlockScroll, 500)
 })
 
-// 页面卸载时清理
+// 组件卸载时清理资源
 onBeforeUnmount(() => {
+  // 停止计时器
   stopTimer()
   
-  // 停止摄像头流
+  // 清理摄像头资源
   if (userVideo.value && userVideo.value.srcObject) {
     const tracks = userVideo.value.srcObject.getTracks()
     tracks.forEach(track => track.stop())
+    userVideo.value.srcObject = null
   }
+  
+  // 清理面试状态
+  interviewStore.endInterview()
 })
 </script> 
 

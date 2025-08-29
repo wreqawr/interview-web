@@ -10,6 +10,11 @@ import {
   isTokenExpired
 } from '@/utils/jwt';
 import {getRoleFeatures, getRoleStatistics} from '@/constants/permissions';
+// 导入SVG图标以解决404错误
+import resumeVersionIcon from '@/assets/resume/resume-version.svg';
+import interviewCountIcon from '@/assets/interview/interview-count.svg';
+import comprehensiveScoreIcon from '@/assets/other/comprehensive-score.svg';
+import getOfferIcon from '@/assets/other/get-offer.svg';
 
 export const useUserStore = defineStore('user', () => {
     const token = ref('');
@@ -44,7 +49,20 @@ export const useUserStore = defineStore('user', () => {
     const userFeatures = computed(() => {
         const role = userRole.value;
         if (role) {
-            return getRoleFeatures(role);
+            const features = getRoleFeatures(role);
+            // 将SVG图标路径替换为实际的图标对象
+            return features.map(feature => {
+                if (feature.icon === '@/assets/resume/resume-version.svg') {
+                    return { ...feature, icon: resumeVersionIcon };
+                } else if (feature.icon === '@/assets/interview/interview-count.svg') {
+                    return { ...feature, icon: interviewCountIcon };
+                } else if (feature.icon === '@/assets/other/comprehensive-score.svg') {
+                    return { ...feature, icon: comprehensiveScoreIcon };
+                } else if (feature.icon === '@/assets/other/get-offer.svg') {
+                    return { ...feature, icon: getOfferIcon };
+                }
+                return feature;
+            });
         }
         return [];
     });
@@ -53,7 +71,20 @@ export const useUserStore = defineStore('user', () => {
     const userStatistics = computed(() => {
         const role = userRole.value;
         if (role) {
-            return getRoleStatistics(role);
+            const stats = getRoleStatistics(role);
+            // 将SVG图标路径替换为实际的图标对象
+            return stats.map(stat => {
+                if (stat.icon === '@/assets/resume/resume-version.svg') {
+                    return { ...stat, icon: resumeVersionIcon };
+                } else if (stat.icon === '@/assets/interview/interview-count.svg') {
+                    return { ...stat, icon: interviewCountIcon };
+                } else if (stat.icon === '@/assets/other/comprehensive-score.svg') {
+                    return { ...stat, icon: comprehensiveScoreIcon };
+                } else if (stat.icon === '@/assets/other/get-offer.svg') {
+                    return { ...stat, icon: getOfferIcon };
+                }
+                return stat;
+            });
         }
         return [];
     });

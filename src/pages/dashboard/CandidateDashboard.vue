@@ -69,7 +69,7 @@
           </div>
           <div class="stats-grid">
             <div class="stat-card glass" v-for="stat in userStatistics" :key="stat.key">
-              <div class="stat-icon" :style="{ background: stat.color }">
+              <div class="stat-icon">
                 <img :src="stat.icon" :alt="stat.name" class="stat-svg"/>
               </div>
               <div class="stat-content">
@@ -199,7 +199,7 @@ import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import * as echarts from 'echarts'
-import {getRoleFeatures, getRoleStatistics} from '@/constants/permissions'
+// 移除直接导入权限函数，改为使用用户状态管理器
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
@@ -224,8 +224,8 @@ export default {
       return '求职中'
     })
 
-    // 角色功能（左侧菜单）
-    const candidateFeatures = computed(() => getRoleFeatures('ROLE_JOB_SEEKER'))
+    // 角色功能（左侧菜单）- 使用用户状态管理器
+    const candidateFeatures = computed(() => userStore.userFeatures)
     const activeMenu = ref(candidateFeatures.value[0]?.key || 'resume_management')
     const handleMenuSelect = (key) => {
       activeMenu.value = key
@@ -236,8 +236,8 @@ export default {
       }
     }
 
-    // 用户统计数据
-    const userStatistics = computed(() => getRoleStatistics('ROLE_JOB_SEEKER'))
+    // 用户统计数据 - 使用用户状态管理器
+    const userStatistics = computed(() => userStore.userStatistics)
     const stats = ref({
       pendingInterviews: 3,
       newMessages: 5
@@ -258,13 +258,13 @@ export default {
           {name: '学习能力', max: 100}
         ],
         splitNumber: 5,
-        axisName: {color: '#cfe6ff', fontSize: 12},
+        axisName: {color: '#2d3748', fontSize: 12},
         splitArea: {
           show: true,
-          areaStyle: {color: ['rgba(52,152,219,0.08)', 'rgba(52,152,219,0.12)']}
+          areaStyle: {color: ['rgba(45, 55, 72, 0.08)', 'rgba(45, 55, 72, 0.12)']}
         },
-        axisLine: {lineStyle: {color: 'rgba(255,255,255,0.3)'}},
-        splitLine: {lineStyle: {color: 'rgba(255,255,255,0.3)'}}
+        axisLine: {lineStyle: {color: 'rgba(45, 55, 72, 0.3)'}},
+        splitLine: {lineStyle: {color: 'rgba(45, 55, 72, 0.3)'}}
       },
       series: [
         {
@@ -621,14 +621,14 @@ html, body {
 }
 
 .candidate-cockpit {
-  --bg: #0f172a;
-  --panel: rgba(13, 22, 40, 0.4);
-  --panel-strong: rgba(13, 22, 40, 0.6);
+  --bg: #f8fafc;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.9);
   --primary: #3b82f6;
   --accent: #22c55e;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  background: rgba(15, 23, 42, 0.95);
+  --text: #1a202c;
+  --muted: #2d3748;
+  background: rgba(248, 250, 252, 0.95);
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
@@ -636,10 +636,10 @@ html, body {
 }
 
 .glass {
-  background: var(--panel);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: saturate(120%) blur(14px);
   -webkit-backdrop-filter: saturate(120%) blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 14px;
 }
 
@@ -655,15 +655,15 @@ html, body {
   align-items: center;
   padding: 10px 24px;
   margin: 0;
-  color: #ffffff;
-  background: rgba(15, 23, 42, 0.6);
+  color: #1a202c;
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: saturate(120%) blur(20px);
   -webkit-backdrop-filter: saturate(120%) blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   width: 100%;
   box-sizing: border-box;
   border-radius: 0;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   height: 60px;
 }
 
@@ -681,12 +681,12 @@ html, body {
 
 .user-info .name {
   font-weight: 600;
-  color: #ffffff;
+  color: #1a202c;
 }
 
 .user-info .status {
   font-size: 12px;
-  color: #cbd5e1;
+  color: #2d3748;
 }
 
 .topbar .center {
@@ -707,13 +707,13 @@ html, body {
 }
 
 .quick-indicators .indicator {
-  color: #ffffff;
+  color: #1a202c;
   font-size: 12px;
   font-weight: 500;
 }
 
 .today {
-  color: #cbd5e1;
+  color: #2d3748;
   font-size: 12px;
 }
 
@@ -725,7 +725,7 @@ html, body {
 }
 
 .username {
-  color: #ffffff;
+  color: #1a202c;
   font-size: 13px;
   font-weight: 500;
 }
@@ -749,53 +749,53 @@ html, body {
   top: 80px;
   overflow-y: auto;
   max-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: saturate(120%) blur(20px);
   -webkit-backdrop-filter: saturate(120%) blur(20px);
 }
 
 .aside-title {
   font-size: 16px;
-  color: #ffffff;
+  color: #1a202c;
   margin: 8px 8px 16px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-align: center;
   padding: 12px 8px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
   border-radius: 10px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  text-shadow: none;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .menu {
   padding: 8px 0;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.02);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .menu :deep(.el-menu-item span) {
   font-size: 15px;
   letter-spacing: 1px;
   font-weight: 500;
-  color: #e2e8f0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  color: #2d3748;
+  text-shadow: none;
   transition: all 0.3s ease;
 }
 
 .menu :deep(.el-menu-item:hover span) {
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #1a202c;
+  text-shadow: none;
 }
 
 .menu :deep(.el-menu-item.is-active span) {
-  color: #ffffff;
+  color: #1a202c;
   font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: none;
 }
 
 .main {
@@ -824,8 +824,8 @@ html, body {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  color: #1a202c;
+  text-shadow: none;
   letter-spacing: 0.5px;
 }
 
@@ -833,14 +833,14 @@ html, body {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 .stat-card {
-  padding: 16px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   transition: all 0.3s ease;
 }
 
@@ -850,20 +850,30 @@ html, body {
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 32px;
 }
 
 .stat-svg {
-  width: 32px;
-  height: 32px;
-  filter: brightness(0) invert(1);
+  width: 60px;
+  height: 60px;
+}
+
+/* 移除SVG图标的背景，但保持原有颜色 */
+.stat-svg svg {
+  background: transparent !important;
+}
+
+/* 移除背景元素，但保持图标本身的颜色 */
+.stat-svg svg defs,
+.stat-svg svg linearGradient {
+  display: none !important;
 }
 
 .stat-content {
@@ -871,15 +881,15 @@ html, body {
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  color: #e2f9ee;
-  margin-bottom: 4px;
+  color: #1a202c;
+  margin-bottom: 6px;
 }
 
 .stat-label {
-  font-size: 14px;
-  color: var(--muted);
+  font-size: 15px;
+  color: #2d3748;
 }
 
 /* 雷达图容器 */
@@ -919,12 +929,12 @@ html, body {
 
 .company {
   font-weight: 600;
-  color: #ffffff;
+  color: #1a202c;
   font-size: 16px;
 }
 
 .position {
-  color: var(--muted);
+  color: #2d3748;
   font-size: 14px;
 }
 
@@ -968,12 +978,12 @@ html, body {
 
 .skill-name {
   font-weight: 600;
-  color: #ffffff;
+  color: #1a202c;
   font-size: 14px;
 }
 
 .progress-percent {
-  color: var(--muted);
+  color: #2d3748;
   font-size: 12px;
 }
 
