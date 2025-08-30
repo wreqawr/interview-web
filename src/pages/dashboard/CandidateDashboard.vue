@@ -1,62 +1,8 @@
 <template>
   <div class="candidate-cockpit">
-    <!-- 顶部固定导航栏 -->
-    <header class="topbar glass">
-      <div class="left">
-        <img class="logo" src="@/assets/logo.png" alt="logo"/>
-        <div class="user-info">
-          <div class="name">{{ userInfo.nickname || userInfo.username || '求职者' }}</div>
-          <div class="status">{{ userStatus }}</div>
-        </div>
-      </div>
-      <div class="center">
-        <el-input
-            v-model="globalSearch"
-            class="search"
-            placeholder="搜索岗位 / 公司 / 技能关键词"
-            clearable
-            @keyup.enter="handleGlobalSearch"
-        >
-          <template #prefix>🔎</template>
-        </el-input>
-      </div>
-      <div class="right">
-        <div class="quick-indicators">
-          <el-badge :value="stats.pendingInterviews" class="item" type="warning">
-            <span class="indicator">待面试</span>
-          </el-badge>
-          <el-badge :value="stats.newMessages" class="item" type="danger">
-            <span class="indicator">新消息</span>
-          </el-badge>
-          <div class="today">{{ currentDate }}</div>
-        </div>
-        <el-dropdown @command="handleDropdown">
-          <span class="profile">
-            <el-avatar size="small">{{ userInitial }}</el-avatar>
-            <span class="username">{{ userInfo.nickname || userInfo.username || '求职者' }}</span>
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-              <el-dropdown-item command="settings">设置</el-dropdown-item>
-              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-    </header>
+    <!-- 顶部固定导航栏已移除，现在使用全局导航栏 -->
 
     <div class="layout">
-      <!-- 左侧功能菜单 -->
-      <aside class="aside glass">
-        <div class="aside-title">求职功能</div>
-        <el-menu class="menu" :default-active="activeMenu" @select="handleMenuSelect">
-          <el-menu-item v-for="item in candidateFeatures" :key="item.key" :index="item.key">
-            <span>{{ item.name }}</span>
-          </el-menu-item>
-        </el-menu>
-      </aside>
-
       <!-- 中央主工作区 -->
       <main class="main">
         <!-- 个人数据概览 -->
@@ -224,17 +170,7 @@ export default {
       return '求职中'
     })
 
-    // 角色功能（左侧菜单）- 使用用户状态管理器
-    const candidateFeatures = computed(() => userStore.userFeatures)
-    const activeMenu = ref(candidateFeatures.value[0]?.key || 'resume_management')
-    const handleMenuSelect = (key) => {
-      activeMenu.value = key
-      // 根据key跳转到相应页面
-      const feature = candidateFeatures.value.find(f => f.key === key)
-      if (feature && feature.path) {
-        router.push(feature.path)
-      }
-    }
+
 
     // 用户统计数据 - 使用用户状态管理器
     const userStatistics = computed(() => userStore.userStatistics)
@@ -547,10 +483,7 @@ export default {
       userStatus,
       currentDate,
 
-      // 菜单
-      candidateFeatures,
-      activeMenu,
-      handleMenuSelect,
+
 
       // 数据
       userStatistics,
@@ -630,9 +563,11 @@ html, body {
   --muted: #2d3748;
   background: rgba(248, 250, 252, 0.95);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: hidden; /* 防止水平滚动 */
   overflow-y: auto;
   height: 100vh;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
 .glass {
@@ -643,168 +578,32 @@ html, body {
   border-radius: 14px;
 }
 
-/* 顶部栏 */
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  align-items: center;
-  padding: 10px 24px;
-  margin: 0;
-  color: #1a202c;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: saturate(120%) blur(20px);
-  -webkit-backdrop-filter: saturate(120%) blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 0;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  height: 60px;
-}
-
-.topbar .left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-}
-
-.user-info .name {
-  font-weight: 600;
-  color: #1a202c;
-}
-
-.user-info .status {
-  font-size: 12px;
-  color: #2d3748;
-}
-
-.topbar .center {
-  padding: 0 12px;
-}
-
-.topbar .right {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-}
-
-.quick-indicators {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.quick-indicators .indicator {
-  color: #1a202c;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.today {
-  color: #2d3748;
-  font-size: 12px;
-}
-
-.profile {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.username {
-  color: #1a202c;
-  font-size: 13px;
-  font-weight: 500;
-}
+/* 顶部栏样式已移除，现在使用全局导航栏 */
 
 /* 主体布局 */
 .layout {
-  display: grid;
-  grid-template-columns: 240px 1fr 0;
-  gap: 16px;
+  display: flex;
   padding: 16px;
   margin-top: 0;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 64px); /* 调整为全局导航栏高度 */
   overflow: visible;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
-.aside {
-  height: calc(100vh - 100px);
-  padding: 16px;
-  color: var(--text);
-  position: sticky;
-  top: 80px;
-  overflow-y: auto;
-  max-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: saturate(120%) blur(20px);
-  -webkit-backdrop-filter: saturate(120%) blur(20px);
-}
 
-.aside-title {
-  font-size: 16px;
-  color: #1a202c;
-  margin: 8px 8px 16px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-align: center;
-  padding: 12px 8px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-  border-radius: 10px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  text-shadow: none;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-.menu {
-  padding: 8px 0;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.menu :deep(.el-menu-item span) {
-  font-size: 15px;
-  letter-spacing: 1px;
-  font-weight: 500;
-  color: #2d3748;
-  text-shadow: none;
-  transition: all 0.3s ease;
-}
-
-.menu :deep(.el-menu-item:hover span) {
-  color: #1a202c;
-  text-shadow: none;
-}
-
-.menu :deep(.el-menu-item.is-active span) {
-  color: #1a202c;
-  font-weight: 600;
-  text-shadow: none;
-}
 
 .main {
+  flex: 1; /* 让主内容区域填充剩余空间 */
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 64px); /* 调整为全局导航栏高度 */
   overflow-y: visible;
+  overflow-x: hidden; /* 防止水平滚动 */
   height: auto;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
 .section {
@@ -832,8 +631,11 @@ html, body {
 /* 统计卡片网格 */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
+  max-width: 100%;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
 .stat-card {
@@ -896,6 +698,7 @@ html, body {
 .radar-container {
   padding: 20px;
   height: 400px;
+  width: 100%;
 }
 
 .radar {
@@ -908,6 +711,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
 .interview-item {
@@ -963,6 +768,8 @@ html, body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
 .progress-item {
@@ -1261,19 +1068,10 @@ html, body {
   .layout {
     grid-template-columns: 1fr;
   }
-  
-  .aside {
-    position: static;
-    height: auto;
-  }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
-  .topbar {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
+
 }
 </style> 

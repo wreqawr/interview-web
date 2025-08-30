@@ -19,98 +19,98 @@ const routes = [
         meta: {requiresAuth: false}
     },
 
-    // 统一Dashboard页面
+    // 需要认证的页面使用MainLayout
     {
-        path: '/dashboard',
-        name: 'Dashboard',
-        component: () => import('@/pages/dashboard/MainDashboard.vue'),
-        meta: {requiresAuth: true}
-    },
+        path: '/',
+        component: () => import('@/layouts/MainLayout.vue'),
+        meta: {requiresAuth: true},
+        children: [
+            // 根路径重定向到dashboard
+            {
+                path: '',
+                redirect: 'dashboard'
+            },
+            // 统一Dashboard页面
+            {
+                path: 'dashboard',
+                name: 'Dashboard',
+                component: () => import('@/pages/dashboard/MainDashboard.vue')
+            },
 
-    // HR专用Dashboard页面
-    {
-        path: '/hr-dashboard',
-        name: 'HRDashboard',
-        component: () => import('@/pages/dashboard/HRDashboard.vue'),
-        meta: {requiresAuth: true, role: 'ROLE_HR'}
-    },
+            // HR专用Dashboard页面
+            {
+                path: 'hr-dashboard',
+                name: 'HRDashboard',
+                component: () => import('@/pages/dashboard/HRDashboard.vue'),
+                meta: {role: 'ROLE_HR'}
+            },
 
-    // 求职者专用Dashboard页面
-    {
-        path: '/candidate-dashboard',
-        name: 'CandidateDashboard',
-        component: () => import('@/pages/dashboard/CandidateDashboard.vue'),
-        meta: {requiresAuth: true, role: 'ROLE_JOB_SEEKER'}
-    },
+            // 求职者专用Dashboard页面
+            {
+                path: 'candidate-dashboard',
+                name: 'CandidateDashboard',
+                component: () => import('@/pages/dashboard/CandidateDashboard.vue'),
+                meta: {role: 'ROLE_JOB_SEEKER'}
+            },
 
+            // 简历管理页面
+            {
+                path: 'resume',
+                redirect: 'resume/management'
+            },
+            {
+                path: 'resume/management',
+                name: 'ResumeManagement',
+                component: () => import('@/pages/resume/ResumeManagement.vue')
+            },
 
-    // 简历管理页面（包含上传功能）
-    {
-        path: '/resume',
-        redirect: '/resume/management'
-    },
+            // 面试列表页面
+            {
+                path: 'interview',
+                name: 'InterviewList',
+                component: () => import('@/pages/interview/InterviewList.vue')
+            },
 
-    // 简历管理页面
-    {
-        path: '/resume/management',
-        name: 'ResumeManagement',
-        component: () => import('@/pages/resume/ResumeManagement.vue'),
-        meta: {requiresAuth: true}
-    },
+            // AI模拟面试重定向
+            {
+                path: 'jobseeker/mock-interview',
+                redirect: 'interview/preparation'
+            },
+            // 面试准备页面
+            {
+                path: 'interview/preparation',
+                name: 'InterviewPreparation',
+                component: () => import('@/pages/interview/InterviewPreparation.vue')
+            },
 
-    // 面试列表页面
-    {
-        path: '/interview',
-        name: 'InterviewList',
-        component: () => import('@/pages/interview/InterviewList.vue'),
-        meta: {requiresAuth: true}
-    },
+            // 面试进行页面
+            {
+                path: 'interview/live',
+                name: 'LiveInterview',
+                component: () => import('@/pages/interview/LiveInterview.vue')
+            },
 
-    // AI模拟面试页面
-    {
-        path: '/jobseeker/mock-interview',
-        name: 'MockInterview',
-        redirect: '/interview/preparation'
-    },
+            // 文字聊天面试页面
+            {
+                path: 'interview/chat',
+                name: 'InterviewChat',
+                component: () => import('@/pages/interview/InterviewChat.vue')
+            },
 
-    // 面试准备页面
-    {
-        path: '/interview/preparation',
-        name: 'InterviewPreparation',
-        component: () => import('@/pages/interview/InterviewPreparation.vue'),
-        meta: {requiresAuth: true}
-    },
+            // 面试结果页面
+            {
+                path: 'interview/results',
+                name: 'InterviewResults',
+                component: () => import('@/pages/interview/InterviewResults.vue')
+            },
 
-    // 面试进行页面
-    {
-        path: '/interview/live',
-        name: 'LiveInterview',
-        component: () => import('@/pages/interview/LiveInterview.vue'),
-        meta: {requiresAuth: true}
-    },
-
-    // 文字聊天面试页面
-    {
-        path: '/interview/chat',
-        name: 'InterviewChat',
-        component: () => import('@/pages/interview/InterviewChat.vue'),
-        meta: {requiresAuth: true}
-    },
-
-    // 面试结果页面
-    {
-        path: '/interview/results',
-        name: 'InterviewResults',
-        component: () => import('@/pages/interview/InterviewResults.vue'),
-        meta: {requiresAuth: true}
-    },
-
-    // 报告列表页面
-    {
-        path: '/report',
-        name: 'ReportList',
-        component: () => import('@/pages/report/ReportList.vue'),
-        meta: {requiresAuth: true}
+            // 报告列表页面
+            {
+                path: 'report',
+                name: 'ReportList',
+                component: () => import('@/pages/report/ReportList.vue')
+            }
+        ]
     }
 ]
 

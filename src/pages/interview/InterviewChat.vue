@@ -6,7 +6,7 @@
         <el-button type="text" @click="goBack" class="back-btn">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
-        <h1 class="interview-title">{{ interviewConfig.position }}-技术面试</h1>
+        <h1 class="interview-title">{{ getPositionTitle() }}-技术面试</h1>
       </div>
       <div class="header-right">
         <el-button type="text" @click="showHelp" class="help-btn">
@@ -27,7 +27,7 @@
           <div class="message-avatar">🤖</div>
           <div class="message-content">
             <div class="message-text">
-              欢迎参加{{ interviewConfig.position }}技术面试，我是AI面试官。本次面试将包含{{ totalQuestions }}个技术问题，预计用时{{ estimatedTime }}分钟。准备好了吗？
+              欢迎参加{{ getPositionTitle() }}技术面试，我是AI面试官。本次面试将包含{{ totalQuestions }}个技术问题，预计用时{{ estimatedTime }}分钟。准备好了吗？
             </div>
             <div class="message-time">{{ formatTime(interviewTime) }}</div>
           </div>
@@ -348,6 +348,15 @@ const checkInterviewConfig = () => {
   interviewStore.startInterview()
   
   return true
+}
+
+// 获取职位标题
+const getPositionTitle = () => {
+  // 优先使用positionInfo中的jobTitle，如果没有则回退到position
+  if (interviewStore.interviewConfig.positionInfo?.jobTitle) {
+    return interviewStore.interviewConfig.positionInfo.jobTitle
+  }
+  return interviewConfig.value.position || '未知职位'
 }
 
 // 解析路由参数

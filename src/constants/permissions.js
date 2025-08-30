@@ -251,9 +251,18 @@ export const ROLE_FEATURES = {
     // 管理员功能
     'ROLE_ADMIN': [
         {
+            key: 'dashboard',
+            name: '主页',
+            icon: '/src/assets/function/admin/system-setting.svg',
+            type: 'primary',
+            path: '/dashboard',
+            description: '系统概览和管理入口',
+            permissions: []
+        },
+        {
             key: 'user_management',
             name: '用户管理',
-            icon: '@/assets/function/user-management.svg',
+            icon: '/src/assets/function/admin/user-management.svg',
             type: 'danger',
             path: '/admin/users',
             description: '管理系统用户、角色和权限',
@@ -265,7 +274,7 @@ export const ROLE_FEATURES = {
                 PERMISSION_CODES.ADMIN_USER_PASSWORD_RESET,
                 PERMISSION_CODES.ADMIN_USER_DELETE,
                 PERMISSION_CODES.ADMIN_ROLE_DEFINE,
-                PERMISSION_CODES.ADMIN_ROLE_ASSIGN,
+                PERMISSION_CODES.ADMIN_USER_ROLE_ASSIGN,
                 PERMISSION_CODES.ADMIN_PERMISSION_CONFIGURE,
                 PERMISSION_CODES.ADMIN_PERMISSION_GROUP_MANAGE,
                 PERMISSION_CODES.ADMIN_PERMISSION_AUDIT
@@ -274,7 +283,7 @@ export const ROLE_FEATURES = {
         {
             key: 'company_management',
             name: '企业管理',
-            icon: '@/assets/function/company-management.svg',
+            icon: '/src/assets/function/admin/company-management.svg',
             type: 'warning',
             path: '/admin/companies',
             description: '管理企业信息、认证和套餐',
@@ -293,7 +302,7 @@ export const ROLE_FEATURES = {
         {
             key: 'system_config',
             name: '系统配置',
-            icon: '@/assets/function/system-setting.svg',
+            icon: '/src/assets/function/admin/system-setting.svg',
             type: 'info',
             path: '/admin/system',
             description: '系统参数配置和功能开关',
@@ -315,7 +324,7 @@ export const ROLE_FEATURES = {
         {
             key: 'data_management',
             name: '数据管理',
-            icon: '@/assets/function/data-management.svg',
+            icon: '/src/assets/function/admin/data-management.svg',
             type: 'success',
             path: '/admin/data',
             description: '数据备份、恢复和归档',
@@ -333,7 +342,7 @@ export const ROLE_FEATURES = {
         {
             key: 'system_monitor',
             name: '系统监控',
-            icon: '@/assets/function/system-monitor.svg',
+            icon: '/src/assets/function/admin/system-monitor.svg',
             type: 'warning',
             path: '/admin/monitor',
             description: '服务器状态和性能监控',
@@ -357,9 +366,18 @@ export const ROLE_FEATURES = {
     // HR功能
     'ROLE_HR': [
         {
+            key: 'dashboard',
+            name: '主页',
+            icon: '/src/assets/function/hr/company-info.svg',
+            type: 'primary',
+            path: '/hr-dashboard',
+            description: 'HR工作台和数据概览',
+            permissions: []
+        },
+        {
             key: 'candidate_management',
             name: '候选人管理',
-            icon: '@/assets/function/candidate-management.svg',
+            icon: '/src/assets/function/hr/candidate-management.svg',
             type: 'primary',
             path: '/hr/candidates',
             description: '管理候选人信息和状态',
@@ -378,7 +396,7 @@ export const ROLE_FEATURES = {
         {
             key: 'resume_screening',
             name: '简历筛选',
-            icon: '@/assets/function/resume-select.svg',
+            icon: '/src/assets/function/hr/resume-select.svg',
             type: 'warning',
             path: '/hr/screening',
             description: 'AI智能筛选和评分',
@@ -393,7 +411,7 @@ export const ROLE_FEATURES = {
         {
             key: 'interview_management',
             name: '面试管理',
-            icon: '@/assets/function/interview-management.svg',
+            icon: '/src/assets/function/hr/interview-management.svg',
             type: 'success',
             path: '/hr/interviews',
             description: '面试安排和流程管理',
@@ -413,7 +431,7 @@ export const ROLE_FEATURES = {
         {
             key: 'position_management',
             name: '岗位管理',
-            icon: '@/assets/function/jobs-management.svg',
+            icon: '/src/assets/function/hr/jobs-management.svg',
             type: 'info',
             path: '/hr/positions',
             description: '招聘岗位和需求管理',
@@ -425,7 +443,7 @@ export const ROLE_FEATURES = {
         {
             key: 'communication',
             name: '沟通管理',
-            icon: '@/assets/function/communication-management.svg',
+            icon: '/src/assets/function/hr/communication-management.svg',
             type: 'primary',
             path: '/hr/communication',
             description: '候选人沟通和消息通知',
@@ -440,7 +458,7 @@ export const ROLE_FEATURES = {
         {
             key: 'interview_evaluation',
             name: '面试评估',
-            icon: '@/assets/function/interview-assessment.svg',
+            icon: '/src/assets/function/hr/interview-assessment.svg',
             type: 'success',
             path: '/hr/evaluation',
             description: '面试评分和结果管理',
@@ -456,7 +474,7 @@ export const ROLE_FEATURES = {
         {
             key: 'data_analytics',
             name: '数据分析',
-            icon: '@/assets/function/data-analyze.svg',
+            icon: '/src/assets/function/hr/data-analyze.svg',
             type: 'info',
             path: '/hr/analytics',
             description: '招聘数据分析和报告',
@@ -474,7 +492,7 @@ export const ROLE_FEATURES = {
         {
             key: 'company_info',
             name: '企业信息',
-            icon: '@/assets/function/company-info.svg',
+            icon: '/src/assets/function/hr/company-info.svg',
             type: 'warning',
             path: '/hr/company',
             description: '企业基本信息和设置',
@@ -497,9 +515,18 @@ export const ROLE_FEATURES = {
     // 求职者功能
     'ROLE_JOB_SEEKER': [
         {
+            key: 'dashboard',
+            name: '主页',
+            icon: '/src/assets/function/jobseeker/user-profile.svg',
+            type: 'primary',
+            path: '/dashboard',
+            description: '个人数据概览和快速入口',
+            permissions: []
+        },
+        {
             key: 'resume_management',
             name: '简历管理',
-            icon: '@/assets/resume/resume-management.svg',
+            icon: '/src/assets/function/jobseeker/resume-management.svg',
             type: 'info',
             path: '/resume/management',
             description: '简历上传、编辑和版本管理',
@@ -519,7 +546,7 @@ export const ROLE_FEATURES = {
         {
             key: 'appointment',
             name: '面试预约',
-            icon: '@/assets/function/jobseeker/interview-appointment.svg',
+            icon: '/src/assets/function/jobseeker/interview-appointment.svg',
             type: 'primary',
             path: '/jobseeker/appointment',
             description: '面试时间预约管理',
@@ -536,7 +563,7 @@ export const ROLE_FEATURES = {
         {
             key: 'mock_interview',
             name: 'AI模拟面试',
-            icon: '@/assets/function/jobseeker/ai-interview.svg',
+            icon: '/src/assets/function/jobseeker/ai-interview.svg',
             type: 'warning',
             path: '/interview/preparation',
             description: 'AI驱动的面试模拟训练',
@@ -553,7 +580,7 @@ export const ROLE_FEATURES = {
         {
             key: 'real_interview',
             name: '实时面试',
-            icon: '@/assets/function/jobseeker/realtime-interview.svg',
+            icon: '/src/assets/function/jobseeker/realtime-interview.svg',
             type: 'danger',
             path: '/jobseeker/real-interview',
             description: '在线视频面试',
@@ -569,7 +596,7 @@ export const ROLE_FEATURES = {
         {
             key: 'interview_history',
             name: '面试记录',
-            icon: '@/assets/function/jobseeker/interview-record.svg',
+            icon: '/src/assets/function/jobseeker/interview-record.svg',
             type: 'info',
             path: '/jobseeker/interview-history',
             description: '历史面试记录和回放',
@@ -585,7 +612,7 @@ export const ROLE_FEATURES = {
         {
             key: 'interview_reports',
             name: '面试报告',
-            icon: '@/assets/function/jobseeker/interview-report.svg',
+            icon: '/src/assets/function/jobseeker/interview-report.svg',
             type: 'success',
             path: '/jobseeker/reports',
             description: '面试表现分析和报告',
@@ -603,7 +630,7 @@ export const ROLE_FEATURES = {
         {
             key: 'learning_center',
             name: '学习中心',
-            icon: '@/assets/function/jobseeker/study-center.svg',
+            icon: '/src/assets/function/jobseeker/study-center.svg',
             type: 'warning',
             path: '/jobseeker/learning',
             description: '面试技巧和学习资源',
@@ -617,7 +644,7 @@ export const ROLE_FEATURES = {
         {
             key: 'user_profile',
             name: '个人中心',
-            icon: '@/assets/function/jobseeker/user-profile.svg',
+            icon: '/src/assets/function/jobseeker/user-profile.svg',
             type: 'primary',
             path: '/jobseeker/profile',
             description: '个人信息和设置管理',
@@ -700,28 +727,28 @@ export const ROLE_STATISTICS = {
         {
             key: 'resume_versions',
             name: '简历版本',
-            icon: '@/assets/resume/resume-version.svg',
+            icon: '/src/assets/resume/resume-version.svg',
             color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             value: '3'
         },
         {
             key: 'interview_count',
             name: '面试次数',
-            icon: '@/assets/interview/interview-count.svg',
+            icon: '/src/assets/interview/interview-count.svg',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             value: '8'
         },
         {
             key: 'overall_score',
             name: '综合评分',
-            icon: '@/assets/other/comprehensive-score.svg',
+            icon: '/src/assets/other/comprehensive-score.svg',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             value: '85'
         },
         {
             key: 'received_offers',
             name: '收到Offer',
-            icon: '@/assets/other/get-offer.svg',
+            icon: '/src/assets/other/get-offer.svg',
             color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
             value: '2'
         }

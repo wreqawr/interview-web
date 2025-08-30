@@ -1,30 +1,5 @@
 <template>
   <div class="interview-preparation-page">
-    <!-- 顶部导航栏 -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <div class="logo">
-          <span class="logo-icon">🤖</span>
-          <span class="logo-text">AI Interview Coach</span>
-        </div>
-      </div>
-      <div class="navbar-right">
-        <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect">
-          <el-menu-item index="history">
-            <el-icon><Clock /></el-icon>
-            <span>历史记录</span>
-          </el-menu-item>
-          <el-menu-item index="profile">
-            <el-icon><User /></el-icon>
-            <span>个人中心</span>
-          </el-menu-item>
-          <el-menu-item index="help">
-            <el-icon><QuestionFilled /></el-icon>
-            <span>帮助</span>
-          </el-menu-item>
-        </el-menu>
-      </div>
-    </nav>
 
     <!-- 主内容区 -->
     <main class="main-content">
@@ -97,8 +72,8 @@
                   placeholder="请选择目标职位"
                   size="large"
                   class="form-select"
-                  filterable
-                  allow-create
+                  :loading="positionLoading"
+                  :disabled="positionOptions.length === 0"
                   @change="handlePositionChange"
                 >
                   <el-option
@@ -114,6 +89,10 @@
                     </div>
                   </el-option>
                 </el-select>
+                <div v-if="positionOptions.length === 0 && !positionLoading" class="no-position-tip">
+                  <el-icon><Briefcase /></el-icon>
+                  <span>当前还未投递过岗位，请先投递</span>
+                </div>
               </div>
 
               <!-- 右边：选择面试模式 -->
@@ -274,18 +253,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getResumeList } from '@/api/resume'
+import { getCandidateJobList } from '@/api/candidate'
 import { useInterviewStore } from '@/stores/interview'
 import {
-  Clock, User, QuestionFilled, Briefcase, Document,
+  QuestionFilled, Briefcase, Document,
   ArrowDown, ArrowUp, Light, VideoPlay,
   VideoCamera, View
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
-
-// 导航菜单
-const activeMenu = ref('home')
 
 // 面试配置
 const interviewConfig = ref({
@@ -320,6 +297,8 @@ const fetchResumeList = async () => {
       // 默认选择第一个简历
       if (resumes.value.length > 0) {
         interviewConfig.value.resumeId = resumes.value[0].id
+        // 同时设置resumeInfo，确保store中有完整的简历信息
+        interviewStore.setResumeInfo(resumes.value[0])
       }
     } else {
       ElMessage.error(data.message || '获取简历列表失败')
@@ -332,6 +311,42 @@ const fetchResumeList = async () => {
   }
 }
 
+// 获取职位列表
+const fetchPositionList = async () => {
+  try {
+    positionLoading.value = true
+    const response = await getCandidateJobList()
+    const data = response?.data || response
+
+    if (data.code === 200 && data.data) {
+      // 转换职位数据格式
+      positionOptions.value = data.data.map(job => ({
+        value: job.jobId.toString(),
+        label: job.jobTitle, // 只显示职位名称，避免重复
+        icon: '💼',
+        description: job.companyName, // 显示公司名作为补充信息
+        originalData: job
+      }))
+      
+      // 默认选择第一个职位
+      if (positionOptions.value.length > 0) {
+        interviewConfig.value.position = positionOptions.value[0].value
+        // 同时设置positionInfo，确保store中有完整的职位信息
+        interviewStore.setPositionInfo(positionOptions.value[0].originalData)
+      }
+    } else {
+      ElMessage.error(data.message || '获取职位列表失败')
+    }
+  } catch (error) {
+    console.error('获取职位列表失败:', error)
+    if (!error.isAuth) {
+      ElMessage.error('获取职位列表失败，请重试')
+    }
+  } finally {
+    positionLoading.value = false
+  }
+}
+
 // 展开状态
 const questionsExpanded = ref(true)
 
@@ -340,16 +355,8 @@ const micWorking = ref(false)
 const cameraWorking = ref(false)
 
 // 职位选项
-const positionOptions = ref([
-  { value: 'frontend', label: '前端开发工程师', icon: '💻', description: '负责用户界面开发' },
-  { value: 'backend', label: '后端开发工程师', icon: '⚙️', description: '负责服务器端逻辑' },
-  { value: 'fullstack', label: '全栈工程师', icon: '🔄', description: '前后端全栈开发' },
-  { value: 'product', label: '产品经理', icon: '📋', description: '负责产品规划与管理' },
-  { value: 'data', label: '数据分析师', icon: '📊', description: '负责数据分析与洞察' },
-  { value: 'uiux', label: 'UI/UX设计师', icon: '🎨', description: '负责用户体验设计' },
-  { value: 'qa', label: '测试工程师', icon: '🔍', description: '负责质量保证' },
-  { value: 'devops', label: 'DevOps工程师', icon: '🚀', description: '负责运维与部署' }
-])
+const positionOptions = ref([])
+const positionLoading = ref(false)
 
 // 示例问题
 const sampleQuestions = computed(() => [
@@ -393,6 +400,11 @@ const canStartInterview = computed(() => {
 // 处理职位选择变化
 const handlePositionChange = (position) => {
   interviewConfig.value.position = position
+  // 找到对应的职位信息并存储
+  const selectedPosition = positionOptions.value.find(pos => pos.value === position)
+  if (selectedPosition) {
+    interviewStore.setPositionInfo(selectedPosition.originalData)
+  }
   // 同时更新store中的配置
   interviewStore.setInterviewConfig({ position })
 }
@@ -414,11 +426,7 @@ const handleModeChange = (mode) => {
   interviewStore.setInterviewConfig({ mode })
 }
 
-// 处理菜单选择
-const handleMenuSelect = (key) => {
-  console.log('选择菜单:', key)
-  // 这里可以添加路由跳转逻辑
-}
+
 
 // 开始面试
 const startInterview = () => {
@@ -508,6 +516,7 @@ const unlockScroll = () => {
 onMounted(() => {
   checkDevices()
   fetchResumeList()
+  fetchPositionList()
   // 进入页面强制解锁滚动并做多次延迟兜底
   unlockScroll()
   setTimeout(unlockScroll, 50)
@@ -523,41 +532,13 @@ onMounted(() => {
   color: #333;
 }
 
-/* 导航栏样式 */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-  height: 70px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
 
-.navbar-left .logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 24px;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.logo-icon {
-  font-size: 32px;
-}
 
 /* 主内容区样式 */
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 55px 20px 20px; /* 进一步减少顶部内边距，让欢迎文字更靠近顶部 */
+  padding: 20px; /* 移除顶部内边距，因为现在有全局导航栏 */
 }
 
 /* 欢迎区域样式 */
@@ -726,6 +707,15 @@ onMounted(() => {
 }
 
 .no-resume-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #999;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.no-position-tip {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -994,12 +984,8 @@ onMounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .navbar {
-    padding: 0 20px;
-  }
-  
   .main-content {
-    padding: 55px 15px 20px; /* 保持减少后的顶部内边距 */
+    padding: 15px; /* 移除顶部内边距，因为现在有全局导航栏 */
   }
   
   .main-title {
@@ -1031,15 +1017,8 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .navbar {
-    flex-direction: column;
-    height: auto;
-    padding: 15px;
-    gap: 15px;
-  }
-  
   .main-content {
-    padding: 75px 15px 20px; /* 为更高的导航栏增加更多顶部内边距 */
+    padding: 15px; /* 移除顶部内边距，因为现在有全局导航栏 */
   }
   
   .main-title {

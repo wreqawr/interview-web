@@ -1,67 +1,63 @@
 <template>
   <div class="resume-management">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">简历管理</h1>
-        <p class="page-subtitle">管理您的所有简历版本，提升求职竞争力</p>
-      </div>
-      <div class="header-stats">
-        <div class="stat-cards-row">
-          <div class="stat-card">
-            <div class="stat-icon resume-icon">
-              <el-icon>
-                <Document/>
-              </el-icon>
+    <!-- 主体布局，与主页完全一致 -->
+    <div class="layout">
+      <main class="main">
+        <!-- 简历数据概览 -->
+        <section class="section">
+          <div class="section-header">
+            <h2>简历数据概览</h2>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card glass">
+              <div class="stat-icon resume-icon">
+                <el-icon>
+                  <Document/>
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ resumes.length }}</div>
+                <div class="stat-label">简历总数</div>
+              </div>
             </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ resumes.length }}</div>
-              <div class="stat-label">简历总数</div>
+            <div class="stat-card glass">
+              <div class="stat-icon version-icon">
+                <el-icon>
+                  <Files/>
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ resumes.length }}</div>
+                <div class="stat-label">版本数量</div>
+              </div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon view-icon">
+                <el-icon>
+                  <View/>
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ totalViews }}</div>
+                <div class="stat-label">查看次数</div>
+              </div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon score-icon">
+                <el-icon>
+                  <Star/>
+                </el-icon>
+              </div>
+              <div class="stat-content">
+                <div class="stat-value">{{ averageScore }}</div>
+                <div class="stat-label">综合评分</div>
+              </div>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon version-icon">
-              <el-icon>
-                <Files/>
-              </el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ resumes.length }}</div>
-              <div class="stat-label">版本数量</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon view-icon">
-              <el-icon>
-                <View/>
-              </el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ totalViews }}</div>
-              <div class="stat-label">查看次数</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon score-icon">
-              <el-icon>
-                <Star/>
-              </el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ averageScore }}</div>
-              <div class="stat-label">综合评分</div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </section>
 
-    </div>
-
-    <!-- 主要内容区域 -->
-    <div class="main-content">
-      <el-row :gutter="24">
         <!-- 简历列表 -->
-        <el-col :span="24">
+        <section class="section">
           <div class="resume-list-section">
             <div class="section-header">
               <div class="section-title-area">
@@ -316,8 +312,8 @@
               </div>
             </div>
           </div>
-        </el-col>
-      </el-row>
+        </section>
+      </main>
     </div>
 
     <!-- 上传对话框 -->
@@ -1359,83 +1355,114 @@ function submitUpload() {
 
 <style scoped>
 .resume-management {
-  padding: 0 20px 20px 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --bg: #f8fafc;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.9);
+  --primary: #3b82f6;
+  --accent: #22c55e;
+  --text: #1a202c;
+  --muted: #2d3748;
+  padding: 64px 0 0 0; /* 只保留顶部padding为全局导航栏高度，与主页布局一致 */
+  background: rgba(248, 250, 252, 0.95); /* 统一背景色 */
   min-height: 100vh;
+  overflow-x: hidden; /* 防止水平滚动 */
+  overflow-y: auto;
+  height: 100vh;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 }
 
-/* 页面头部 */
-.page-header {
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(120%) blur(14px);
+  -webkit-backdrop-filter: saturate(120%) blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+}
+
+/* 主体布局，与主页完全一致 */
+.layout {
   display: flex;
-  justify-content: flex-start;
+  padding: 16px;
+  margin-top: 0;
+  min-height: calc(100vh - 64px); /* 调整为全局导航栏高度 */
+  overflow: visible;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+.main {
+  flex: 1; /* 让主内容区域填充剩余空间 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100vh - 64px); /* 调整为全局导航栏高度 */
+  overflow-y: visible;
+  overflow-x: hidden; /* 防止水平滚动 */
+  height: auto;
+  width: 100%; /* 确保宽度不超出 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+}
+
+/* 简历数据概览区域 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header {
+  display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
-  gap: 70px;
-  position: fixed;
-  top: 0;
-  left: 20px;
-  right: 20px;
-  z-index: 1000;
+  justify-content: space-between;
+  color: var(--text);
 }
 
-.header-content {
-  min-width: 0;
-}
-
-.header-stats {
-  display: flex;
-  align-items: center;
-  margin-left: 150px;
-  margin-right: 20px;
-}
-
-.stat-cards-row {
-  display: flex;
-  gap: 20px;
-}
-
-.header-content .page-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0 0 6px 0;
-}
-
-.header-content .page-subtitle {
-  font-size: 14px;
-  color: #7f8c8d;
+.section-header h2 {
   margin: 0;
-  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+  text-shadow: none;
+  letter-spacing: 0.5px;
 }
+
+/* 统计卡片网格布局，与主页保持一致 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 移除不再需要的section-title和section-subtitle样式 */
 
 /* 统计卡片样式已在页面头部中定义 */
 
 .stat-card {
   display: flex;
   align-items: center;
-  padding: 14px 18px;
-  transition: transform 0.3s ease;
+  padding: 20px; /* 统一padding */
+  transition: all 0.3s ease; /* 统一过渡效果 */
   min-width: 150px;
 }
 
 .stat-card:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px); /* 统一hover效果 */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .stat-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+  width: 60px; /* 调小图标尺寸 */
+  height: 60px;
+  border-radius: 14px; /* 相应调整圆角 */
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 14px;
-  font-size: 24px;
+  margin-right: 16px; /* 保持间距 */
+  font-size: 24px; /* 调小字体大小 */
   color: white;
 }
 
@@ -1455,32 +1482,35 @@ function submitUpload() {
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
-.stat-info .stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2c3e50;
-  line-height: 1;
+.stat-content {
+  flex: 1;
 }
 
-.stat-info .stat-label {
-  font-size: 14px;
-  color: #7f8c8d;
-  margin-top: 5px;
+.stat-content .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c; /* 统一颜色 */
+  line-height: 1;
+  margin-bottom: 6px; /* 统一间距 */
+}
+
+.stat-content .stat-label {
+  font-size: 15px; /* 统一字体大小 */
+  color: #2d3748; /* 统一颜色 */
+  margin: 0;
 }
 
 /* 主要内容区域 */
-.main-content {
-  margin-bottom: 20px;
-  margin-top: 140px;
-}
 
 /* 简历列表区域 */
 .resume-list-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8); /* 统一背景透明度 */
+  border-radius: 14px; /* 统一圆角 */
   padding: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
+  backdrop-filter: saturate(120%) blur(14px); /* 统一模糊效果 */
+  -webkit-backdrop-filter: saturate(120%) blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.1); /* 统一边框 */
 }
 
 .section-header {
@@ -1504,9 +1534,11 @@ function submitUpload() {
 
 .section-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
+  font-weight: 700; /* 统一字重 */
+  color: #1a202c; /* 统一颜色 */
   margin: 0;
+  text-shadow: none;
+  letter-spacing: 0.5px;
 }
 
 /* 加载和空状态 */
@@ -1541,17 +1573,18 @@ function submitUpload() {
 
 .resume-card {
   background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
+  border-radius: 14px; /* 统一圆角 */
   padding: 16px;
-  border: 2px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1); /* 统一边框 */
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: saturate(120%) blur(14px); /* 统一模糊效果 */
+  -webkit-backdrop-filter: saturate(120%) blur(14px);
 }
 
 .resume-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px); /* 统一hover效果 */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* 统一阴影 */
 }
 
 .resume-card.active {
@@ -1999,11 +2032,6 @@ function submitUpload() {
 }
 
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
 
   .section-header {
     flex-direction: column;

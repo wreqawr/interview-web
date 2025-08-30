@@ -9,6 +9,8 @@ export const AUTH_API = `${BASE_URL}/auth`;
 export const RESUME_API = `${BASE_URL}/resume`;
 // ai接口
 export const AI_API = `${BASE_URL}/ai`;
+// 求职者接口
+export const CANDIDATE_API = `${BASE_URL}/candidate`;
 
 // 登录
 export const LOGIN_URL = `${AUTH_API}/login`;
@@ -36,6 +38,8 @@ export const RESUME_DOWNLOAD_URL = `${RESUME_API}/download`;
 export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 // 获取用户上传简历后的异步任务状态
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
+// 获取求职者已经申请过的岗位信息
+export const CANDIDATE_JOBS_URL = `${CANDIDATE_API}/getJobList`;
 // ai聊天助手
 export const AI_CHAT_URL = `http://localhost:8082/api/ai/chat`;
 

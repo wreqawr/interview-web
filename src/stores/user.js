@@ -74,13 +74,13 @@ export const useUserStore = defineStore('user', () => {
             const stats = getRoleStatistics(role);
             // 将SVG图标路径替换为实际的图标对象
             return stats.map(stat => {
-                if (stat.icon === '@/assets/resume/resume-version.svg') {
+                if (stat.icon === '/src/assets/resume/resume-version.svg') {
                     return { ...stat, icon: resumeVersionIcon };
-                } else if (stat.icon === '@/assets/interview/interview-count.svg') {
+                } else if (stat.icon === '/src/assets/interview/interview-count.svg') {
                     return { ...stat, icon: interviewCountIcon };
-                } else if (stat.icon === '@/assets/other/comprehensive-score.svg') {
+                } else if (stat.icon === '/src/assets/other/comprehensive-score.svg') {
                     return { ...stat, icon: comprehensiveScoreIcon };
-                } else if (stat.icon === '@/assets/other/get-offer.svg') {
+                } else if (stat.icon === '/src/assets/other/get-offer.svg') {
                     return { ...stat, icon: getOfferIcon };
                 }
                 return stat;
