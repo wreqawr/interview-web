@@ -2,15 +2,17 @@
 export const ENV_CONFIG = {
   // 开发环境
   development: {
-    API_BASE_URL: 'http://localhost:8081/api',
+    API_WEB_MVC_BASE_URL: 'http://localhost:8081/api',
     ENV_NAME: '开发环境',
-    DEBUG: true
+    DEBUG: true,
+    API_WEB_FLUX_BASE_URL: 'http://localhost:8082/api'
   },
   // 生产环境
   production: {
-    API_BASE_URL: '/api',
+    API_WEB_MVC_BASE_URL: '/api',
     ENV_NAME: '生产环境',
-    DEBUG: false
+    DEBUG: false,
+    API_WEB_FLUX_BASE_URL: '/api'
   }
 };
 
@@ -21,15 +23,21 @@ export const getCurrentEnv = () => {
 };
 
 // 获取API基础URL
-export const getApiBaseUrl = () => {
-  return process.env.VUE_APP_API_BASE_URL || getCurrentEnv().API_BASE_URL;
+export const getWebMvcApiBaseUrl = () => {
+  return process.env.VUE_APP_API_WEB_MVC_BASE_URL || getCurrentEnv().API_WEB_MVC_BASE_URL;
+};
+
+// 新增：获取 WebFlux API 基础URL
+export const getWebFluxApiBaseUrl = () => {
+  return process.env.VUE_APP_API_WEB_FLUX_BASE_URL || getCurrentEnv().API_WEB_FLUX_BASE_URL;
 };
 
 // 环境信息
 export const ENV_INFO = {
   current: process.env.VUE_APP_ENV || 'development',
   nodeEnv: process.env.NODE_ENV,
-  apiBaseUrl: getApiBaseUrl(),
+  apiWebMvcBaseUrl: getWebMvcApiBaseUrl(),
+  apiWebFluxBaseUrl: getWebFluxApiBaseUrl(),
   isDevelopment: process.env.VUE_APP_ENV === 'development',
   isProduction: process.env.VUE_APP_ENV === 'production'
 };

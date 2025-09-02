@@ -33,10 +33,6 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
-                  个人中心
-                </el-dropdown-item>
                 <el-dropdown-item command="settings">
                   <el-icon><Setting /></el-icon>
                   设置
@@ -59,7 +55,7 @@ import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowDown, User, Setting, SwitchButton } from '@element-plus/icons-vue'
+import { ArrowDown, Setting, SwitchButton } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -92,6 +88,12 @@ const userInitials = computed(() => {
 const handleMenuSelect = (key) => {
   const feature = userFeatures.value.find(f => f.key === key)
   if (feature && feature.path) {
+    // 未实现功能提示
+    const devKeys = ['appointment', 'real_interview', 'interview_history', 'interview_reports']
+    if (devKeys.includes(key)) {
+      ElMessage({ message: '功能正在开发中', type: 'info', duration: 500 })
+      return
+    }
     router.push(feature.path)
   }
 }
@@ -104,16 +106,6 @@ const isCurrentPage = (path) => {
 // 处理用户操作
 const handleUserCommand = async (command) => {
   switch (command) {
-    case 'profile': {
-      // 跳转到个人中心
-      const profileFeature = userFeatures.value.find(f => f.key === 'user_profile')
-      if (profileFeature) {
-        router.push(profileFeature.path)
-      } else {
-        ElMessage.info('个人中心功能暂未开放')
-      }
-      break
-    }
     case 'settings':
       ElMessage.info('设置功能暂未开放')
       break

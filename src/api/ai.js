@@ -1,5 +1,5 @@
 import http from './http'
-import {AI_CHAT_URL} from './endpoints'
+import {ASSISTANT_CHAT_URL, INTERVIEW_CHAT_URL} from './endpoints'
 
 /**
  * AI聊天相关API
@@ -31,7 +31,7 @@ export const aiApi = {
 
       // 创建fetch请求，支持流式响应
       const token = sessionStorage.getItem('Authorization')
-      const response = await fetch(AI_CHAT_URL, {
+      const response = await fetch(ASSISTANT_CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,10 +39,6 @@ export const aiApi = {
         },
         body: JSON.stringify(chatParams)
       })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
 
       // 处理流式响应
       const reader = response.body.getReader()
@@ -101,8 +97,6 @@ export const aiApi = {
       } catch (streamError) {
         if (onError) {
           onError(streamError)
-        } else {
-          throw streamError
         }
       }
     } catch (error) {
@@ -122,7 +116,7 @@ export const aiApi = {
    */
   getHistory: async (conversationId) => {
     try {
-      return await http.get(`${AI_CHAT_URL}/history/${conversationId}`)
+      return await http.get(`${ASSISTANT_CHAT_URL}/history/${conversationId}`)
     } catch (error) {
       console.error('获取对话历史失败:', error)
       throw error
@@ -136,10 +130,79 @@ export const aiApi = {
    */
   clearHistory: async (conversationId) => {
     try {
-      return await http.delete(`${AI_CHAT_URL}/history/${conversationId}`)
+      return await http.delete(`${ASSISTANT_CHAT_URL}/history/${conversationId}`)
     } catch (error) {
       console.error('清空对话历史失败:', error)
       throw error
+    }
+  },
+
+  /**
+   * 面试聊天准备（流式响应）
+   * @param {Object} params { conversationId, jobId, resumeId, onData, onComplete, onError }
+   */
+  interviewPrepare: async (params) => {
+    try {
+      const { onData, onComplete, onError, ...requestParams } = params
+      const payload = {
+        conversationId: requestParams.conversationId,
+        jobId: requestParams.jobId,
+        resumeId: requestParams.resumeId
+      }
+
+      const token = sessionStorage.getItem('Authorization')
+      const response = await fetch(INTERVIEW_CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token || ''
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      try {
+        let reading = true
+        while (reading) {
+          const { done, value } = await reader.read()
+          if (done) {
+            if (buffer.trim() && onData) {
+              const lines = buffer.split('\n')
+              for (const line of lines) {
+                const trimmed = line.trim()
+                if (trimmed.startsWith('data:')) {
+                  const content = trimmed.substring(5).trim()
+                  if (content) onData(content)
+                }
+              }
+            }
+            if (onComplete) onComplete()
+            reading = false
+            break
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          if (onData && buffer.trim()) {
+            const lines = buffer.split('\n')
+            for (const line of lines) {
+              const trimmed = line.trim()
+              if (trimmed.startsWith('data:')) {
+                const content = trimmed.substring(5).trim()
+                if (content) onData(content)
+              }
+            }
+            buffer = ''
+          }
+        }
+      } catch (streamErr) {
+        if (onError) onError(streamErr);
+      }
+    } catch (error) {
+      console.error('面试准备流式请求失败:', error)
+      if (params.onError) params.onError(error); else throw error
     }
   }
 }

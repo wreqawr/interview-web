@@ -1,16 +1,18 @@
-import { getApiBaseUrl, ENV_INFO } from '@/config/env';
+import { ENV_INFO } from '@/config/env';
 
 // 使用环境配置获取API基础URL
-export const BASE_URL = getApiBaseUrl();
+export const WEB_MVC_BASE_URL = ENV_INFO.apiWebMvcBaseUrl;
+// 新增：WebFlux 基础URL
+export const WEB_FLUX_BASE_URL = ENV_INFO.apiWebFluxBaseUrl;
 
 // 认证接口
-export const AUTH_API = `${BASE_URL}/auth`;
+export const AUTH_API = `${WEB_MVC_BASE_URL}/auth`;
 // 简历接口
-export const RESUME_API = `${BASE_URL}/resume`;
+export const RESUME_API = `${WEB_MVC_BASE_URL}/resume`;
 // ai接口
-export const AI_API = `${BASE_URL}/ai`;
+export const AI_API = `${WEB_MVC_BASE_URL}/ai`;
 // 求职者接口
-export const CANDIDATE_API = `${BASE_URL}/candidate`;
+export const CANDIDATE_API = `${WEB_MVC_BASE_URL}/candidate`;
 
 // 登录
 export const LOGIN_URL = `${AUTH_API}/login`;
@@ -40,8 +42,9 @@ export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
 // 获取求职者已经申请过的岗位信息
 export const CANDIDATE_JOBS_URL = `${CANDIDATE_API}/getJobList`;
-// ai聊天助手
-export const AI_CHAT_URL = `http://localhost:8082/api/ai/chat`;
-
+// ai聊天助手使用 WebFlux 基础URL
+export const ASSISTANT_CHAT_URL = `${WEB_FLUX_BASE_URL}/ai/assistant`;
+// ai文字面试接口地址
+export const INTERVIEW_CHAT_URL = `${WEB_FLUX_BASE_URL}/interview/chat/prepare`;
 // 导出环境信息，方便调试
 export { ENV_INFO };

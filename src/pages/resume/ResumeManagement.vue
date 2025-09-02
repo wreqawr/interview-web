@@ -9,7 +9,7 @@
             <h2>简历数据概览</h2>
           </div>
           <div class="stats-grid">
-            <div class="stat-card glass">
+            <div class="stat-card">
               <div class="stat-icon resume-icon">
                 <el-icon>
                   <Document/>
@@ -20,7 +20,7 @@
                 <div class="stat-label">简历总数</div>
               </div>
             </div>
-            <div class="stat-card glass">
+            <div class="stat-card">
               <div class="stat-icon version-icon">
                 <el-icon>
                   <Files/>
@@ -31,7 +31,7 @@
                 <div class="stat-label">版本数量</div>
               </div>
             </div>
-            <div class="stat-card glass">
+            <div class="stat-card">
               <div class="stat-icon view-icon">
                 <el-icon>
                   <View/>
@@ -42,7 +42,7 @@
                 <div class="stat-label">查看次数</div>
               </div>
             </div>
-            <div class="stat-card glass">
+            <div class="stat-card">
               <div class="stat-icon score-icon">
                 <el-icon>
                   <Star/>
@@ -58,11 +58,11 @@
 
         <!-- 简历列表 -->
         <section class="section">
+          <div class="section-header">
+            <h2>我的简历</h2>
+          </div>
           <div class="resume-list-section">
             <div class="section-header">
-              <div class="section-title-area">
-                <h2 class="section-title">我的简历</h2>
-              </div>
               <div class="section-center">
                 <div class="select-all-area">
                   <el-checkbox
@@ -1362,7 +1362,7 @@ function submitUpload() {
   --accent: #22c55e;
   --text: #1a202c;
   --muted: #2d3748;
-  padding: 64px 0 0 0; /* 只保留顶部padding为全局导航栏高度，与主页布局一致 */
+  padding: 0; /* 顶部间距交由全局 MainLayout 控制，避免双重 64px 间距 */
   background: rgba(248, 250, 252, 0.95); /* 统一背景色 */
   min-height: 100vh;
   overflow-x: hidden; /* 防止水平滚动 */
@@ -1370,14 +1370,6 @@ function submitUpload() {
   height: 100vh;
   width: 100%; /* 确保宽度不超出 */
   box-sizing: border-box; /* 确保padding不会增加总宽度 */
-}
-
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: saturate(120%) blur(14px);
-  -webkit-backdrop-filter: saturate(120%) blur(14px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 14px;
 }
 
 /* 主体布局，与主页完全一致 */
@@ -1416,6 +1408,7 @@ function submitUpload() {
   align-items: center;
   justify-content: space-between;
   color: var(--text);
+  margin-bottom: 8px; /* 缩小标题与卡片之间的间距，参考主页 */
 }
 
 .section-header h2 {
@@ -1444,25 +1437,29 @@ function submitUpload() {
 .stat-card {
   display: flex;
   align-items: center;
-  padding: 20px; /* 统一padding */
-  transition: all 0.3s ease; /* 统一过渡效果 */
+  padding: 20px;
+  border-radius: 12px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   min-width: 150px;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px); /* 统一hover效果 */
+  transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .stat-icon {
-  width: 60px; /* 调小图标尺寸 */
-  height: 60px;
-  border-radius: 14px; /* 相应调整圆角 */
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px; /* 保持间距 */
-  font-size: 24px; /* 调小字体大小 */
+  margin-right: 20px;
+  font-size: 32px;
   color: white;
 }
 
@@ -1513,32 +1510,17 @@ function submitUpload() {
   border: 1px solid rgba(0, 0, 0, 0.1); /* 统一边框 */
 }
 
-.section-header {
+.resume-list-section .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* 仅列表区域保留较大的间距 */
   position: relative;
-}
-
-.section-title-area {
-  display: flex;
-  align-items: center;
-  gap: 20px;
 }
 
 .select-all-area {
   display: flex;
   align-items: center;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 700; /* 统一字重 */
-  color: #1a202c; /* 统一颜色 */
-  margin: 0;
-  text-shadow: none;
-  letter-spacing: 0.5px;
 }
 
 /* 加载和空状态 */

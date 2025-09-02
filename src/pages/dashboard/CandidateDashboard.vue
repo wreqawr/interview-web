@@ -28,52 +28,40 @@
 
         <!-- 技能雷达图 -->
         <section class="section">
-          <div class="section-header">
-            <h2>技能评估雷达图</h2>
-          </div>
-          <div class="radar-container glass">
-            <div class="radar" ref="radarRef"></div>
+          <div class="two-col-grid">
+            <div class="col left-col">
+              <div class="section-header">
+                <h2>技能评估雷达图</h2>
+              </div>
+              <div class="radar-container glass">
+                <div class="radar" ref="radarRef"></div>
+              </div>
+            </div>
+            <div class="col right-col">
+              <div class="section-header">
+                <h2>最近面试记录</h2>
+                <div class="actions">
+                  <el-button size="small" type="primary" @click="viewAllInterviews">查看全部</el-button>
+                </div>
+              </div>
+              <div class="interview-list panel glass">
+                <div class="interview-item" v-for="interview in recentInterviews" :key="interview.id">
+                  <div class="interview-header">
+                    <div class="company">{{ interview.company }}</div>
+                    <div class="position">{{ interview.position }}</div>
+                    <div class="status" :class="interview.status">{{ interview.statusText }}</div>
+                  </div>
+                  <div class="interview-details">
+                    <div class="time">{{ interview.time }}</div>
+                    <div class="score" v-if="interview.score">评分: {{ interview.score }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- 最近面试记录 -->
-        <section class="section">
-          <div class="section-header">
-            <h2>最近面试记录</h2>
-            <div class="actions">
-              <el-button size="small" type="primary" @click="viewAllInterviews">查看全部</el-button>
-            </div>
-          </div>
-          <div class="interview-list">
-            <div class="interview-item glass" v-for="interview in recentInterviews" :key="interview.id">
-              <div class="interview-header">
-                <div class="company">{{ interview.company }}</div>
-                <div class="position">{{ interview.position }}</div>
-                <div class="status" :class="interview.status">{{ interview.statusText }}</div>
-              </div>
-              <div class="interview-details">
-                <div class="time">{{ interview.time }}</div>
-                <div class="score" v-if="interview.score">评分: {{ interview.score }}</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 学习进度 -->
-        <section class="section">
-          <div class="section-header">
-            <h2>学习进度</h2>
-          </div>
-          <div class="learning-progress">
-            <div class="progress-item glass" v-for="item in learningProgress" :key="item.key">
-              <div class="progress-header">
-                <div class="skill-name">{{ item.name }}</div>
-                <div class="progress-percent">{{ item.progress }}%</div>
-              </div>
-              <el-progress :percentage="item.progress" :color="item.color" :stroke-width="8"/>
-            </div>
-          </div>
-        </section>
+        <!-- 学习进度模块已移除 -->
       </main>
 
       <!-- 右侧AI助手悬浮 -->
@@ -259,13 +247,7 @@ export default {
       }
     ])
 
-    // 学习进度
-    const learningProgress = ref([
-      {key: 'frontend', name: '前端开发', progress: 85, color: '#409eff'},
-      {key: 'backend', name: '后端开发', progress: 72, color: '#67c23a'},
-      {key: 'algorithm', name: '算法基础', progress: 68, color: '#e6a23c'},
-      {key: 'system', name: '系统设计', progress: 55, color: '#f56c6c'}
-    ])
+    // 学习进度模块已移除
 
     // AI助手
     const assistantOpen = ref(false)
@@ -489,8 +471,7 @@ export default {
       userStatistics,
       stats,
       recentInterviews,
-      learningProgress,
-
+      
       // 雷达图
       radarRef,
       refreshDashboard,
@@ -763,36 +744,7 @@ html, body {
   font-weight: 500;
 }
 
-/* 学习进度 */
-.learning-progress {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  width: 100%; /* 确保宽度不超出 */
-  box-sizing: border-box; /* 确保padding不会增加总宽度 */
-}
-
-.progress-item {
-  padding: 16px;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.skill-name {
-  font-weight: 600;
-  color: #1a202c;
-  font-size: 14px;
-}
-
-.progress-percent {
-  color: #2d3748;
-  font-size: 12px;
-}
+/* 学习进度模块已移除 */
 
 /* AI助手样式 */
 .smart-sidebar {
@@ -1059,9 +1011,6 @@ html, body {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .learning-progress {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 768px) {
@@ -1073,5 +1022,59 @@ html, body {
     grid-template-columns: 1fr;
   }
 
+}
+
+.two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* 两栏内标题与卡片之间的间距 */
+.two-col-grid .section-header {
+  margin-bottom: 12px;
+}
+
+.two-col-grid .col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 统一两栏内容区域高度（不含各自的标题栏）*/
+.two-col-grid .left-col .radar-container,
+.two-col-grid .right-col .panel {
+  height: 420px;
+  position: relative; /* 建立堆叠上下文，避免阴影覆盖造成的视觉重叠 */
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* 面板滚动由内部内容承担，防止溢出重叠 */
+.two-col-grid .panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.two-col-grid .panel .interview-list {
+  overflow: auto;
+  flex: 1;
+}
+
+/* 雷达容器内部充满 */
+.radar-container { display: flex; flex-direction: column; }
+.radar { flex: 1; }
+
+@media (max-width: 1024px) {
+  .two-col-grid {
+    grid-template-columns: 1fr;
+  }
+  .two-col-grid .left-col .radar-container,
+  .two-col-grid .right-col .panel {
+    height: auto;
+    min-height: 360px;
+  }
 }
 </style> 

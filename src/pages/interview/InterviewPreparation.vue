@@ -268,7 +268,7 @@ const interviewStore = useInterviewStore()
 const interviewConfig = ref({
   position: '',
   resumeId: '',
-  mode: 'video' // 新增面试模式，默认为视频面试
+  mode: 'chat' // 默认文字聊天面试模式
 })
 
 // 简历数据
@@ -527,8 +527,8 @@ onMounted(() => {
 
 <style scoped>
 .interview-preparation-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - 64px);
+  background: rgba(248, 250, 252, 0.95);
   color: #333;
 }
 
@@ -551,15 +551,15 @@ onMounted(() => {
 .main-title {
   font-size: 36px; /* 减少标题字体大小 */
   font-weight: 700;
-  color: #fff;
+  color: #1a202c; /* 统一与其他页面的深色标题 */
   margin-bottom: 10px; /* 进一步减少标题底部间距 */
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
   line-height: 1.2;
 }
 
 .subtitle {
   font-size: 16px; /* 减少副标题字体大小 */
-  color: rgba(255, 255, 255, 0.9);
+  color: #4b5563; /* 与全站统一的次要文字颜色 */
   margin-bottom: 20px; /* 进一步减少副标题底部间距 */
   line-height: 1.5;
 }
@@ -570,12 +570,12 @@ onMounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: -1;
-  opacity: 0.1;
+  opacity: 0.06; /* 更淡以适配浅色背景 */
 }
 
 .decoration-circle {
   position: absolute;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.08);
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
@@ -622,8 +622,8 @@ onMounted(() => {
 }
 
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: #f8f9fa; /* 与其他页面一致的浅灰背景 */
+  color: #1a202c; /* 深色标题 */
   padding: 15px; /* 进一步减少内边距 */
   text-align: center;
 }
@@ -637,7 +637,7 @@ onMounted(() => {
 .card-header p {
   font-size: 14px; /* 减少描述字体大小 */
   margin: 0;
-  opacity: 0.9;
+  color: #4b5563;
 }
 
 .config-form {

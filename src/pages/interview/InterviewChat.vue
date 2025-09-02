@@ -1,132 +1,62 @@
 <template>
   <div class="interview-chat-page">
-    <!-- 顶部标题栏 -->
-    <div class="top-header">
-      <div class="header-left">
-        <el-button type="text" @click="goBack" class="back-btn">
-          <el-icon><ArrowLeft /></el-icon>
-        </el-button>
-        <h1 class="interview-title">{{ getPositionTitle() }}-技术面试</h1>
-      </div>
-      <div class="header-right">
-        <el-button type="text" @click="showHelp" class="help-btn">
-          <el-icon><QuestionFilled /></el-icon>
-        </el-button>
-        <el-button type="text" @click="showSettings" class="settings-btn">
-          <el-icon><Setting /></el-icon>
-        </el-button>
-      </div>
-    </div>
+
 
     <!-- 主内容区域 -->
     <div class="main-content">
       <!-- 左侧面试内容区域 -->
       <div class="interview-content">
-        <!-- 欢迎消息 -->
-        <div class="message ai-message">
-          <div class="message-avatar">🤖</div>
-          <div class="message-content">
-            <div class="message-text">
-              欢迎参加{{ getPositionTitle() }}技术面试，我是AI面试官。本次面试将包含{{ totalQuestions }}个技术问题，预计用时{{ estimatedTime }}分钟。准备好了吗？
-            </div>
-            <div class="message-time">{{ formatTime(interviewTime) }}</div>
-          </div>
-        </div>
-
-        <!-- 用户准备确认 -->
-        <div class="message user-message">
-          <div class="message-content">
-            <div class="message-text">准备好了，可以开始面试。</div>
-            <div class="message-time">{{ formatTime(interviewTime) }}</div>
-          </div>
-          <div class="message-avatar">👤</div>
-        </div>
-
-        <!-- 当前问题 -->
-        <div v-if="currentQuestion" class="message ai-message">
-          <div class="message-avatar">🤖</div>
-          <div class="message-content">
-            <div class="message-text">
-              <div class="question-header">
-                第{{ currentQuestionIndex + 1 }}题：{{ currentQuestion.title }}
-              </div>
-              <div v-if="currentQuestion.description" class="question-description">
-                {{ currentQuestion.description }}
-              </div>
-              <div v-if="currentQuestion.code" class="code-block">
-                <div class="code-header">
-                  <span class="code-language">{{ currentQuestion.language || 'JavaScript' }}</span>
-                  <el-button type="text" size="small" @click="copyCode" class="copy-btn">
-                    <el-icon><CopyDocument /></el-icon>
-                  </el-button>
-                </div>
-                <pre class="code-content"><code>{{ currentQuestion.code }}</code></pre>
-              </div>
-            </div>
-            <div class="message-time">{{ formatTime(interviewTime) }}</div>
-          </div>
-        </div>
-
-        <!-- 用户回答区域 -->
-        <div class="answer-section">
-          <div class="answer-input-container">
-            <div class="input-header">
-              <span class="input-label">请输入你的回答：</span>
-              <div class="format-controls">
-                <el-button type="text" size="small" @click="insertBold" class="format-btn">
-                  <strong>B</strong>
-                </el-button>
-                <el-button type="text" size="small" @click="insertList" class="format-btn">
-                  <el-icon><List /></el-icon>
-                </el-button>
-                <el-button type="text" size="small" @click="insertCode" class="format-btn">
-                  &lt;/&gt;
-                </el-button>
-              </div>
-            </div>
-            <el-input
-              v-model="userAnswer"
-              type="textarea"
-              :rows="6"
-              placeholder="请详细描述你的思路和解决方案..."
-              :disabled="isSubmitting || isPaused"
-              class="answer-input"
-            />
-            <div class="input-footer">
-              <div class="thinking-indicator" v-if="isThinking">
-                <div class="thinking-bars">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-                <span class="thinking-text">正在思考...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 导航按钮 -->
-        <div class="navigation-buttons">
-          <el-button 
-            type="default" 
-            @click="previousQuestion"
-            :disabled="currentQuestionIndex === 0"
-            class="nav-btn prev-btn"
+        <!-- 聊天记录滚动区域 -->
+        <div class="chat-messages" ref="chatMessagesRef">
+          <div 
+            v-for="msg in messageList" 
+            :key="msg.id" 
+            class="message"
+            :class="msg.type === 'assistant' ? 'ai-message' : 'user-message'"
           >
-            <el-icon><ArrowLeft /></el-icon>
-            上一题
-          </el-button>
-          
-          <el-button 
-            type="primary" 
-            @click="submitAnswer"
-            :disabled="!userAnswer.trim() || isSubmitting || isPaused"
-            :loading="isSubmitting"
-            class="nav-btn submit-btn"
-          >
-            提交回答
-          </el-button>
+            <div class="message-avatar">{{ msg.type === 'assistant' ? 'AI' : '我' }}</div>
+            <div class="message-content">
+              <div class="message-text">{{ msg.content }}</div>
+              <div class="message-time">{{ msg.time }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 固定在底部的输入和按钮区域 -->
+        <div class="fixed-bottom-section">
+          <!-- 用户回答区域 -->
+          <div class="answer-section">
+            <div class="input-wrapper">
+              <textarea 
+                class="chat-input" 
+                :placeholder="isSubmitting ? 'AI正在处理中，请稍候...' : '请详细描述你的思路和解决方案，使用 Shift + Enter 换行'"
+                v-model="userAnswer"
+                rows="4"
+                :disabled="!hasStarted || isSubmitting || isPaused"
+                @keydown.enter.exact="handleEnterSubmit"
+                @keydown.shift.enter="handleShiftEnter"
+              ></textarea>
+              <img 
+                :src="canSend ? sendEnableIcon : sendDisableIcon"
+                :alt="canSend ? '提交回答' : '提交回答(禁用)'"
+                class="send-icon"
+                :class="{ 'disabled': !canSend }"
+                @click="canSend ? submitAnswer() : null"
+                :style="{ cursor: canSend ? 'pointer' : 'not-allowed' }"
+              />
+            </div>
+            <div class="thinking-indicator" v-if="isThinking">
+              <div class="thinking-bars">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span class="thinking-text">正在思考...</span>
+            </div>
+          </div>
+
+
         </div>
       </div>
 
@@ -161,66 +91,63 @@
           <div class="panel-section">
             <h4>操作控制</h4>
             <div class="control-buttons">
-              <el-button 
-                type="default" 
-                @click="pauseInterview"
-                :disabled="isPaused"
-                class="control-btn"
-              >
-                <el-icon><VideoPause /></el-icon>
-                暂停
-              </el-button>
-              
-              <el-button 
-                type="warning" 
-                @click="restartQuestion"
-                class="control-btn"
-              >
-                <el-icon><Refresh /></el-icon>
-                重新开始
-              </el-button>
-              
-              <el-button 
-                type="danger" 
-                @click="endInterview"
-                class="control-btn end-btn"
-              >
+              <div class="ctrl-item start" @click="startInterviewControl">
                 <el-icon><VideoPlay /></el-icon>
-                结束面试
-              </el-button>
+                <span>开始</span>
+              </div>
+
+              <div class="ctrl-item pause" :class="{ disabled: isPaused }" @click="!isPaused && pauseInterview()">
+                <el-icon><VideoPause /></el-icon>
+                <span>暂停</span>
+              </div>
+
+              <div class="ctrl-item restart" @click="restartQuestion">
+                <el-icon><Refresh /></el-icon>
+                <span>重置</span>
+              </div>
+
+              <div class="ctrl-item end" @click="endInterview">
+                <el-icon><VideoPlay /></el-icon>
+                <span>结束</span>
+              </div>
             </div>
           </div>
 
-          <!-- 输入模式选择 -->
-          <div class="panel-section">
-            <h4>输入模式</h4>
-            <div class="input-mode-selector">
-              <el-radio-group v-model="inputMode" @change="handleInputModeChange">
-                <el-radio-button value="text" class="mode-option">
-                  <el-icon><Keyboard /></el-icon>
-                  文字输入
-                </el-radio-button>
-                <el-radio-button value="voice" class="mode-option">
-                  <el-icon><Microphone /></el-icon>
-                  语音输入
-                </el-radio-button>
-              </el-radio-group>
-            </div>
-          </div>
+
         </div>
 
         <!-- 底部导航 -->
         <div class="panel-footer">
-          <el-button 
-            type="primary" 
-            @click="nextQuestion"
-            :disabled="currentQuestionIndex >= totalQuestions - 1 || !canProceed"
-            class="next-btn"
-          >
-            下一题
-            <el-icon><ArrowRight /></el-icon>
-          </el-button>
+          <div class="navigation-buttons">
+            <el-button 
+              type="default" 
+              @click="previousQuestion"
+              :disabled="currentQuestionIndex === 0"
+              class="nav-btn prev-btn"
+            >
+              <el-icon><ArrowLeft /></el-icon>
+              上一题
+            </el-button>
+            
+            <el-button 
+              type="primary" 
+              @click="nextQuestion"
+              :disabled="currentQuestionIndex >= totalQuestions - 1 || !canProceed"
+              class="nav-btn next-btn"
+            >
+              下一题
+              <el-icon><ArrowRight /></el-icon>
+            </el-button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 开始倒计时遮罩 -->
+    <div class="countdown-overlay" v-if="isStarting">
+      <div class="countdown-content">
+        <div class="countdown-number">{{ countdown }}</div>
+        <div class="countdown-text">面试即将开始</div>
       </div>
     </div>
   </div>
@@ -232,9 +159,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useInterviewStore } from '@/stores/interview'
 import { 
-  ArrowLeft, ArrowRight, QuestionFilled, Setting, CopyDocument, 
-  List, Clock, VideoPause, Refresh, VideoPlay, Keyboard, Microphone 
+  ArrowLeft, ArrowRight, 
+  Clock, VideoPause, Refresh, VideoPlay 
 } from '@element-plus/icons-vue'
+import sendEnableIcon from '@/assets/chat/send-enable.svg'
+import sendDisableIcon from '@/assets/chat/send-disable.svg'
+import { aiApi } from '@/api/ai'
+import { nextTick, watch } from 'vue'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
@@ -250,15 +181,15 @@ const interviewConfig = ref({
 const isPaused = ref(false)
 const isSubmitting = ref(false)
 const isThinking = ref(false)
+const isStarting = ref(false)
+const countdown = ref(3)
 const interviewTime = ref(0)
 const remainingTime = ref(30 * 60) // 30分钟
 const currentQuestionIndex = ref(0)
 const totalQuestions = ref(5)
-const estimatedTime = ref(30)
 
 // 用户输入
 const userAnswer = ref('')
-const inputMode = ref('text')
 
 // 当前问题
 const currentQuestion = ref({
@@ -320,6 +251,27 @@ const questions = ref([
   }
 ])
 
+// 聊天记录
+const messageList = ref([])
+const chatMessagesRef = ref(null)
+const hasStarted = ref(false)
+const isAiStreaming = ref(false)
+const canSend = computed(() => hasStarted.value && !isAiStreaming.value && !!userAnswer.value.trim() && !isSubmitting.value)
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatMessagesRef.value) {
+      chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight
+    }
+  })
+}
+
+watch(messageList, () => {
+  scrollToBottom()
+})
+
+let streamMessageId = null
+
 // 定时器
 let timer = null
 
@@ -350,14 +302,7 @@ const checkInterviewConfig = () => {
   return true
 }
 
-// 获取职位标题
-const getPositionTitle = () => {
-  // 优先使用positionInfo中的jobTitle，如果没有则回退到position
-  if (interviewStore.interviewConfig.positionInfo?.jobTitle) {
-    return interviewStore.interviewConfig.positionInfo.jobTitle
-  }
-  return interviewConfig.value.position || '未知职位'
-}
+
 
 // 解析路由参数
 onMounted(() => {
@@ -417,6 +362,17 @@ const progressPercent = computed(() => {
 const canProceed = computed(() => {
   return userAnswer.value.trim() && !isSubmitting.value
 })
+
+// 处理Enter键提交
+const handleEnterSubmit = (event) => {
+  event.preventDefault()
+  submitAnswer()
+}
+
+// 处理Shift+Enter换行
+const handleShiftEnter = () => {
+  // 允许默认的换行行为
+}
 
 // 提交回答
 const submitAnswer = async () => {
@@ -478,6 +434,73 @@ const restartQuestion = () => {
   ElMessage.info('已重新开始当前题目')
 }
 
+// 开始/继续面试
+const startInterviewControl = () => {
+  ElMessageBox.confirm(
+    '现在开始？',
+    '确认开始',
+    {
+      confirmButtonText: '是',
+      cancelButtonText: '否',
+      type: 'warning'
+    }
+  ).then(() => {
+    // 显示3秒倒计时
+    isStarting.value = true
+    countdown.value = 3
+    let left = 3
+    const timer = setInterval(() => {
+      left -= 1
+      countdown.value = left
+      if (left <= 0) {
+        clearInterval(timer)
+        isStarting.value = false
+        isPaused.value = false
+        hasStarted.value = true
+        ElMessage.success('面试已开始')
+
+        // 触发面试准备流式请求
+        const conversationId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        const jobId = interviewStore.interviewConfig.position
+        const resumeId = interviewStore.interviewConfig.resumeId
+
+        // 先插入一条空的AI消息，用于聚合本次流
+        streamMessageId = `assistant_${Date.now()}`
+        messageList.value.push({
+          id: streamMessageId,
+          type: 'assistant',
+          content: '',
+          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        })
+        isAiStreaming.value = true
+        aiApi.interviewPrepare({
+          conversationId,
+          jobId,
+          resumeId,
+          onData: (data) => {
+            // 将流式数据聚合到一条消息中
+            const index = messageList.value.findIndex(m => m.id === streamMessageId)
+            if (index !== -1) {
+              messageList.value[index].content += data
+            }
+            scrollToBottom()
+          },
+          onComplete: () => {
+            // 完成时不提示
+            isAiStreaming.value = false
+          },
+          onError: () => {
+            ElMessage.error('面试准备失败')
+            isAiStreaming.value = false
+          }
+        })
+      }
+    }, 1000)
+  }).catch(() => {
+    // 取消开始
+  })
+}
+
 // 暂停/继续面试
 const pauseInterview = () => {
   isPaused.value = !isPaused.value
@@ -511,97 +534,21 @@ const endInterview = async () => {
   }
 }
 
-// 返回上一页
-const goBack = () => {
-  router.go(-1)
-}
 
-// 显示帮助
-const showHelp = () => {
-  ElMessage.info('帮助功能待实现')
-}
 
-// 显示设置
-const showSettings = () => {
-  ElMessage.info('设置功能待实现')
-}
 
-// 复制代码
-const copyCode = async () => {
-  try {
-    await navigator.clipboard.writeText(currentQuestion.value.code)
-    ElMessage.success('代码已复制到剪贴板')
-  } catch (error) {
-    ElMessage.error('复制失败')
-  }
-}
 
-// 格式化控制
-const insertBold = () => {
-  userAnswer.value += '**粗体文字**'
-}
 
-const insertList = () => {
-  userAnswer.value += '\n- 列表项1\n- 列表项2\n- 列表项3'
-}
 
-const insertCode = () => {
-  userAnswer.value += '\n```\n代码块\n```'
-}
 
-// 处理输入模式变化
-const handleInputModeChange = (mode) => {
-  if (mode === 'voice') {
-    ElMessage.info('语音输入功能待实现')
-    inputMode.value = 'text' // 暂时保持文字输入
-  }
-}
 </script>
 
 <style scoped>
 .interview-chat-page {
-  height: 100vh;
+  min-height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
   background: #f5f7fa;
-}
-
-/* 顶部标题栏 */
-.top-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background: #667eea;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.back-btn {
-  color: #fff;
-  font-size: 18px;
-}
-
-.interview-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.header-right {
-  display: flex;
-  gap: 10px;
-}
-
-.help-btn, .settings-btn {
-  color: #fff;
-  font-size: 18px;
 }
 
 /* 主内容区域 */
@@ -622,22 +569,33 @@ const handleInputModeChange = (mode) => {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  position: relative;
+  min-height: 0;
 }
 
-/* 聊天记录区域 */
-.interview-content {
+/* 聊天记录滚动区域 */
+.chat-messages {
+  flex: 1;
   padding: 20px;
   overflow-y: auto;
+  padding-bottom: 0;
+  min-height: 0;
+}
+
+/* 固定在底部的输入和按钮区域 */
+.fixed-bottom-section {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #e9ecef;
+  padding: 20px;
+  margin-top: auto;
 }
 
 .message {
   display: flex;
   margin-bottom: 20px;
   gap: 12px;
-}
-
-.user-message {
-  flex-direction: row-reverse;
 }
 
 .message-avatar {
@@ -694,114 +652,79 @@ const handleInputModeChange = (mode) => {
   text-align: left;
 }
 
-/* 问题样式 */
-.question-header {
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.question-description {
-  margin-bottom: 15px;
-  color: #666;
-  line-height: 1.5;
-}
-
-/* 代码块样式 */
-.code-block {
-  margin: 15px 0;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.code-language {
-  font-size: 12px;
-  color: #666;
-  font-weight: 500;
-}
-
-.copy-btn {
-  color: #667eea;
-  font-size: 14px;
-}
-
-.code-content {
-  margin: 0;
-  padding: 15px;
-  background: #2d3748;
-  color: #e2e8f0;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow-x: auto;
-}
-
 /* 回答区域 */
 .answer-section {
-  margin: 20px 0;
+  margin: 0 0 20px 0;
 }
 
-.answer-input-container {
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: border-color 0.3s ease;
-}
-
-.answer-input-container:focus-within {
-  border-color: #667eea;
-}
-
-.input-header {
+.input-wrapper {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
   align-items: center;
+  margin-bottom: 12px;
+}
+
+.chat-input {
+  flex: 1;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
   padding: 12px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.input-label {
-  font-weight: 500;
-  color: #333;
-}
-
-.format-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.format-btn {
-  color: #666;
   font-size: 14px;
-  padding: 4px 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  color: #374151;
+  resize: none;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
 
-.format-btn:hover {
-  color: #667eea;
-  background: #f0f0f0;
-  border-radius: 4px;
+.chat-input:focus {
+  border: 1px solid transparent;
+  background: linear-gradient(#ffffff, #ffffff) padding-box,
+              linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b, #10b981, #3b82f6, #8b5cf6, #ec4899) border-box;
+  background-size: 200% 100%;
+  animation: gradientFlow 2s linear infinite;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.answer-input {
-  border: none;
-  border-radius: 0;
+@keyframes gradientFlow {
+  0% {
+    background-position: 0 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
 }
 
-.input-footer {
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+.chat-input::placeholder {
+  color: #9ca3af;
+}
+
+.send-icon {
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.send-icon:hover:not(.disabled) {
+  transform: translateY(-2px);
+}
+
+.send-icon:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.send-icon.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* 思考指示器 */
@@ -841,35 +764,7 @@ const handleInputModeChange = (mode) => {
   font-weight: 500;
 }
 
-/* 导航按钮 */
-.navigation-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-}
 
-.nav-btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-.prev-btn {
-  color: #666;
-}
-
-.submit-btn {
-  background: #667eea;
-  border-color: #667eea;
-}
-
-.submit-btn:hover {
-  background: #5a67d8;
-  border-color: #5a67d8;
-}
 
 /* 右侧控制面板 */
 .control-panel {
@@ -956,45 +851,33 @@ const handleInputModeChange = (mode) => {
 
 /* 控制按钮 */
 .control-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10px;
+  row-gap: 16px;
 }
 
-.control-btn {
-  justify-content: flex-start;
-  padding: 12px 16px;
-  border-radius: 8px;
-}
-
-.end-btn {
-  background: #e53e3e;
-  border-color: #e53e3e;
-  color: #fff;
-}
-
-.end-btn:hover {
-  background: #c53030;
-  border-color: #c53030;
-}
-
-/* 输入模式选择 */
-.input-mode-selector {
-  margin-top: 10px;
-}
-
-.mode-option {
+.ctrl-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 12px;
+  height: 36px;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-.mode-option:hover {
-  background: #f8f9fa;
-}
+.ctrl-item:hover { opacity: 0.9; transform: translateY(-1px); }
+.ctrl-item.disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.ctrl-item.start { background: #67c23a; }
+.ctrl-item.pause { background: #909399; }
+.ctrl-item.restart { background: #e6a23c; }
+.ctrl-item.end { background: #f56c6c; }
+
 
 /* 面板底部 */
 .panel-footer {
@@ -1003,12 +886,32 @@ const handleInputModeChange = (mode) => {
   background: #f8f9fa;
 }
 
-.next-btn {
-  width: 100%;
+.navigation-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  flex: 1;
   padding: 12px 20px;
   border-radius: 8px;
+}
+
+.prev-btn {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  color: #666;
+}
+
+.prev-btn:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.next-btn {
   background: #667eea;
   border-color: #667eea;
+  color: #fff;
 }
 
 .next-btn:hover {
@@ -1033,15 +936,7 @@ const handleInputModeChange = (mode) => {
     width: 100%;
     order: -1;
   }
-  
-  .top-header {
-    padding: 15px 20px;
-  }
-  
-  .interview-title {
-    font-size: 18px;
-  }
-  
+
   .navigation-buttons {
     flex-direction: column;
     gap: 15px;
@@ -1053,33 +948,54 @@ const handleInputModeChange = (mode) => {
 }
 
 @media (max-width: 480px) {
-  .top-header {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px;
-  }
-  
-  .header-left {
-    flex-direction: column;
-    gap: 10px;
-    text-align: center;
-  }
-  
+
   .main-content {
     padding: 10px;
   }
   
   .interview-content {
+    padding: 0;
+  }
+  
+  .chat-messages {
+    padding: 15px;
+  }
+  
+  .fixed-bottom-section {
     padding: 15px;
   }
   
   .message-content {
     max-width: 85%;
   }
-  
-  .code-content {
-    font-size: 12px;
-    padding: 10px;
-  }
+
+}
+
+/* 倒计时遮罩 */
+.countdown-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.countdown-content {
+  text-align: center;
+  color: #fff;
+}
+
+.countdown-number {
+  font-size: 80px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.countdown-text {
+  margin-top: 10px;
+  font-size: 18px;
+  opacity: 0.9;
 }
 </style> 

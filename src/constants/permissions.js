@@ -627,35 +627,7 @@ export const ROLE_FEATURES = {
                 PERMISSION_CODES.REPORT_GROWTH_TRACK
             ]
         },
-        {
-            key: 'learning_center',
-            name: '学习中心',
-            icon: '/src/assets/function/jobseeker/study-center.svg',
-            type: 'warning',
-            path: '/jobseeker/learning',
-            description: '面试技巧和学习资源',
-            permissions: [
-                PERMISSION_CODES.LEARNING_SKILL_VIEW,
-                PERMISSION_CODES.LEARNING_IMPROVEMENT_VIEW,
-                PERMISSION_CODES.LEARNING_NEWS_VIEW,
-                PERMISSION_CODES.LEARNING_PROGRESS_TRACK
-            ]
-        },
-        {
-            key: 'user_profile',
-            name: '个人中心',
-            icon: '/src/assets/function/jobseeker/user-profile.svg',
-            type: 'primary',
-            path: '/jobseeker/profile',
-            description: '个人信息和设置管理',
-            permissions: [
-                PERMISSION_CODES.PROFILE_INFO_VIEW,
-                PERMISSION_CODES.PROFILE_INFO_MODIFY,
-                PERMISSION_CODES.PROFILE_AVATAR_UPLOAD,
-                PERMISSION_CODES.PROFILE_CONTACT_MANAGE,
-                PERMISSION_CODES.PROFILE_PRIVACY_SET
-            ]
-        }
+        // 个人中心功能已移除
     ]
 }
 
