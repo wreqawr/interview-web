@@ -1,250 +1,241 @@
 <template>
-  <div class="interview-preparation-page">
-
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <!-- 欢迎区域 -->
-      <section class="welcome-section">
-        <h1 class="main-title">准备好迎接你的下一次机会了吗？</h1>
-        <p class="subtitle">选择下方的选项，开始一场为你量身定制的模拟面试吧</p>
-        <div class="welcome-decoration">
-          <div class="decoration-circle"></div>
-          <div class="decoration-circle"></div>
-          <div class="decoration-circle"></div>
-        </div>
-      </section>
-
-      <!-- 面试配置卡片 -->
-      <section class="configuration-section">
-        <div class="config-card">
-          <div class="card-header">
-            <h2>面试配置</h2>
-            <p>根据你的需求定制面试体验</p>
-          </div>
-          
-          <div class="config-form">
-            <!-- 简历和职位选择 - 左右结构 -->
-            <div class="form-row">
-              <!-- 左边：选择简历 -->
-              <div class="form-group form-group-left">
-                <label class="form-label">
-                  <el-icon><Document /></el-icon>
-                  选择简历
-                </label>
-                <el-select
-                  v-model="interviewConfig.resumeId"
-                  placeholder="请选择简历"
-                  size="large"
-                  class="form-select"
-                  :loading="resumeLoading"
-                  :disabled="resumes.length === 0"
-                  @change="handleResumeChange"
+  <div class="interview-preparation">
+    <!-- 主体布局，与主页和简历管理页面完全一致 -->
+    <div class="layout">
+      <main class="main">
+        <!-- 第一行：问题卡片和配置卡片 -->
+        <div class="row-layout">
+          <!-- 左侧：可能问到的问题 -->
+          <div class="left-card">
+            <section class="section">
+              <div class="section-header">
+                <h2>可能问到的问题</h2>
+                <el-button 
+                  type="text" 
+                  @click="questionsExpanded = !questionsExpanded"
+                  class="expand-btn"
                 >
-                  <el-option
-                    v-for="resume in resumes"
-                    :key="resume.id"
-                    :label="resume.title"
-                    :value="resume.id"
-                  >
-                    <div class="resume-option">
-                      <span class="resume-icon">📄</span>
-                      <div class="resume-info">
-                        <span class="resume-title">{{ resume.title }}</span>
-                        <span class="resume-meta">{{ resume.format }} · {{ resume.updateTime }} · 评分: {{ resume.score }}</span>
+                  {{ questionsExpanded ? '收起' : '展开' }}
+                  <el-icon><ArrowDown v-if="!questionsExpanded" /><ArrowUp v-else /></el-icon>
+                </el-button>
+              </div>
+              <div class="questions-panel glass">
+                <el-collapse-transition>
+                  <div v-show="questionsExpanded" class="questions-content">
+                    <div 
+                      v-for="(question, index) in sampleQuestions" 
+                      :key="index"
+                      class="question-item"
+                    >
+                      <div class="question-number">{{ index + 1 }}</div>
+                      <div class="question-text">{{ question }}</div>
+                    </div>
+                  </div>
+                </el-collapse-transition>
+              </div>
+            </section>
+          </div>
+
+          <!-- 右侧：面试配置 -->
+          <div class="right-card">
+            <section class="section">
+              <div class="section-header">
+                <h2>面试配置</h2>
+                <div></div>
+              </div>
+              <div class="config-card glass">
+                <div class="config-form">
+                  <!-- 简历和职位选择 - 上下结构 -->
+                  <div class="form-column">
+                    <!-- 选择简历 -->
+                    <div class="form-group">
+                      <label class="form-label">
+                        <el-icon><Document /></el-icon>
+                        选择简历
+                      </label>
+                      <el-select
+                        v-model="interviewConfig.resumeId"
+                        placeholder="请选择简历"
+                        size="large"
+                        class="form-select"
+                        :loading="resumeLoading"
+                        :disabled="resumes.length === 0"
+                        @change="handleResumeChange"
+                      >
+                        <el-option
+                          v-for="resume in resumes"
+                          :key="resume.id"
+                          :label="resume.title"
+                          :value="resume.id"
+                        >
+                          <div class="resume-option">
+                            <span class="resume-icon">📄</span>
+                            <div class="resume-info">
+                              <span class="resume-title">{{ resume.title }}</span>
+                              <span class="resume-meta">{{ resume.format }} · {{ resume.updateTime }} · 评分: {{ resume.score }}</span>
+                            </div>
+                          </div>
+                        </el-option>
+                      </el-select>
+                      <div v-if="resumes.length === 0" class="no-resume-tip">
+                        <el-icon><Document /></el-icon>
+                        <span>暂无简历，请先上传简历</span>
                       </div>
                     </div>
-                  </el-option>
-                </el-select>
-                <div v-if="resumes.length === 0" class="no-resume-tip">
-                  <el-icon><Document /></el-icon>
-                  <span>暂无简历，请先上传简历</span>
-                </div>
-              </div>
 
-              <!-- 中间：选择职位 -->
-              <div class="form-group form-group-center">
-                <label class="form-label">
-                  <el-icon><Briefcase /></el-icon>
-                  目标职位
-                </label>
-                <el-select
-                  v-model="interviewConfig.position"
-                  placeholder="请选择目标职位"
-                  size="large"
-                  class="form-select"
-                  :loading="positionLoading"
-                  :disabled="positionOptions.length === 0"
-                  @change="handlePositionChange"
-                >
-                  <el-option
-                    v-for="position in positionOptions"
-                    :key="position.value"
-                    :label="position.label"
-                    :value="position.value"
-                  >
-                    <div class="position-option">
-                      <span class="position-icon">{{ position.icon }}</span>
-                      <span class="position-label">{{ position.label }}</span>
-                      <span class="position-desc">{{ position.description }}</span>
+                    <!-- 选择职位 -->
+                    <div class="form-group">
+                      <label class="form-label">
+                        <el-icon><Briefcase /></el-icon>
+                        目标职位
+                      </label>
+                      <el-select
+                        v-model="interviewConfig.position"
+                        placeholder="请选择目标职位"
+                        size="large"
+                        class="form-select"
+                        :loading="positionLoading"
+                        :disabled="positionOptions.length === 0"
+                        @change="handlePositionChange"
+                      >
+                        <el-option
+                          v-for="position in positionOptions"
+                          :key="position.value"
+                          :label="position.label"
+                          :value="position.value"
+                        >
+                          <div class="position-option">
+                            <span class="position-icon">{{ position.icon }}</span>
+                            <span class="position-label">{{ position.label }}</span>
+                            <span class="position-desc">{{ position.description }}</span>
+                          </div>
+                        </el-option>
+                      </el-select>
+                      <div v-if="positionOptions.length === 0 && !positionLoading" class="no-position-tip">
+                        <el-icon><Briefcase /></el-icon>
+                        <span>当前还未投递过岗位，请先投递</span>
+                      </div>
                     </div>
-                  </el-option>
-                </el-select>
-                <div v-if="positionOptions.length === 0 && !positionLoading" class="no-position-tip">
-                  <el-icon><Briefcase /></el-icon>
-                  <span>当前还未投递过岗位，请先投递</span>
-                </div>
-              </div>
 
-              <!-- 右边：选择面试模式 -->
-              <div class="form-group form-group-right">
-                <label class="form-label">
-                  <el-icon><VideoPlay /></el-icon>
-                  面试模式
-                </label>
-                <el-select
-                  v-model="interviewConfig.mode"
-                  placeholder="请选择面试模式"
-                  size="large"
-                  class="form-select"
-                  @change="handleModeChange"
-                >
-                  <el-option
-                    value="video"
-                    label="视频面试"
-                  >
-                    <div class="mode-option">
-                      <span class="mode-icon">🎥</span>
-                      <span class="mode-label">视频面试</span>
-                      <span class="mode-desc">实时视频对话，更真实的面试体验</span>
+                    <!-- 选择面试模式 -->
+                    <div class="form-group">
+                      <label class="form-label">
+                        <el-icon><VideoPlay /></el-icon>
+                        面试模式
+                      </label>
+                      <el-select
+                        v-model="interviewConfig.mode"
+                        placeholder="请选择面试模式"
+                        size="large"
+                        class="form-select"
+                        @change="handleModeChange"
+                      >
+                        <el-option
+                          value="video"
+                          label="视频面试"
+                        >
+                          <div class="mode-option">
+                            <span class="mode-icon">🎥</span>
+                            <span class="mode-label">视频面试</span>
+                            <span class="mode-desc">实时视频对话，更真实的面试体验</span>
+                          </div>
+                        </el-option>
+                        <el-option
+                          value="chat"
+                          label="文字面试"
+                        >
+                          <div class="mode-option">
+                            <span class="mode-icon">💬</span>
+                            <span class="mode-label">文字面试</span>
+                            <span class="mode-desc">纯文字对话，更轻松自然的交流</span>
+                          </div>
+                        </el-option>
+                      </el-select>
                     </div>
-                  </el-option>
-                  <el-option
-                    value="chat"
-                    label="文字聊天"
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- 第二行：面试技巧提示（右侧设备检测已移除） -->
+        <div class="row-layout">
+          <div class="left-card">
+            <section class="section">
+              <div class="section-header">
+                <h2>面试技巧提示</h2>
+                <div></div>
+              </div>
+              <div class="tips-panel glass">
+                <div class="tips-content">
+                  <div 
+                    v-for="(tip, index) in interviewTips" 
+                    :key="index"
+                    class="tip-item"
                   >
-                    <div class="mode-option">
-                      <span class="mode-icon">💬</span>
-                      <span class="mode-label">文字聊天</span>
-                      <span class="mode-desc">纯文字对话，更轻松自然的交流</span>
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-content">
+                      <h4 class="tip-title">{{ tip.title }}</h4>
+                      <p class="tip-desc">{{ tip.description }}</p>
                     </div>
-                  </el-option>
-                </el-select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 准备区 -->
-      <section class="preparation-section">
-        <div class="preparation-grid">
-          <!-- 可能问到的问题 -->
-          <div class="prep-card questions-card">
-            <div class="card-header">
-              <h3>
-                <el-icon><QuestionFilled /></el-icon>
-                可能问到的问题
-              </h3>
-              <el-button 
-                type="text" 
-                @click="questionsExpanded = !questionsExpanded"
-                class="expand-btn"
-              >
-                {{ questionsExpanded ? '收起' : '展开' }}
-                <el-icon><ArrowDown v-if="!questionsExpanded" /><ArrowUp v-else /></el-icon>
-              </el-button>
-            </div>
-            <el-collapse-transition>
-              <div v-show="questionsExpanded" class="questions-content">
-                <div 
-                  v-for="(question, index) in sampleQuestions" 
-                  :key="index"
-                  class="question-item"
-                >
-                  <div class="question-number">{{ index + 1 }}</div>
-                  <div class="question-text">{{ question }}</div>
+                  </div>
                 </div>
               </div>
-            </el-collapse-transition>
+            </section>
           </div>
 
-          <!-- 面试技巧提示 -->
-          <div class="prep-card tips-card">
-            <div class="card-header">
-              <h3>
-                <el-icon><Light /></el-icon>
-                面试技巧提示
-              </h3>
-            </div>
-            <div class="tips-content">
-              <div 
-                v-for="(tip, index) in interviewTips" 
-                :key="index"
-                class="tip-item"
-              >
-                <div class="tip-icon">💡</div>
-                <div class="tip-content">
-                  <h4 class="tip-title">{{ tip.title }}</h4>
-                  <p class="tip-desc">{{ tip.description }}</p>
+          <!-- 右侧：设备检测（清空内容，红色边框） -->
+          <div class="right-card">
+            <section class="section">
+              <div class="section-header">
+                <h2>设备检测</h2>
+                <div></div>
+              </div>
+              <div class="device-panel glass">
+                <div class="check-content">
+                  <div class="check-item">
+                    <el-icon :class="{ 'check-success': micWorking, 'check-error': !micWorking }">
+                      <component :is="micWorking ? 'Check' : 'Close'" />
+                    </el-icon>
+                    <span>麦克风 {{ micWorking ? '正常' : '异常' }}</span>
+                  </div>
+                  <div class="check-item">
+                    <el-icon :class="{ 'check-success': cameraWorking, 'check-error': !cameraWorking }">
+                      <component :is="cameraWorking ? 'Check' : 'Close'" />
+                    </el-icon>
+                    <span>摄像头 {{ cameraWorking ? '正常' : '异常' }}</span>
+                  </div>
+                </div>
+                <div class="action-buttons">
+                  <el-button 
+                    type="primary" 
+                    size="large" 
+                    class="start-interview-btn"
+                    :disabled="!canStartInterview"
+                    @click="startInterview"
+                  >
+                    <el-icon><VideoPlay /></el-icon>
+                    开始模拟面试
+                  </el-button>
+                  <el-button 
+                    type="success" 
+                    size="large" 
+                    class="preview-btn"
+                    @click="previewInterview"
+                  >
+                    <el-icon><View /></el-icon>
+                    预览面试流程
+                  </el-button>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         </div>
-      </section>
 
-      <!-- 行动按钮 -->
-      <section class="action-section">
-        <div class="action-buttons">
-          <el-button 
-            type="primary" 
-            size="large" 
-            class="start-interview-btn"
-            :disabled="!canStartInterview"
-            @click="startInterview"
-          >
-            <el-icon><VideoPlay /></el-icon>
-            开始模拟面试
-          </el-button>
-          
-          <el-button 
-            type="success" 
-            size="large" 
-            class="preview-btn"
-            @click="previewInterview"
-          >
-            <el-icon><View /></el-icon>
-            预览面试流程
-          </el-button>
-        </div>
-        <p class="action-hint">请确保已选择所有必要的配置项</p>
-      </section>
-
-      <!-- 设备检测提示 -->
-      <section class="device-check-section">
-        <div class="device-check-card">
-          <div class="check-header">
-            <el-icon><VideoCamera /></el-icon>
-            <span>设备检测</span>
-          </div>
-          <div class="check-content">
-            <div class="check-item">
-              <el-icon :class="{ 'check-success': micWorking, 'check-error': !micWorking }">
-                <component :is="micWorking ? 'Check' : 'Close'" />
-              </el-icon>
-              <span>麦克风 {{ micWorking ? '正常' : '异常' }}</span>
-            </div>
-            <div class="check-item">
-              <el-icon :class="{ 'check-success': cameraWorking, 'check-error': !cameraWorking }">
-                <component :is="cameraWorking ? 'Check' : 'Close'" />
-              </el-icon>
-              <span>摄像头 {{ cameraWorking ? '正常' : '异常' }}</span>
-            </div>
-          </div>
-          <p class="device-note">开始前请确保你的麦克风和摄像头工作正常</p>
-        </div>
-      </section>
-    </main>
+        
+      </main>
+    </div>
   </div>
 </template>
 
@@ -256,9 +247,9 @@ import { getResumeList } from '@/api/resume'
 import { getCandidateJobList } from '@/api/candidate'
 import { useInterviewStore } from '@/stores/interview'
 import {
-  QuestionFilled, Briefcase, Document,
-  ArrowDown, ArrowUp, Light, VideoPlay,
-  VideoCamera, View
+  Briefcase, Document,
+  ArrowDown, ArrowUp, VideoPlay,
+  View
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -358,16 +349,13 @@ const cameraWorking = ref(false)
 const positionOptions = ref([])
 const positionLoading = ref(false)
 
-// 示例问题
+// 示例问题 - 改为5个
 const sampleQuestions = computed(() => [
   '请介绍一下你的技术栈和项目经验',
   '如何优化前端页面的性能？',
   '请解释一下你最近解决的一个技术难题',
   '你对新技术的学习方法是什么？',
-  '请描述一个你遇到的最大挑战',
-  '在团队中如何处理意见分歧？',
-  '请分享一个你失败的经历和学到的教训',
-  '你的职业规划是什么？'
+  '请描述一个你遇到的最大挑战'
 ])
 
 // 面试技巧
@@ -425,8 +413,6 @@ const handleModeChange = (mode) => {
   interviewConfig.value.mode = mode
   interviewStore.setInterviewConfig({ mode })
 }
-
-
 
 // 开始面试
 const startInterview = () => {
@@ -504,7 +490,7 @@ const unlockScroll = () => {
     html.style.overflow = 'auto'
     
     // 检查并清理页面内可能影响滚动的元素
-    const pageElements = document.querySelectorAll('.interview-preparation-page *')
+    const pageElements = document.querySelectorAll('.interview-preparation *')
     pageElements.forEach(el => {
       if (el.style && el.style.overflow === 'hidden') {
         el.style.overflow = ''
@@ -523,157 +509,160 @@ onMounted(() => {
   setTimeout(unlockScroll, 200)
   setTimeout(unlockScroll, 500)
 })
-</script> 
+</script>
 
 <style scoped>
-.interview-preparation-page {
-  min-height: calc(100vh - 64px);
+:root {
+  color-scheme: light;
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* 确保页面可以滚动 */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.interview-preparation {
+  --bg: #f8fafc;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: rgba(255, 255, 255, 0.9);
+  --primary: #3b82f6;
+  --accent: #22c55e;
+  --text: #1a202c;
+  --muted: #2d3748;
   background: rgba(248, 250, 252, 0.95);
-  color: #333;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-
-
-/* 主内容区样式 */
-.main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px; /* 移除顶部内边距，因为现在有全局导航栏 */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(120%) blur(14px);
+  -webkit-backdrop-filter: saturate(120%) blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
 }
 
-/* 欢迎区域样式 */
-.welcome-section {
-  text-align: center;
-  margin-bottom: 20px; /* 进一步减少底部间距 */
-  position: relative;
+/* 主体布局，与主页和简历管理页面完全一致 */
+.layout {
+  display: flex;
+  padding: 16px;
+  margin-top: 0;
+  min-height: calc(100vh - 64px);
+  overflow: visible;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.main-title {
-  font-size: 36px; /* 减少标题字体大小 */
-  font-weight: 700;
-  color: #1a202c; /* 统一与其他页面的深色标题 */
-  margin-bottom: 10px; /* 进一步减少标题底部间距 */
-  text-shadow: none;
-  line-height: 1.2;
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100vh - 64px);
+  overflow-y: visible;
+  overflow-x: hidden;
+  height: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.subtitle {
-  font-size: 16px; /* 减少副标题字体大小 */
-  color: #4b5563; /* 与全站统一的次要文字颜色 */
-  margin-bottom: 20px; /* 进一步减少副标题底部间距 */
-  line-height: 1.5;
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.welcome-decoration {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  opacity: 0.06; /* 更淡以适配浅色背景 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text);
 }
 
-.decoration-circle {
-  position: absolute;
-  border: 2px solid rgba(0, 0, 0, 0.08);
-  border-radius: 50%;
-  animation: float 6s ease-in-out infinite;
-}
-
-.decoration-circle:nth-child(1) {
-  width: 200px;
-  height: 200px;
-  top: -100px;
-  left: -100px;
-  animation-delay: 0s;
-}
-
-.decoration-circle:nth-child(2) {
-  width: 150px;
-  height: 150px;
-  top: 50px;
-  right: -75px;
-  animation-delay: 2s;
-}
-
-.decoration-circle:nth-child(3) {
-  width: 100px;
-  height: 100px;
-  bottom: -50px;
-  left: 50px;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-/* 配置区域样式 */
-.configuration-section {
-  margin-bottom: 25px; /* 减少底部间距 */
-}
-
-.config-card {
-  background: #fff;
-  border-radius: 15px; /* 减少圆角 */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* 减少阴影 */
-  overflow: hidden;
-}
-
-.card-header {
-  background: #f8f9fa; /* 与其他页面一致的浅灰背景 */
-  color: #1a202c; /* 深色标题 */
-  padding: 15px; /* 进一步减少内边距 */
-  text-align: center;
-}
-
-.card-header h2 {
-  font-size: 24px; /* 减少标题字体大小 */
-  font-weight: 700;
-  margin: 0 0 8px 0; /* 减少标题底部间距 */
-}
-
-.card-header p {
-  font-size: 14px; /* 减少描述字体大小 */
+.section-header h2 {
   margin: 0;
-  color: #4b5563;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+  text-shadow: none;
+  letter-spacing: 0.5px;
+}
+
+/* 行布局 */
+.row-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.left-card,
+.right-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 配置卡片样式 */
+.config-card {
+  padding: 16px;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .config-form {
-  padding: 20px 25px; /* 减少顶部内边距，保持左右内边距 */
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
-.form-row {
+.form-column {
   display: flex;
-  gap: 20px; /* 减少左右间距 */
-  margin-bottom: 25px; /* 减少底部间距 */
+  flex-direction: column;
+  gap: 20px;
 }
 
 .form-group {
-  flex: 1;
-}
-
-.form-group-left {
-  /* Add specific styles if needed for left group */
-}
-
-.form-group-center {
-  /* Add specific styles if needed for center group */
-}
-
-.form-group-right {
-  /* Add specific styles if needed for right group */
+  width: 100%;
 }
 
 .form-label {
   display: flex;
   align-items: center;
-  gap: 8px; /* 减少图标和文字间距 */
-  font-size: 16px; /* 减少标签字体大小 */
+  gap: 8px;
+  font-size: 15px;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 10px; /* 减少标签底部间距 */
+  color: #1a202c;
+  margin-bottom: 8px;
 }
 
 .form-select {
@@ -688,7 +677,7 @@ onMounted(() => {
 }
 
 .resume-icon {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .resume-info {
@@ -698,30 +687,31 @@ onMounted(() => {
 
 .resume-title {
   font-weight: 600;
-  color: #333;
+  color: #1a202c;
+  font-size: 15px;
 }
 
 .resume-meta {
-  color: #666;
-  font-size: 14px;
+  color: #2d3748;
+  font-size: 13px;
 }
 
 .no-resume-tip {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #999;
-  font-size: 14px;
-  margin-top: 10px;
+  gap: 8px;
+  color: #2d3748;
+  font-size: 13px;
+  margin-top: 8px;
 }
 
 .no-position-tip {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #999;
-  font-size: 14px;
-  margin-top: 10px;
+  gap: 8px;
+  color: #2d3748;
+  font-size: 13px;
+  margin-top: 8px;
 }
 
 .position-option {
@@ -732,71 +722,106 @@ onMounted(() => {
 }
 
 .position-icon {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .position-label {
   font-weight: 600;
-  color: #333;
+  color: #1a202c;
+  font-size: 15px;
 }
 
 .position-desc {
-  color: #666;
-  font-size: 14px;
+  color: #2d3748;
+  font-size: 13px;
   margin-left: auto;
 }
 
-/* 准备区域样式 */
-.preparation-section {
-  margin-bottom: 25px; /* 减少底部间距 */
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
 }
 
-.preparation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* 减少最小宽度 */
-  gap: 20px; /* 减少卡片间距 */
+.mode-icon {
+  font-size: 20px;
 }
 
-.prep-card {
-  background: #fff;
-  border-radius: 12px; /* 减少圆角 */
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 减少阴影 */
+.mode-label {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 15px;
+}
+
+.mode-desc {
+  color: #2d3748;
+  font-size: 13px;
+  margin-left: auto;
+}
+
+/* 问题卡片和技巧卡片样式 */
+.questions-panel {
+  height: 280px;
+  position: relative;
   overflow: hidden;
-}
-
-.prep-card .card-header {
-  background: #f8f9fa;
-  padding: 15px; /* 减少内边距 */
-  border-bottom: 1px solid #e9ecef;
+  box-sizing: border-box;
+  padding: 16px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
 }
 
-.prep-card .card-header h3 {
+/* 技巧面板样式 */
+.tips-panel {
+  height: 260px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 16px;
   display: flex;
-  align-items: center;
-  gap: 8px; /* 减少图标和文字间距 */
-  margin: 0;
-  font-size: 18px; /* 减少标题字体大小 */
-  color: #333;
+  flex-direction: column;
 }
 
-.expand-btn {
-  color: #667eea;
-  font-weight: 500;
+/* 右侧设备检测空卡片，保持同高，红色边框 */
+.device-panel {
+  height: 260px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 将按钮固定在红色卡片底部 */
+.device-panel .action-buttons {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
 }
 
 .questions-content {
-  padding: 15px; /* 减少内边距 */
+  overflow: auto;
+  flex: 1;
 }
 
+.tips-content {
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 8px 0;
+}
+
+/* 问题列表样式 */
 .question-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px; /* 减少间距 */
-  padding: 10px 0; /* 减少上下内边距 */
-  border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .question-item:last-child {
@@ -804,36 +829,33 @@ onMounted(() => {
 }
 
 .question-number {
-  width: 24px; /* 减少数字圆圈大小 */
+  width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #667eea;
+  background: #3b82f6;
   color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   font-weight: 600;
   flex-shrink: 0;
-  font-size: 12px; /* 减少数字字体大小 */
+  font-size: 12px;
 }
 
 .question-text {
   flex: 1;
-  line-height: 1.5; /* 减少行高 */
-  color: #333;
-  font-size: 14px; /* 减少问题字体大小 */
+  line-height: 1.5;
+  color: #1a202c;
+  font-size: 15px;
 }
 
-.tips-content {
-  padding: 15px; /* 减少内边距 */
-}
-
+/* 技巧提示样式 */
 .tip-item {
   display: flex;
-  align-items: flex-start;
-  gap: 12px; /* 减少间距 */
-  padding: 10px 0; /* 减少上下内边距 */
-  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .tip-item:last-child {
@@ -841,200 +863,116 @@ onMounted(() => {
 }
 
 .tip-icon {
-  font-size: 20px; /* 减少图标大小 */
+  font-size: 20px;
   flex-shrink: 0;
 }
 
 .tip-content {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tip-title {
-  font-size: 14px; /* 减少标题字体大小 */
+  font-size: 15px;
   font-weight: 600;
-  color: #333;
-  margin: 0 0 6px 0; /* 减少标题底部间距 */
+  color: #1a202c;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .tip-desc {
-  font-size: 13px; /* 减少描述字体大小 */
-  color: #666;
-  line-height: 1.4; /* 减少行高 */
+  font-size: 14px;
+  color: #2d3748;
+  line-height: 1.4;
   margin: 0;
-}
-
-/* 行动区域样式 */
-.action-section {
-  text-align: center;
-  margin-bottom: 25px; /* 减少底部间距 */
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px; /* 减少按钮间距 */
-  margin-bottom: 12px; /* 减少底部间距 */
-}
-
-.start-interview-btn {
-  padding: 16px 32px; /* 减少按钮内边距 */
-  font-size: 18px; /* 减少按钮字体大小 */
-  font-weight: 600;
-  border-radius: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); /* 减少阴影 */
-  transition: all 0.3s ease;
-}
-
-.start-interview-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4); /* 减少悬停阴影 */
-}
-
-.start-interview-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.preview-btn {
-  padding: 16px 32px; /* 减少按钮内边距 */
-  font-size: 18px; /* 减少按钮字体大小 */
-  font-weight: 600;
-  border-radius: 50px;
-  background: linear-gradient(135deg, #52c41a 0%, #95de64 100%);
-  border: none;
-  box-shadow: 0 8px 25px rgba(82, 196, 26, 0.3); /* 减少阴影 */
-  transition: all 0.3s ease;
-}
-
-.preview-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 35px rgba(82, 196, 26, 0.4); /* 减少悬停阴影 */
-}
-
-.preview-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.action-hint {
-  margin-top: 12px; /* 减少顶部间距 */
-  color: #666;
-  font-size: 13px; /* 减少提示字体大小 */
+  flex: 1;
 }
 
 /* 设备检测样式 */
-.device-check-section {
-  margin-bottom: 25px; /* 减少底部间距 */
-}
-
-.device-check-card {
-  background: #fff;
-  border-radius: 12px; /* 减少圆角 */
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 减少阴影 */
-  overflow: hidden;
-}
-
-.check-header {
-  background: #f8f9fa;
-  padding: 15px; /* 减少内边距 */
-  border-bottom: 1px solid #e9ecef;
-  display: flex;
-  align-items: center;
-  gap: 8px; /* 减少间距 */
-  font-size: 16px; /* 减少标题字体大小 */
-  font-weight: 600;
-  color: #333;
-}
+/* 设备检测样式（已删除卡片，样式保留以防未来复用） */
 
 .check-content {
-  padding: 15px; /* 减少内边距 */
   display: flex;
-  gap: 25px; /* 减少间距 */
+  flex-direction: column;
+  gap: 16px;
 }
 
 .check-item {
   display: flex;
   align-items: center;
-  gap: 8px; /* 减少间距 */
-  font-size: 14px; /* 减少字体大小 */
-  color: #333;
+  gap: 8px;
+  font-size: 15px;
+  color: #1a202c;
+  padding: 10px 0;
 }
 
 .check-success {
-  color: #52c41a;
+  color: #22c55e;
 }
 
 .check-error {
-  color: #ff4d4f;
+  color: #ef4444;
 }
 
-.device-note {
-  padding: 0 15px 15px; /* 减少内边距 */
-  margin: 0;
-  color: #666;
-  font-size: 13px; /* 减少字体大小 */
-  text-align: center;
+/* 行动按钮行样式 */
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.start-interview-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.preview-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.expand-btn {
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 12px;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .main-content {
-    padding: 15px; /* 移除顶部内边距，因为现在有全局导航栏 */
-  }
-  
-  .main-title {
-    font-size: 28px; /* 进一步减少小屏幕标题大小 */
-  }
-  
-  .subtitle {
-    font-size: 14px; /* 进一步减少小屏幕副标题大小 */
-  }
-  
-  .config-form {
-    padding: 20px;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 15px; /* 减少小屏幕下的间距 */
-  }
-
-  .preparation-grid {
+@media (max-width: 1024px) {
+  .row-layout {
     grid-template-columns: 1fr;
-    gap: 15px; /* 减少小屏幕下的间距 */
+    gap: 16px;
   }
   
-  .check-content {
-    flex-direction: column;
-    gap: 12px; /* 减少小屏幕下的间距 */
+  .questions-panel,
+  .config-card {
+    height: 260px;
+  }
+  
+  .tips-panel {
+    height: 260px;
+  }
+  .device-panel {
+    height: 260px;
   }
 }
 
-@media (max-width: 480px) {
-  .main-content {
-    padding: 15px; /* 移除顶部内边距，因为现在有全局导航栏 */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
   }
-  
-  .main-title {
-    font-size: 24px; /* 进一步减少超小屏幕标题大小 */
-  }
-  
-  .card-header {
-    padding: 15px; /* 减少小屏幕下的内边距 */
-  }
-  
-  .card-header h2 {
-    font-size: 20px; /* 减少小屏幕下的标题大小 */
-  }
-  
-  .config-form {
-    padding: 15px; /* 减少小屏幕下的内边距 */
+
+  .check-content {
+    flex-direction: row;
+    gap: 24px;
   }
 }
-</style> 
+</style>
