@@ -10,22 +10,25 @@
             <section class="section">
               <div class="section-header">
                 <h2>可能问到的问题</h2>
-                <el-button 
-                  type="text" 
-                  @click="questionsExpanded = !questionsExpanded"
-                  class="expand-btn"
+                <el-button
+                    type="text"
+                    @click="questionsExpanded = !questionsExpanded"
+                    class="expand-btn"
                 >
                   {{ questionsExpanded ? '收起' : '展开' }}
-                  <el-icon><ArrowDown v-if="!questionsExpanded" /><ArrowUp v-else /></el-icon>
+                  <el-icon>
+                    <ArrowDown v-if="!questionsExpanded"/>
+                    <ArrowUp v-else/>
+                  </el-icon>
                 </el-button>
               </div>
               <div class="questions-panel glass">
                 <el-collapse-transition>
                   <div v-show="questionsExpanded" class="questions-content">
-                    <div 
-                      v-for="(question, index) in sampleQuestions" 
-                      :key="index"
-                      class="question-item"
+                    <div
+                        v-for="(question, index) in sampleQuestions"
+                        :key="index"
+                        class="question-item"
                     >
                       <div class="question-number">{{ index + 1 }}</div>
                       <div class="question-text">{{ question }}</div>
@@ -50,59 +53,62 @@
                     <!-- 选择简历 -->
                     <div class="form-group">
                       <label class="form-label">
-                        <el-icon><Document /></el-icon>
+                        <el-icon>
+                          <Document/>
+                        </el-icon>
                         选择简历
                       </label>
                       <el-select
-                        v-model="interviewConfig.resumeId"
-                        placeholder="请选择简历"
-                        size="large"
-                        class="form-select"
-                        :loading="resumeLoading"
-                        :disabled="resumes.length === 0"
-                        @change="handleResumeChange"
+                          v-model="interviewConfig.resumeId"
+                          :placeholder="resumePlaceholder"
+                          size="large"
+                          class="form-select"
+                          :loading="resumeLoading"
+                          :disabled="resumes.length === 0"
+                          @change="handleResumeChange"
                       >
                         <el-option
-                          v-for="resume in resumes"
-                          :key="resume.id"
-                          :label="resume.title"
-                          :value="resume.id"
+                            v-for="resume in resumes"
+                            :key="resume.id"
+                            :label="resume.title"
+                            :value="resume.id"
                         >
                           <div class="resume-option">
                             <span class="resume-icon">📄</span>
                             <div class="resume-info">
                               <span class="resume-title">{{ resume.title }}</span>
-                              <span class="resume-meta">{{ resume.format }} · {{ resume.updateTime }} · 评分: {{ resume.score }}</span>
+                              <span class="resume-meta">{{ resume.format }} · {{
+                                  resume.updateTime
+                                }} · 评分: {{ resume.score }}</span>
                             </div>
                           </div>
                         </el-option>
                       </el-select>
-                      <div v-if="resumes.length === 0" class="no-resume-tip">
-                        <el-icon><Document /></el-icon>
-                        <span>暂无简历，请先上传简历</span>
-                      </div>
+
                     </div>
 
                     <!-- 选择职位 -->
                     <div class="form-group">
                       <label class="form-label">
-                        <el-icon><Briefcase /></el-icon>
+                        <el-icon>
+                          <Briefcase/>
+                        </el-icon>
                         目标职位
                       </label>
                       <el-select
-                        v-model="interviewConfig.position"
-                        placeholder="请选择目标职位"
-                        size="large"
-                        class="form-select"
-                        :loading="positionLoading"
-                        :disabled="positionOptions.length === 0"
-                        @change="handlePositionChange"
+                          v-model="interviewConfig.position"
+                          :placeholder="positionPlaceholder"
+                          size="large"
+                          class="form-select"
+                          :loading="positionLoading"
+                          :disabled="positionOptions.length === 0"
+                          @change="handlePositionChange"
                       >
                         <el-option
-                          v-for="position in positionOptions"
-                          :key="position.value"
-                          :label="position.label"
-                          :value="position.value"
+                            v-for="position in positionOptions"
+                            :key="position.value"
+                            :label="position.label"
+                            :value="position.value"
                         >
                           <div class="position-option">
                             <span class="position-icon">{{ position.icon }}</span>
@@ -111,28 +117,27 @@
                           </div>
                         </el-option>
                       </el-select>
-                      <div v-if="positionOptions.length === 0 && !positionLoading" class="no-position-tip">
-                        <el-icon><Briefcase /></el-icon>
-                        <span>当前还未投递过岗位，请先投递</span>
-                      </div>
+
                     </div>
 
                     <!-- 选择面试模式 -->
                     <div class="form-group">
                       <label class="form-label">
-                        <el-icon><VideoPlay /></el-icon>
+                        <el-icon>
+                          <VideoPlay/>
+                        </el-icon>
                         面试模式
                       </label>
                       <el-select
-                        v-model="interviewConfig.mode"
-                        placeholder="请选择面试模式"
-                        size="large"
-                        class="form-select"
-                        @change="handleModeChange"
+                          v-model="interviewConfig.mode"
+                          placeholder="请选择面试模式"
+                          size="large"
+                          class="form-select"
+                          @change="handleModeChange"
                       >
                         <el-option
-                          value="video"
-                          label="视频面试"
+                            value="video"
+                            label="视频面试"
                         >
                           <div class="mode-option">
                             <span class="mode-icon">🎥</span>
@@ -141,8 +146,8 @@
                           </div>
                         </el-option>
                         <el-option
-                          value="chat"
-                          label="文字面试"
+                            value="chat"
+                            label="文字面试"
                         >
                           <div class="mode-option">
                             <span class="mode-icon">💬</span>
@@ -169,10 +174,10 @@
               </div>
               <div class="tips-panel glass">
                 <div class="tips-content">
-                  <div 
-                    v-for="(tip, index) in interviewTips" 
-                    :key="index"
-                    class="tip-item"
+                  <div
+                      v-for="(tip, index) in interviewTips"
+                      :key="index"
+                      class="tip-item"
                   >
                     <div class="tip-icon">💡</div>
                     <div class="tip-content">
@@ -196,35 +201,39 @@
                 <div class="check-content">
                   <div class="check-item">
                     <el-icon :class="{ 'check-success': micWorking, 'check-error': !micWorking }">
-                      <component :is="micWorking ? 'Check' : 'Close'" />
+                      <component :is="micWorking ? 'Check' : 'Close'"/>
                     </el-icon>
                     <span>麦克风 {{ micWorking ? '正常' : '异常' }}</span>
                   </div>
                   <div class="check-item">
                     <el-icon :class="{ 'check-success': cameraWorking, 'check-error': !cameraWorking }">
-                      <component :is="cameraWorking ? 'Check' : 'Close'" />
+                      <component :is="cameraWorking ? 'Check' : 'Close'"/>
                     </el-icon>
                     <span>摄像头 {{ cameraWorking ? '正常' : '异常' }}</span>
                   </div>
                 </div>
                 <div class="action-buttons">
-                  <el-button 
-                    type="primary" 
-                    size="large" 
-                    class="start-interview-btn"
-                    :disabled="!canStartInterview"
-                    @click="startInterview"
+                  <el-button
+                      type="primary"
+                      size="large"
+                      class="start-interview-btn"
+                      :disabled="!canStartInterview"
+                      @click="startInterview"
                   >
-                    <el-icon><VideoPlay /></el-icon>
+                    <el-icon>
+                      <VideoPlay/>
+                    </el-icon>
                     开始模拟面试
                   </el-button>
-                  <el-button 
-                    type="success" 
-                    size="large" 
-                    class="preview-btn"
-                    @click="previewInterview"
+                  <el-button
+                      type="success"
+                      size="large"
+                      class="preview-btn"
+                      @click="previewInterview"
                   >
-                    <el-icon><View /></el-icon>
+                    <el-icon>
+                      <View/>
+                    </el-icon>
                     预览面试流程
                   </el-button>
                 </div>
@@ -233,24 +242,21 @@
           </div>
         </div>
 
-        
+
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getResumeList } from '@/api/resume'
-import { getCandidateJobList } from '@/api/candidate'
-import { useInterviewStore } from '@/stores/interview'
-import {
-  Briefcase, Document,
-  ArrowDown, ArrowUp, VideoPlay,
-  View
-} from '@element-plus/icons-vue'
+import {computed, onMounted, ref} from 'vue'
+import {debounce} from '@/utils/tools'
+import {useRouter} from 'vue-router'
+import {ElMessage} from 'element-plus'
+import {getResumeList} from '@/api/resume'
+import {getCandidateJobList} from '@/api/candidate'
+import {useInterviewStore} from '@/stores/interview'
+import {ArrowDown, ArrowUp, Briefcase, Document, VideoPlay, View} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
@@ -265,6 +271,10 @@ const interviewConfig = ref({
 // 简历数据
 const resumes = ref([])
 const resumeLoading = ref(false)
+const resumePlaceholder = computed(() => {
+  if (resumeLoading.value) return '加载中...'
+  return resumes.value.length === 0 ? '暂无简历，请先上传简历' : '请选择简历'
+})
 
 // 获取简历列表
 const fetchResumeList = async () => {
@@ -278,13 +288,13 @@ const fetchResumeList = async () => {
       resumes.value = data.data.map(resume => ({
         id: resume.resumeId,
         title: resume.resumeTitle || '未命名简历',
-        format: resume.mimeType === 'application/pdf' ? 'PDF' : 
-                resume.mimeType === 'application/msword' ? 'DOC' : 
+        format: resume.mimeType === 'application/pdf' ? 'PDF' :
+            resume.mimeType === 'application/msword' ? 'DOC' :
                 resume.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' : '未知',
         updateTime: new Date(resume.updatedAt).toLocaleDateString('zh-CN'),
         score: resume.rate || 0
       }))
-      
+
       // 默认选择第一个简历
       if (resumes.value.length > 0) {
         interviewConfig.value.resumeId = resumes.value[0].id
@@ -318,7 +328,7 @@ const fetchPositionList = async () => {
         description: job.companyName, // 显示公司名作为补充信息
         originalData: job
       }))
-      
+
       // 默认选择第一个职位
       if (positionOptions.value.length > 0) {
         interviewConfig.value.position = positionOptions.value[0].value
@@ -348,11 +358,15 @@ const cameraWorking = ref(false)
 // 职位选项
 const positionOptions = ref([])
 const positionLoading = ref(false)
+const positionPlaceholder = computed(() => {
+  if (positionLoading.value) return '加载中...'
+  return positionOptions.value.length === 0 ? '当前还未投递过岗位，请先投递' : '请选择目标职位'
+})
 
 // 示例问题 - 改为5个
 const sampleQuestions = computed(() => [
   '请介绍一下你的技术栈和项目经验',
-  '如何优化前端页面的性能？',
+  '请介绍一下SpringBoot自动配置原理',
   '请解释一下你最近解决的一个技术难题',
   '你对新技术的学习方法是什么？',
   '请描述一个你遇到的最大挑战'
@@ -380,9 +394,9 @@ const interviewTips = ref([
 
 // 是否可以开始面试
 const canStartInterview = computed(() => {
-  return interviewConfig.value.position && 
-         interviewConfig.value.resumeId && 
-         interviewConfig.value.mode
+  return interviewConfig.value.position &&
+      interviewConfig.value.resumeId &&
+      interviewConfig.value.mode
 })
 
 // 处理职位选择变化
@@ -394,7 +408,7 @@ const handlePositionChange = (position) => {
     interviewStore.setPositionInfo(selectedPosition.originalData)
   }
   // 同时更新store中的配置
-  interviewStore.setInterviewConfig({ position })
+  interviewStore.setInterviewConfig({position})
 }
 
 // 处理简历选择变化
@@ -405,13 +419,13 @@ const handleResumeChange = (resumeId) => {
   if (selectedResume) {
     interviewStore.setResumeInfo(selectedResume)
   }
-  interviewStore.setInterviewConfig({ resumeId })
+  interviewStore.setInterviewConfig({resumeId})
 }
 
 // 处理面试模式变化
 const handleModeChange = (mode) => {
   interviewConfig.value.mode = mode
-  interviewStore.setInterviewConfig({ mode })
+  interviewStore.setInterviewConfig({mode})
 }
 
 // 开始面试
@@ -420,10 +434,10 @@ const startInterview = () => {
     ElMessage.warning('请先完成面试配置')
     return
   }
-  
+
   // 将完整配置保存到store
   interviewStore.setInterviewConfig(interviewConfig.value)
-  
+
   // 根据面试模式跳转到不同页面
   if (interviewConfig.value.mode === 'video') {
     // 视频面试模式：检查设备状态
@@ -431,7 +445,7 @@ const startInterview = () => {
       ElMessage.warning('请先确保设备正常工作')
       return
     }
-    
+
     // 跳转到视频面试页面，不传递URL参数
     router.push('/interview/live')
   } else if (interviewConfig.value.mode === 'chat') {
@@ -450,17 +464,17 @@ const previewInterview = () => {
 const checkDevices = async () => {
   try {
     // 检测麦克风
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true})
     micWorking.value = true
     stream.getTracks().forEach(track => track.stop())
   } catch (error) {
     micWorking.value = false
     console.log('麦克风检测失败:', error)
   }
-  
+
   try {
     // 检测摄像头
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    const stream = await navigator.mediaDevices.getUserMedia({video: true})
     cameraWorking.value = true
     stream.getTracks().forEach(track => track.stop())
   } catch (error) {
@@ -474,21 +488,21 @@ const unlockScroll = () => {
   try {
     const body = document.body
     const html = document.documentElement
-    
+
     // 移除可能影响滚动的类
     body.classList.remove('el-popup-parent--hidden')
     body.classList.remove('el-overflow-hidden')
-    
+
     // 清理内联样式
     if (body.style.overflow) body.style.overflow = ''
     if (body.style.position) body.style.position = ''
     if (html.style.overflow) html.style.overflow = ''
     if (html.style.position) html.style.position = ''
-    
+
     // 强制设置可滚动
     body.style.overflow = 'auto'
     html.style.overflow = 'auto'
-    
+
     // 检查并清理页面内可能影响滚动的元素
     const pageElements = document.querySelectorAll('.interview-preparation *')
     pageElements.forEach(el => {
@@ -496,13 +510,17 @@ const unlockScroll = () => {
         el.style.overflow = ''
       }
     })
-  } catch (e) { /* 忽略 */ }
+  } catch (e) { /* 忽略 */
+  }
 }
 
 onMounted(() => {
-  checkDevices()
-  fetchResumeList()
-  fetchPositionList()
+  const initRequests = debounce(() => {
+    checkDevices()
+    fetchResumeList()
+    fetchPositionList()
+  }, 300)
+  initRequests()
   // 进入页面强制解锁滚动并做多次延迟兜底
   unlockScroll()
   setTimeout(unlockScroll, 50)
@@ -669,6 +687,13 @@ html, body {
   width: 100%;
 }
 
+/* 修复面试模式下拉框在容器内右侧轻微溢出的现象 */
+.form-group {
+  overflow: hidden; /* 防止1px 边框或阴影外溢 */
+}
+
+/* 强制 Element Plus 选择器在容器内100%铺满且不溢出 */
+
 .resume-option {
   display: flex;
   align-items: center;
@@ -694,24 +719,6 @@ html, body {
 .resume-meta {
   color: #2d3748;
   font-size: 13px;
-}
-
-.no-resume-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #2d3748;
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-.no-position-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #2d3748;
-  font-size: 13px;
-  margin-top: 8px;
 }
 
 .position-option {
@@ -950,15 +957,16 @@ html, body {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .questions-panel,
   .config-card {
     height: 260px;
   }
-  
+
   .tips-panel {
     height: 260px;
   }
+
   .device-panel {
     height: 260px;
   }
