@@ -3,7 +3,10 @@
     <div class="nav-container">
       <!-- 左侧Logo和系统名称 -->
       <div class="nav-left">
-        <!-- 机器人图标已移除 -->
+        <el-button class="back-btn" text @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+          返回
+        </el-button>
       </div>
 
       <!-- 中间功能菜单 -->
@@ -55,7 +58,7 @@ import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowDown, Setting, SwitchButton } from '@element-plus/icons-vue'
+import { ArrowDown, Setting, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -101,6 +104,22 @@ const handleMenuSelect = (key) => {
 // 判断是否为当前页面
 const isCurrentPage = (path) => {
   return route.path.startsWith(path) || route.path === path
+}
+
+// 全局返回：优先 history 返回；若无历史，则返回到上一层级或首页
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    // 简单兜底：若当前路径包含多级，则回到上级，否则回到首页
+    const segments = route.path.split('/').filter(Boolean)
+    if (segments.length > 1) {
+      const parent = '/' + segments.slice(0, -1).join('/')
+      router.push(parent || '/')
+    } else {
+      router.push('/')
+    }
+  }
 }
 
 // 处理用户操作
@@ -158,6 +177,17 @@ const handleUserCommand = async (command) => {
 .nav-left {
   display: flex;
   align-items: center;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #606266;
+}
+
+.back-btn:hover {
+  color: #409eff;
 }
 
 .nav-center {

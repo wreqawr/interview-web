@@ -1,15 +1,28 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export const useInterviewStore = defineStore('interview', () => {
-  // 面试配置
-  const interviewConfig = ref({
+  // 默认配置
+  const defaultConfig = {
     position: '',
     resumeId: '',
-    mode: 'video', // video | chat
-    resumeInfo: null, // 简历详细信息
-    positionInfo: null // 职位详细信息
-  })
+    mode: 'chat', // 默认文字面试，避免直接进入 /interview/chat 时校验失败
+    resumeInfo: null,
+    positionInfo: null
+  }
+
+  // 从本地恢复
+  const SESSION_KEY = 'interview_config'
+  let restored = null
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    if (raw) restored = JSON.parse(raw)
+  } catch (_) {
+    // ignore JSON parse/localStorage errors
+  }
+
+  // 面试配置
+  const interviewConfig = ref({ ...defaultConfig, ...(restored || {}) })
 
   // 面试状态
   const interviewState = ref({
@@ -26,6 +39,15 @@ export const useInterviewStore = defineStore('interview', () => {
   const setInterviewConfig = (config) => {
     interviewConfig.value = { ...interviewConfig.value, ...config }
   }
+
+  // 持久化：监听配置变化，写入 localStorage
+  watch(interviewConfig, (val) => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(val))
+    } catch (_) {
+      // ignore write errors (e.g., private mode)
+    }
+  }, { deep: true })
 
   // 设置简历信息
   const setResumeInfo = (resume) => {
@@ -116,12 +138,11 @@ export const useInterviewStore = defineStore('interview', () => {
 
   // 清空所有数据
   const clearInterviewData = () => {
-    interviewConfig.value = {
-      position: '',
-      resumeId: '',
-      mode: 'video',
-      resumeInfo: null,
-      positionInfo: null
+    interviewConfig.value = { ...defaultConfig }
+    try {
+      sessionStorage.removeItem(SESSION_KEY)
+    } catch (_) {
+      // ignore remove errors
     }
     interviewState.value = {
       isStarted: false,

@@ -1,7 +1,6 @@
 <template>
   <div class="interview-chat-page">
 
-
     <!-- 主内容区域 -->
     <div class="main-content">
       <!-- 左侧面试内容区域 -->
