@@ -1,5 +1,5 @@
 import http from './http'
-import {ASSISTANT_CHAT_URL, INTERVIEW_CHAT_URL} from './endpoints'
+import {ASSISTANT_CHAT_URL, INTERVIEW_CHAT_PREPARE_URL, INTERVIEW_CHAT_PROGRESS_URL} from './endpoints'
 
 /**
  * AI聊天相关API
@@ -151,7 +151,7 @@ export const aiApi = {
       }
 
       const token = sessionStorage.getItem('Authorization')
-      const response = await fetch(INTERVIEW_CHAT_URL, {
+      const response = await fetch(INTERVIEW_CHAT_PREPARE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -202,6 +202,73 @@ export const aiApi = {
       }
     } catch (error) {
       console.error('面试准备流式请求失败:', error)
+      if (params.onError) params.onError(error); else throw error
+    }
+  },
+  /**
+   * 面试进度（用户作答）流式接口
+   * @param {Object} params { conversationId, userMessage, onData, onComplete, onError }
+   */
+  interviewProgress: async (params) => {
+    try {
+      const { onData, onComplete, onError, ...requestParams } = params
+      const payload = {
+        conversationId: requestParams.conversationId,
+        userMessage: requestParams.userMessage
+      }
+
+      const token = sessionStorage.getItem('Authorization')
+      const response = await fetch(INTERVIEW_CHAT_PROGRESS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token || ''
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      try {
+        let reading = true
+        while (reading) {
+          const { done, value } = await reader.read()
+          if (done) {
+            if (buffer.trim() && onData) {
+              const lines = buffer.split('\n')
+              for (const line of lines) {
+                const trimmed = line.trim()
+                if (trimmed.startsWith('data:')) {
+                  const content = trimmed.substring(5).trim()
+                  if (content) onData(content)
+                }
+              }
+            }
+            if (onComplete) onComplete()
+            reading = false
+            break
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          if (onData && buffer.trim()) {
+            const lines = buffer.split('\n')
+            for (const line of lines) {
+              const trimmed = line.trim()
+              if (trimmed.startsWith('data:')) {
+                const content = trimmed.substring(5).trim()
+                if (content) onData(content)
+              }
+            }
+            buffer = ''
+          }
+        }
+      } catch (streamErr) {
+        if (onError) onError(streamErr)
+      }
+    } catch (error) {
+      console.error('面试进度流式请求失败:', error)
       if (params.onError) params.onError(error); else throw error
     }
   }

@@ -271,38 +271,51 @@ const interviewConfig = ref({
 // 简历数据
 const resumes = ref([])
 const resumeLoading = ref(false)
+const RESUME_CACHE_KEY = 'prep_resume_list'
 const resumePlaceholder = computed(() => {
   if (resumeLoading.value) return '加载中...'
   return resumes.value.length === 0 ? '暂无简历，请先上传简历' : '请选择简历'
 })
 
-// 获取简历列表
+// 获取简历列表（带 sessionStorage 缓存）
 const fetchResumeList = async () => {
   try {
     resumeLoading.value = true
-    const response = await getResumeList()
-    const data = response?.data || response
 
-    if (data.code === 200 && data.data) {
-      // 转换简历数据格式
-      resumes.value = data.data.map(resume => ({
-        id: resume.resumeId,
-        title: resume.resumeTitle || '未命名简历',
-        format: resume.mimeType === 'application/pdf' ? 'PDF' :
-            resume.mimeType === 'application/msword' ? 'DOC' :
-                resume.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' : '未知',
-        updateTime: new Date(resume.updatedAt).toLocaleDateString('zh-CN'),
-        score: resume.rate || 0
-      }))
+    // 先读缓存
+    let cached = null
+    try {
+      const raw = sessionStorage.getItem(RESUME_CACHE_KEY)
+      if (raw) cached = JSON.parse(raw)
+    } catch (_) { /* ignore */ }
 
-      // 默认选择第一个简历
-      if (resumes.value.length > 0) {
-        interviewConfig.value.resumeId = resumes.value[0].id
-        // 同时设置resumeInfo，确保store中有完整的简历信息
-        interviewStore.setResumeInfo(resumes.value[0])
-      }
+    if (cached && Array.isArray(cached)) {
+      resumes.value = cached
     } else {
-      ElMessage.error(data.message || '获取简历列表失败')
+      const response = await getResumeList()
+      const data = response?.data || response
+
+      if (data.code === 200 && data.data) {
+        const transformed = data.data.map(resume => ({
+          id: resume.resumeId,
+          title: resume.resumeTitle || '未命名简历',
+          format: resume.mimeType === 'application/pdf' ? 'PDF' :
+                  resume.mimeType === 'application/msword' ? 'DOC' :
+                  resume.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? 'DOCX' : '未知',
+          updateTime: new Date(resume.updatedAt).toLocaleDateString('zh-CN'),
+          score: resume.rate || 0
+        }))
+        resumes.value = transformed
+        try { sessionStorage.setItem(RESUME_CACHE_KEY, JSON.stringify(transformed)) } catch (_) { /* ignore */ }
+      } else {
+        ElMessage.error(data.message || '获取简历列表失败')
+      }
+    }
+
+    // 默认选择第一个简历
+    if (resumes.value.length > 0) {
+      interviewConfig.value.resumeId = resumes.value[0].id
+      interviewStore.setResumeInfo(resumes.value[0])
     }
   } catch (error) {
     console.error('获取简历列表失败:', error)
@@ -312,31 +325,44 @@ const fetchResumeList = async () => {
   }
 }
 
-// 获取职位列表
+const POSITION_CACHE_KEY = 'prep_position_list'
+
+// 获取职位列表（带 sessionStorage 缓存）
 const fetchPositionList = async () => {
   try {
     positionLoading.value = true
-    const response = await getCandidateJobList()
-    const data = response?.data || response
+    // 读缓存
+    let cached = null
+    try {
+      const raw = sessionStorage.getItem(POSITION_CACHE_KEY)
+      if (raw) cached = JSON.parse(raw)
+    } catch (_) { /* ignore */ }
 
-    if (data.code === 200 && data.data) {
-      // 转换职位数据格式
-      positionOptions.value = data.data.map(job => ({
-        value: job.jobId.toString(),
-        label: job.jobTitle, // 只显示职位名称，避免重复
-        icon: '💼',
-        description: job.companyName, // 显示公司名作为补充信息
-        originalData: job
-      }))
-
-      // 默认选择第一个职位
-      if (positionOptions.value.length > 0) {
-        interviewConfig.value.position = positionOptions.value[0].value
-        // 同时设置positionInfo，确保store中有完整的职位信息
-        interviewStore.setPositionInfo(positionOptions.value[0].originalData)
-      }
+    if (cached && Array.isArray(cached)) {
+      positionOptions.value = cached
     } else {
-      ElMessage.error(data.message || '获取职位列表失败')
+      const response = await getCandidateJobList()
+      const data = response?.data || response
+
+      if (data.code === 200 && data.data) {
+        const transformed = data.data.map(job => ({
+          value: job.jobId.toString(),
+          label: job.jobTitle,
+          icon: '💼',
+          description: job.companyName,
+          originalData: job
+        }))
+        positionOptions.value = transformed
+        try { sessionStorage.setItem(POSITION_CACHE_KEY, JSON.stringify(transformed)) } catch (_) { /* ignore */ }
+      } else {
+        ElMessage.error(data.message || '获取职位列表失败')
+      }
+    }
+
+    // 默认选择第一个职位
+    if (positionOptions.value.length > 0) {
+      interviewConfig.value.position = positionOptions.value[0].value
+      interviewStore.setPositionInfo(positionOptions.value[0].originalData)
     }
   } catch (error) {
     console.error('获取职位列表失败:', error)

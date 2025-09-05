@@ -9,8 +9,6 @@ export const WEB_FLUX_BASE_URL = ENV_INFO.apiWebFluxBaseUrl;
 export const AUTH_API = `${WEB_MVC_BASE_URL}/auth`;
 // 简历接口
 export const RESUME_API = `${WEB_MVC_BASE_URL}/resume`;
-// ai接口
-export const AI_API = `${WEB_MVC_BASE_URL}/ai`;
 // 求职者接口
 export const CANDIDATE_API = `${WEB_MVC_BASE_URL}/candidate`;
 
@@ -44,7 +42,9 @@ export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeRe
 export const CANDIDATE_JOBS_URL = `${CANDIDATE_API}/getJobList`;
 // ai聊天助手使用 WebFlux 基础URL
 export const ASSISTANT_CHAT_URL = `${WEB_FLUX_BASE_URL}/ai/assistant`;
+// ai文字面试准备接口地址
+export const INTERVIEW_CHAT_PREPARE_URL = `${WEB_FLUX_BASE_URL}/interview/chat/prepare`;
 // ai文字面试接口地址
-export const INTERVIEW_CHAT_URL = `${WEB_FLUX_BASE_URL}/interview/chat/prepare`;
+export const INTERVIEW_CHAT_PROGRESS_URL = `${WEB_FLUX_BASE_URL}/interview/chat/progress`;
 // 导出环境信息，方便调试
 export { ENV_INFO };

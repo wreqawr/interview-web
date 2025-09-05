@@ -11,13 +11,16 @@
             v-for="msg in messageList" 
             :key="msg.id" 
             class="message"
-            :class="msg.type === 'assistant' ? 'ai-message' : 'user-message'"
+            :class="msg.type"
           >
-            <div class="message-avatar">{{ msg.type === 'assistant' ? 'AI' : '我' }}</div>
-            <div class="message-content">
-              <div class="message-text">{{ msg.content }}</div>
-              <div class="message-time">{{ msg.time }}</div>
+            <div class="message-header">
+              <span class="sender-label">{{ msg.type === 'assistant' ? '面试官' : '我' }}</span>
             </div>
+            <div class="message-content">
+              <span v-if="msg.type === 'assistant'" class="assistant-icon">AI</span>
+              {{ msg.content }}
+            </div>
+            <div class="message-time">{{ msg.time }}</div>
           </div>
         </div>
 
@@ -73,7 +76,7 @@
               <div class="progress-bar">
                 <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
               </div>
-              <span class="progress-text">{{ currentQuestionIndex + 1 }}/{{ totalQuestions }}</span>
+              <span class="progress-text">{{ userAnswerCount }}/{{ totalQuestions }}</span>
             </div>
           </div>
 
@@ -90,24 +93,28 @@
           <div class="panel-section">
             <h4>操作控制</h4>
             <div class="control-buttons">
-              <div class="ctrl-item start" @click="startInterviewControl">
-                <el-icon><VideoPlay /></el-icon>
-                <span>开始</span>
+              <div class="control-row">
+                <div class="ctrl-item start" @click="startInterviewControl">
+                  <el-icon><VideoPlay /></el-icon>
+                  <span>开始</span>
+                </div>
+
+                <div class="ctrl-item pause" :class="{ disabled: isPaused }" @click="!isPaused && pauseInterview()">
+                  <el-icon><VideoPause /></el-icon>
+                  <span>暂停</span>
+                </div>
               </div>
 
-              <div class="ctrl-item pause" :class="{ disabled: isPaused }" @click="!isPaused && pauseInterview()">
-                <el-icon><VideoPause /></el-icon>
-                <span>暂停</span>
-              </div>
+              <div class="control-row">
+                <div class="ctrl-item restart" @click="restartQuestion">
+                  <el-icon><Refresh /></el-icon>
+                  <span>重置</span>
+                </div>
 
-              <div class="ctrl-item restart" @click="restartQuestion">
-                <el-icon><Refresh /></el-icon>
-                <span>重置</span>
-              </div>
-
-              <div class="ctrl-item end" @click="endInterview">
-                <el-icon><VideoPlay /></el-icon>
-                <span>结束</span>
+                <div class="ctrl-item end" @click="endInterview">
+                  <el-icon><VideoPlay /></el-icon>
+                  <span>结束</span>
+                </div>
               </div>
             </div>
           </div>
@@ -115,30 +122,6 @@
 
         </div>
 
-        <!-- 底部导航 -->
-        <div class="panel-footer">
-          <div class="navigation-buttons">
-            <el-button 
-              type="default" 
-              @click="previousQuestion"
-              :disabled="currentQuestionIndex === 0"
-              class="nav-btn prev-btn"
-            >
-              <el-icon><ArrowLeft /></el-icon>
-              上一题
-            </el-button>
-            
-            <el-button 
-              type="primary" 
-              @click="nextQuestion"
-              :disabled="currentQuestionIndex >= totalQuestions - 1 || !canProceed"
-              class="nav-btn next-btn"
-            >
-              下一题
-              <el-icon><ArrowRight /></el-icon>
-            </el-button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -158,7 +141,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useInterviewStore } from '@/stores/interview'
 import { 
-  ArrowLeft, ArrowRight, 
   Clock, VideoPause, Refresh, VideoPlay 
 } from '@element-plus/icons-vue'
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
@@ -186,6 +168,7 @@ const interviewTime = ref(0)
 const remainingTime = ref(30 * 60) // 30分钟
 const currentQuestionIndex = ref(0)
 const totalQuestions = ref(5)
+const userAnswerCount = ref(0)
 
 // 用户输入
 const userAnswer = ref('')
@@ -354,16 +337,21 @@ const formatTime = (seconds) => {
 
 // 计算进度百分比
 const progressPercent = computed(() => {
-  return Math.min(((currentQuestionIndex.value + 1) / totalQuestions.value) * 100, 100)
+  return Math.min((userAnswerCount.value / totalQuestions.value) * 100, 100)
 })
 
-// 是否可以进入下一题
-const canProceed = computed(() => {
-  return userAnswer.value.trim() && !isSubmitting.value
-})
 
 // 处理Enter键提交
 const handleEnterSubmit = (event) => {
+  // 检查是否有输入法候选项
+  const hasComposition = event.isComposing || event.keyCode === 229
+  
+  // 如果有输入法候选项，不阻止默认行为，让输入法处理
+  if (hasComposition) {
+    return
+  }
+  
+  // 如果没有输入法候选项，则提交回答
   event.preventDefault()
   submitAnswer()
 }
@@ -373,34 +361,56 @@ const handleShiftEnter = () => {
   // 允许默认的换行行为
 }
 
-// 提交回答
+// 提交回答 -> 调用后端进度接口（SSE流）并实时渲染
 const submitAnswer = async () => {
-  if (!userAnswer.value.trim() || isSubmitting.value || isPaused.value) {
-    return
-  }
+  if (!userAnswer.value.trim() || isSubmitting.value || isPaused.value) return
 
   isSubmitting.value = true
   isThinking.value = true
 
   try {
-    // 模拟提交过程
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // 保存用户回答
-    // TODO: 这里可以调用后端API保存回答
-    
-    ElMessage.success('回答提交成功！')
-    
-    // 清空输入框
-    userAnswer.value = ''
-    
-    // 自动进入下一题（如果不是最后一题）
-    if (currentQuestionIndex.value < totalQuestions.value - 1) {
-      setTimeout(() => {
-        nextQuestion()
-      }, 1000)
+    const conversationId = interviewConfig.value.conversationId || `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    // 将会话ID写回，后续沿用
+    interviewConfig.value.conversationId = conversationId
+
+    // 先把用户消息插入到消息列表
+    const userMsg = {
+      id: `user_${Date.now()}`,
+      type: 'user',
+      content: userAnswer.value,
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
     }
+    messageList.value.push(userMsg)
     
+    // 增加用户回答计数
+    userAnswerCount.value++
+
+    // 预占位AI消息（用于聚合流）
+    streamMessageId = `assistant_${Date.now()}`
+    messageList.value.push({ id: streamMessageId, type: 'assistant', content: '', time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) })
+    scrollToBottom()
+
+    // 触发后端流式接口
+    isAiStreaming.value = true
+    await aiApi.interviewProgress({
+      conversationId,
+      userMessage: userAnswer.value,
+      onData: (data) => {
+        const idx = messageList.value.findIndex(m => m.id === streamMessageId)
+        if (idx !== -1) messageList.value[idx].content += data
+        scrollToBottom()
+      },
+      onComplete: () => {
+        isAiStreaming.value = false
+      },
+      onError: () => {
+        isAiStreaming.value = false
+        ElMessage.error('回答生成失败，请重试')
+      }
+    })
+
+    // 成功后清空输入
+    userAnswer.value = ''
   } catch (error) {
     ElMessage.error('提交失败，请重试')
   } finally {
@@ -409,23 +419,6 @@ const submitAnswer = async () => {
   }
 }
 
-// 下一题
-const nextQuestion = () => {
-  if (currentQuestionIndex.value < totalQuestions.value - 1) {
-    currentQuestionIndex.value++
-    currentQuestion.value = questions.value[currentQuestionIndex.value]
-    userAnswer.value = ''
-  }
-}
-
-// 上一题
-const previousQuestion = () => {
-  if (currentQuestionIndex.value > 0) {
-    currentQuestionIndex.value--
-    currentQuestion.value = questions.value[currentQuestionIndex.value]
-    userAnswer.value = ''
-  }
-}
 
 // 重新开始当前题目
 const restartQuestion = () => {
@@ -460,6 +453,8 @@ const startInterviewControl = () => {
 
         // 触发面试准备流式请求
         const conversationId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        // 将conversationId保存到interviewConfig中，确保后续进度接口使用同一个ID
+        interviewConfig.value.conversationId = conversationId
         const jobId = interviewStore.interviewConfig.position
         const resumeId = interviewStore.interviewConfig.resumeId
 
@@ -574,11 +569,17 @@ const endInterview = async () => {
 
 /* 聊天记录滚动区域 */
 .chat-messages {
-  flex: 1;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: calc(100% - 40px);
   overflow-y: auto;
-  padding-bottom: 0;
+  height: calc(100vh - 300px);
   min-height: 0;
+  padding: 20px 52px 0 20px;
+  margin: 0 20px;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
 /* 固定在底部的输入和按钮区域 */
@@ -593,62 +594,64 @@ const endInterview = async () => {
 
 .message {
   display: flex;
-  margin-bottom: 20px;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.message-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
+  margin-bottom: 4px;
 }
 
-.ai-message .message-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-}
-
-.user-message .message-avatar {
-  background: #e9ecef;
-  color: #666;
+.sender-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
 }
 
 .message-content {
   max-width: 80%;
-}
-
-.message-text {
   padding: 12px 16px;
   border-radius: 18px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
   word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
-.ai-message .message-text {
-  background: #f8f9fa;
-  color: #333;
-  border: 1px solid #e9ecef;
+.message.user .message-content {
+  background: #3b82f6;
+  color: white;
+  border-bottom-right-radius: 6px;
+  margin-left: auto;
+  margin-right: 0;
 }
 
-.user-message .message-text {
-  background: #667eea;
-  color: #fff;
+.message.assistant .message-content {
+  background: #f3f4f6;
+  color: #374151;
+  border-bottom-left-radius: 6px;
+}
+
+.assistant-icon {
+  margin-right: 6px;
+  color: #8b5cf6;
 }
 
 .message-time {
-  font-size: 12px;
-  color: #999;
-  margin-top: 6px;
-  text-align: right;
-}
-
-.user-message .message-time {
-  text-align: left;
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0 4px;
+  align-self: center;
+  text-align: center;
 }
 
 /* 回答区域 */
@@ -799,7 +802,7 @@ const endInterview = async () => {
 }
 
 .panel-section h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 20px 0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
@@ -850,10 +853,15 @@ const endInterview = async () => {
 
 /* 控制按钮 */
 .control-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.control-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 10px;
-  row-gap: 16px;
 }
 
 .ctrl-item {
@@ -878,45 +886,6 @@ const endInterview = async () => {
 .ctrl-item.end { background: #f56c6c; }
 
 
-/* 面板底部 */
-.panel-footer {
-  padding: 20px;
-  border-top: 1px solid #e9ecef;
-  background: #f8f9fa;
-}
-
-.navigation-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.nav-btn {
-  flex: 1;
-  padding: 12px 20px;
-  border-radius: 8px;
-}
-
-.prev-btn {
-  background: #f8f9fa;
-  border-color: #e9ecef;
-  color: #666;
-}
-
-.prev-btn:hover {
-  background: #e9ecef;
-  border-color: #dee2e6;
-}
-
-.next-btn {
-  background: #667eea;
-  border-color: #667eea;
-  color: #fff;
-}
-
-.next-btn:hover {
-  background: #5a67d8;
-  border-color: #5a67d8;
-}
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
@@ -936,14 +905,6 @@ const endInterview = async () => {
     order: -1;
   }
 
-  .navigation-buttons {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .nav-btn {
-    width: 100%;
-  }
 }
 
 @media (max-width: 480px) {
@@ -957,7 +918,10 @@ const endInterview = async () => {
   }
   
   .chat-messages {
-    padding: 15px;
+    padding: 15px 47px 0 15px;
+    margin: 0 15px;
+    width: calc(100% - 30px);
+    height: calc(100vh - 280px);
   }
   
   .fixed-bottom-section {

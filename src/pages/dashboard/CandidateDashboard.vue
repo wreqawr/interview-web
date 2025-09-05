@@ -915,6 +915,10 @@ html, body {
   font-size: 14px;
   line-height: 1.4;
   position: relative;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .message.user .message-content {
