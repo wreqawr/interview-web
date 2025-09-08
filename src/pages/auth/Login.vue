@@ -133,8 +133,8 @@ import {useUserStore} from '@/stores/user'
 
 const router = useRouter()
 const form = ref({
-  username: 'minglg',
-  password: 'minglg123',
+  username: 'silence',
+  password: 'silence123',
   captcha: '1234'
 })
 const rules = {

@@ -46,16 +46,6 @@
     </header>
 
     <div class="layout">
-      <!-- 左侧功能菜单 -->
-      <aside class="aside glass">
-        <div class="aside-title">功能菜单</div>
-        <el-menu class="menu" :default-active="activeMenu" @select="handleMenuSelect">
-          <el-menu-item v-for="item in hrFeatures" :key="item.key" :index="item.key">
-            <span>{{ item.name }}</span>
-          </el-menu-item>
-        </el-menu>
-      </aside>
-
       <!-- 中央主工作区 -->
       <main class="main">
         <!-- 核心数据仪表盘 -->
@@ -339,13 +329,7 @@ export default {
       return name.charAt(0).toUpperCase()
     })
 
-    // 角色功能（左侧菜单）- 使用用户状态管理器
-    const hrFeatures = computed(() => userStore.userFeatures)
-    const activeMenu = ref(hrFeatures.value[0]?.key || 'resume_screening')
-    const handleMenuSelect = (key) => {
-      activeMenu.value = key
-      // 这里可以根据key切换主工作区视图；当前为统一仪表盘视图
-    }
+    // 左侧功能菜单已移除
 
     // 仪表盘数据
     const stats = ref({
@@ -744,18 +728,8 @@ export default {
       }
     }
 
-    const goToResource = (key) => {
-      // 资源中心占位跳转/操作
-      switch (key) {
-        case 'jd':
-          activeMenu.value = 'position_management'
-          break
-        case 'qbank':
-          activeMenu.value = 'interview_management'
-          break
-        default:
-          break
-      }
+    const goToResource = () => {
+      // 资源中心占位跳转/操作（左侧菜单已移除，保持占位）
     }
 
     const handleDropdown = (cmd) => {
@@ -839,11 +813,6 @@ export default {
       userInfo,
       userInitial,
       currentDate,
-
-      // 菜单
-      hrFeatures,
-      activeMenu,
-      handleMenuSelect,
 
       // 仪表盘
       stats,
@@ -1045,7 +1014,7 @@ html, body {
 /* 主体布局 */
 .layout {
   display: grid;
-  grid-template-columns: 240px 1fr 0; /* 右侧悬浮独立定位，因此列宽为0 */
+  grid-template-columns: 1fr 0; /* 移除左侧菜单列，仅保留主区域与右侧悬浮占位 */
   gap: 16px;
   padding: 16px;
   margin-top: 0; /* 移除顶部间距，让内容紧贴导航栏 */
@@ -1053,91 +1022,35 @@ html, body {
   overflow: visible;
 }
 
-.aside {
-  height: calc(100vh - 100px);
-  padding: 16px;
-  color: var(--text);
-  position: sticky;
-  top: 80px;
-  overflow-y: auto;
-  max-height: calc(100vh - 100px);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: saturate(120%) blur(20px);
-  -webkit-backdrop-filter: saturate(120%) blur(20px);
-}
+/* 左侧菜单已移除，保留样式占位以避免影响其他选择器 */
 
-.aside-title {
-  font-size: 16px;
-  color: #1a202c;
-  margin: 8px 8px 16px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-align: center;
-  padding: 12px 8px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
-  border-radius: 10px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  text-shadow: none;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
+/* .aside-title 已不再使用 */
 
-.menu {
-  background: transparent;
-  border-right: none;
-}
+/* .menu 已不再使用 */
 
 /* 左侧菜单样式优化 - 提高字体可见性 */
 
 /* 确保菜单项有足够的间距和可读性 */
 
-.menu :deep(.el-menu-item span) {
-  font-size: 15px;
-  letter-spacing: 0.6px;
-  font-weight: 500;
-  color: #2d3748;
-  text-shadow: none;
-  transition: all 0.3s ease;
-}
+/* 菜单相关深度样式移除 */
 
-.menu :deep(.el-menu-item:hover span) {
-  color: #1a202c;
-  text-shadow: none;
-}
+/* 菜单悬停样式移除 */
 
-.menu :deep(.el-menu-item.is-active span) {
-  color: #1a202c;
-  font-weight: 600;
-  text-shadow: none;
-}
+/* 菜单激活样式移除 */
 
 /* 添加菜单项之间的分隔线 */
 
 /* 移除Element Plus默认的菜单样式 */
 
 /* 为菜单添加整体容器样式 */
-.menu {
-  padding: 8px 0;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
+/* .menu 容器样式移除 */
 
 /* 添加菜单项的图标样式（如果有的话） */
-.menu :deep(.el-menu-item i) {
-  color: #2d3748;
-  margin-right: 8px;
-  transition: all 0.3s ease;
-}
+/* 菜单图标样式移除 */
 
-.menu :deep(.el-menu-item:hover i) {
-  color: #1a202c;
-}
+/* 菜单图标悬停样式移除 */
 
-.menu :deep(.el-menu-item.is-active i) {
-  color: #3b82f6;
-}
+/* 菜单图标激活样式移除 */
 
 .main {
   display: flex;
@@ -1199,21 +1112,23 @@ html, body {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 .card .label {
-  color: var(--muted);
-  font-size: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .card .value {
-  font-size: 22px;
-  font-weight: 700;
-  color: #e2f9ee;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
 }
 
 /* 看板 */
@@ -1871,11 +1786,6 @@ html, body {
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: 1fr;
-  }
-
-  .aside {
-    position: static;
-    height: auto;
   }
 
   .kanban {
