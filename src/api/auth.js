@@ -1,10 +1,10 @@
 import http from './http';
-import {LOGIN_URL, PUB_KEY_URL, REGISTER_URL} from './endpoints';
+import {USER_LOGIN_URL, USER_PUB_KEY_URL, USER_REGISTER_URL} from './endpoints';
 import forge from "node-forge";
 
 
 export async function getPublicKey() {
-    const {data} = await http.get(PUB_KEY_URL);
+    const {data} = await http.get(USER_PUB_KEY_URL);
     return data.data; // 直接返回公钥字符串
 }
 
@@ -19,7 +19,7 @@ export function encryptPassword(publicKeyPem, password) {
 
 export async function login(loginPayload, captchaId) {
     return await http.post(
-        LOGIN_URL,
+        USER_LOGIN_URL,
         loginPayload,
         {
             headers: {
@@ -31,7 +31,7 @@ export async function login(loginPayload, captchaId) {
 
 export async function register(registerPayload, captchaId) {
     const {data} = await http.post(
-        REGISTER_URL,
+        USER_REGISTER_URL,
         registerPayload,
         {
             headers: {
@@ -40,4 +40,4 @@ export async function register(registerPayload, captchaId) {
         }
     );
     return data;
-} 
+}

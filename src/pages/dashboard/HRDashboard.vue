@@ -199,14 +199,14 @@
             <h3>HR智能助手</h3>
           </div>
           <div class="header-controls">
-            <img 
+            <img
               :src="clearChatIcon"
               alt="清空聊天"
               class="control-icon"
               @click="clearChat"
               title="清空聊天"
             />
-            <img 
+            <img
               :src="closeChatIcon"
               alt="关闭"
               class="control-icon"
@@ -215,14 +215,14 @@
             />
           </div>
         </div>
-        
+
         <div class="panel-content">
           <div class="welcome-message" v-if="assistantMessages.length === 0">
             <div class="welcome-icon">⭐</div>
             <div class="welcome-text">您好！我是您的智能招聘助手</div>
             <div class="welcome-subtitle">有什么需要帮助的吗？</div>
           </div>
-          
+
           <div class="chat-messages" v-if="assistantMessages.length > 0" ref="chatMessagesRef">
             <div
                 v-for="message in assistantMessages"
@@ -238,11 +238,11 @@
             </div>
           </div>
         </div>
-        
+
         <div class="panel-input">
           <div class="input-wrapper">
-            <textarea 
-              class="chat-input" 
+            <textarea
+              class="chat-input"
               :placeholder="isChatLoading ? 'AI正在思考中，请稍候...' : '请将您遇到的问题告诉我，使用 Shift + Enter 换行'"
               v-model="inputMessage"
               rows="3"
@@ -250,7 +250,7 @@
               @keydown.enter.exact="handleEnterKey"
               @keydown.shift.enter="handleShiftEnter"
             ></textarea>
-            <img 
+            <img
               :src="inputMessage.trim() && !isChatLoading ? sendEnableIcon : sendDisableIcon"
               :alt="inputMessage.trim() && !isChatLoading ? '发送' : '发送(禁用)'"
               class="send-icon"
@@ -262,7 +262,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 公告弹窗 -->
     <div v-if="announcementVisible" class="announcement-overlay" @click="closeAnnouncement">
       <div class="announcement-modal" @click.stop>
@@ -292,7 +292,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useUserStore} from '@/stores/user'
 import * as echarts from 'echarts'
 // 移除对getRoleFeatures的导入，改为使用用户状态管理器
-import {LOGOUT_URL} from '@/api/endpoints'
+import {USER_LOGOUT_URL} from '@/api/endpoints'
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
@@ -493,7 +493,7 @@ export default {
     const conversationId = ref(`hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
     const isChatLoading = ref(false)
     const chatMessagesRef = ref(null) // 新增：用于引用聊天消息区域
-    
+
     // 公告弹窗
     const announcementVisible = ref(false)
 
@@ -507,7 +507,7 @@ export default {
             top: chatMessagesRef.value.scrollHeight,
             behavior: 'smooth'
           })
-          
+
           // 备用方案：如果scrollTo不支持，使用scrollTop
           setTimeout(() => {
             if (chatMessagesRef.value) {
@@ -523,17 +523,17 @@ export default {
 
     const showAssistantDialog = () => {
       assistantOpen.value = true
-      
+
       // 对话框打开后滚动到底部
       nextTick(() => {
         scrollToBottom()
       })
     }
-    
+
     const showAnnouncement = () => {
       announcementVisible.value = true
     }
-    
+
     const closeAnnouncement = () => {
       announcementVisible.value = false
     }
@@ -544,9 +544,9 @@ export default {
 
     const handleSendMessage = async () => {
       if (!inputMessage.value.trim() || isChatLoading.value) return
-      
+
       const userMessageText = inputMessage.value.trim()
-      
+
       // 添加用户消息到聊天框
       const userMessage = {
         id: Date.now(),
@@ -555,18 +555,18 @@ export default {
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(userMessage)
-      
+
       // 滚动到用户消息 - 添加延迟确保DOM更新
       setTimeout(() => {
         scrollToBottom()
       }, 50)
-      
+
       // 清空输入框
       inputMessage.value = ''
-      
+
       // 设置加载状态
       isChatLoading.value = true
-      
+
       // 创建AI回复消息（直接显示，不显示思考状态）
       const assistantMessageId = Date.now() + 1
       const assistantMessage = {
@@ -576,7 +576,7 @@ export default {
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(assistantMessage)
-      
+
       try {
         // 调用后端AI聊天接口（流式响应）
         await aiApi.chat({
@@ -603,12 +603,12 @@ export default {
           },
           onError: (error) => {
             console.error('AI聊天流式响应错误:', error)
-            
+
             // 更新AI回复为错误信息
             const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
             if (messageIndex !== -1) {
               let errorContent = '抱歉，我遇到了一些问题，请稍后再试。'
-              
+
               if (error.message.includes('401')) {
                 errorContent = '认证失败，请重新登录。'
               } else if (error.message.includes('403')) {
@@ -618,22 +618,22 @@ export default {
               } else if (error.message.includes('NetworkError')) {
                 errorContent = '网络连接出现问题，请检查网络后重试。'
               }
-              
+
               assistantMessages.value[messageIndex].content = errorContent
             }
-            
+
             isChatLoading.value = false
             scrollToBottom()
           }
         })
       } catch (error) {
         console.error('发送消息失败:', error)
-        
+
         // 更新AI回复为错误信息
         const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
         if (messageIndex !== -1) {
           let errorContent = '网络连接出现问题，请检查网络后重试。'
-          
+
           if (error.message.includes('401')) {
             errorContent = '认证失败，请重新登录。'
           } else if (error.message.includes('403')) {
@@ -641,10 +641,10 @@ export default {
           } else if (error.message.includes('500')) {
             errorContent = '服务器内部错误，请稍后再试。'
           }
-          
+
           assistantMessages.value[messageIndex].content = errorContent
         }
-        
+
         isChatLoading.value = false
         scrollToBottom()
       }
@@ -653,12 +653,12 @@ export default {
     const handleEnterKey = (e) => {
       // 检查是否有输入法候选项
       const hasComposition = e.isComposing || e.keyCode === 229
-      
+
       // 如果有输入法候选项，不阻止默认行为，让输入法处理
       if (hasComposition) {
         return
       }
-      
+
       // 如果没有输入法候选项，则发送消息
       e.preventDefault()
       if (inputMessage.value.trim()) {
@@ -678,7 +678,7 @@ export default {
       conversationId.value = `hr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       scrollToBottom() // 清空聊天后滚动到底部
     }
-    
+
     // 其他
     const currentDate = computed(() => {
       const now = new Date()
@@ -697,17 +697,17 @@ export default {
     const logout = async () => {
       try {
         // 调用退出登录接口
-        const response = await fetch(LOGOUT_URL, {
+        const response = await fetch(USER_LOGOUT_URL, {
           method: 'POST',
           headers: {
             'Authorization': sessionStorage.getItem('Authorization') || '',
             'Content-Type': 'application/json'
           }
         })
-        
+
         if (response.ok) {
           const result = await response.json()
-          
+
           if (result.code === 200) {
             // 退出成功，清除JWT并跳转
             console.log('退出登录成功:', result.message)
@@ -783,7 +783,7 @@ export default {
       setTimeout(() => {
         fixScrollIssues()
       }, 500)
-      
+
       // 显示公告弹窗
       setTimeout(() => {
         showAnnouncement()
@@ -851,7 +851,7 @@ export default {
       clearChatIcon,
       closeChatIcon,
       chatMessagesRef, // 新增：暴露给模板
-      
+
       // 公告弹窗
       announcementVisible,
       showAnnouncement,
@@ -1801,4 +1801,4 @@ html, body {
     gap: 10px;
   }
 }
-</style> 
+</style>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import {CAPTCHA_URL, LOGIN_URL, PUB_KEY_URL, REGISTER_URL} from './endpoints';
+import {USER_CAPTCHA_URL, USER_LOGIN_URL, USER_PUB_KEY_URL, USER_REGISTER_URL} from './endpoints';
 import {ElMessageBox} from 'element-plus';
 import router from '@/router';
 
@@ -11,10 +11,10 @@ const http = axios.create({
 const whiteList = [
     '/login', // 页面路由
     '/register', // 页面路由
-    LOGIN_URL,
-    REGISTER_URL,
-    PUB_KEY_URL,
-    CAPTCHA_URL
+    USER_LOGIN_URL,
+    USER_REGISTER_URL,
+    USER_PUB_KEY_URL,
+    USER_CAPTCHA_URL
 ];
 
 // 请求拦截器：自动加Authorization
@@ -68,4 +68,4 @@ http.interceptors.response.use(
     }
 );
 
-export default http; 
+export default http;
