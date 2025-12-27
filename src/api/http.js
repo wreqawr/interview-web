@@ -4,7 +4,7 @@ import {ElMessageBox} from 'element-plus';
 import router from '@/router';
 
 const http = axios.create({
-    timeout: 10000
+    timeout: 1000 * 60
 });
 
 // 需要放行的接口或页面路径白名单

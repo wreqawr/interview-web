@@ -83,14 +83,14 @@
             <img :src="closeChatIcon" alt="关闭" class="control-icon" @click="closeAssistantDialog" title="关闭"/>
           </div>
         </div>
-        
+
         <div class="panel-content">
           <div class="welcome-message" v-if="assistantMessages.length === 0">
             <div class="welcome-icon">⭐</div>
             <div class="welcome-text">您好！我是您的AI求职助手</div>
             <div class="welcome-subtitle">有什么需要帮助的吗？</div>
           </div>
-          
+
           <div class="chat-messages" v-if="assistantMessages.length > 0" ref="chatMessagesRef">
             <div v-for="message in assistantMessages" :key="message.id" class="message" :class="message.type">
               <div class="message-content">
@@ -101,11 +101,11 @@
             </div>
           </div>
         </div>
-        
+
         <div class="panel-input">
           <div class="input-wrapper">
-            <textarea 
-              class="chat-input" 
+            <textarea
+              class="chat-input"
               :placeholder="isChatLoading ? 'AI正在思考中，请稍候...' : '请将您遇到的问题告诉我，使用 Shift + Enter 换行'"
               v-model="inputMessage"
               rows="3"
@@ -113,7 +113,7 @@
               @keydown.enter.exact="handleEnterKey"
               @keydown.shift.enter="handleShiftEnter"
             ></textarea>
-            <img 
+            <img
               :src="inputMessage.trim() && !isChatLoading ? sendEnableIcon : sendDisableIcon"
               :alt="inputMessage.trim() && !isChatLoading ? '发送' : '发送(禁用)'"
               class="send-icon"
@@ -126,7 +126,7 @@
       </div>
     </div>
   </div>
-</template> 
+</template>
 
 <script>
 import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
@@ -138,7 +138,7 @@ import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
 import closeChatIcon from '@/assets/chat/close-chat.svg'
-import { aiApi } from '@/api/ai'
+import {aiApi} from '@/api/ai'
 
 export default {
   name: 'CandidateDashboard',
@@ -282,9 +282,9 @@ export default {
 
     const handleSendMessage = async () => {
       if (!inputMessage.value.trim() || isChatLoading.value) return
-      
+
       const userMessageText = inputMessage.value.trim()
-      
+
       // 添加用户消息
       const userMessage = {
         id: Date.now(),
@@ -293,16 +293,16 @@ export default {
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(userMessage)
-      
+
       // 延迟滚动
       setTimeout(() => {
         scrollToBottom()
       }, 50)
-      
+
       inputMessage.value = ''
-      
+
       isChatLoading.value = true
-      
+
       // 创建AI回复消息（直接显示，不显示思考状态）
       const assistantMessageId = Date.now() + 1
       const assistantMessage = {
@@ -312,75 +312,34 @@ export default {
         time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
       }
       assistantMessages.value.push(assistantMessage)
-      
+
       try {
-        // 调用后端AI聊天接口（流式响应）
-        await aiApi.chat({
+        // 调用后端AI聊天接口
+        const replyContent = await aiApi.chat({
           conversationId: conversationId.value,
           userMessage: userMessageText,
           taskType: 'GENERAL_CHAT',
-          params: {},
-          onData: (data) => {
-            // 实时更新AI回复内容
-            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-            if (messageIndex !== -1) {
-              assistantMessages.value[messageIndex].content += data
-              // 实时滚动到底部
-              nextTick(() => {
-                scrollToBottom()
-              })
-            }
-          },
-          onComplete: () => {
-            // 流式响应完成
-            console.log('AI回复完成')
-            isChatLoading.value = false
-            scrollToBottom()
-          },
-          onError: (error) => {
-            console.error('AI聊天流式响应错误:', error)
-            
-            // 更新AI回复为错误信息
-            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-            if (messageIndex !== -1) {
-              let errorContent = '抱歉，我遇到了一些问题，请稍后再试。'
-              
-              if (error.message.includes('401')) {
-                errorContent = '认证失败，请重新登录。'
-              } else if (error.message.includes('403')) {
-                errorContent = '权限不足，无法访问AI助手。'
-              } else if (error.message.includes('500')) {
-                errorContent = '服务器内部错误，请稍后再试。'
-              } else if (error.message.includes('NetworkError')) {
-                errorContent = '网络连接出现问题，请检查网络后重试。'
-              }
-              
-              assistantMessages.value[messageIndex].content = errorContent
-            }
-            
-            isChatLoading.value = false
-            scrollToBottom()
-          }
+          params: {}
         })
+
+        // 更新AI回复内容
+        const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+        if (messageIndex !== -1) {
+          assistantMessages.value[messageIndex].content = replyContent || ''
+        }
+
+        isChatLoading.value = false
+        scrollToBottom()
       } catch (error) {
         console.error('发送消息失败:', error)
-        
+
         // 更新AI回复为错误信息
         const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
         if (messageIndex !== -1) {
-          let errorContent = '网络连接出现问题，请检查网络后重试。'
-          
-          if (error.message.includes('401')) {
-            errorContent = '认证失败，请重新登录。'
-          } else if (error.message.includes('403')) {
-            errorContent = '权限不足，无法访问AI助手。'
-          } else if (error.message.includes('500')) {
-            errorContent = '服务器内部错误，请稍后再试。'
-          }
-          
-          assistantMessages.value[messageIndex].content = errorContent
+          // 使用错误消息，如果错误对象有message属性则使用，否则使用默认错误信息
+          assistantMessages.value[messageIndex].content = error.message || '网络连接出现问题，请检查网络后重试。'
         }
-        
+
         isChatLoading.value = false
         scrollToBottom()
       }
@@ -389,7 +348,7 @@ export default {
     const handleEnterKey = (e) => {
       const hasComposition = e.isComposing || e.keyCode === 229
       if (hasComposition) return
-      
+
       e.preventDefault()
       if (inputMessage.value.trim()) {
         handleSendMessage()
@@ -471,7 +430,7 @@ export default {
       userStatistics,
       stats,
       recentInterviews,
-      
+
       // 雷达图
       radarRef,
       refreshDashboard,
@@ -500,7 +459,7 @@ export default {
     }
   }
 }
-</script> 
+</script>
 
 <style scoped>
 :root {
@@ -1014,7 +973,7 @@ html, body {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
 }
 
 @media (max-width: 768px) {
@@ -1081,4 +1040,4 @@ html, body {
     min-height: 360px;
   }
 }
-</style> 
+</style>

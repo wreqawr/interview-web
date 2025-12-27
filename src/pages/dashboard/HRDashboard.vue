@@ -297,8 +297,7 @@ import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
 import clearChatIcon from '@/assets/chat/clear-chat.svg'
 import closeChatIcon from '@/assets/chat/close-chat.svg'
-import { aiApi } from '@/api/ai'
-
+import {aiApi} from '@/api/ai'
 
 
 export default {
@@ -578,71 +577,30 @@ export default {
       assistantMessages.value.push(assistantMessage)
 
       try {
-        // 调用后端AI聊天接口（流式响应）
-        await aiApi.chat({
+        // 调用后端AI聊天接口
+        const replyContent = await aiApi.chat({
           conversationId: conversationId.value,
           userMessage: userMessageText,
           taskType: 'GENERAL_CHAT',
-          params: {},
-          onData: (data) => {
-            // 实时更新AI回复内容
-            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-            if (messageIndex !== -1) {
-              assistantMessages.value[messageIndex].content += data
-              // 实时滚动到底部
-              nextTick(() => {
-                scrollToBottom()
-              })
-            }
-          },
-          onComplete: () => {
-            // 流式响应完成
-            console.log('AI回复完成')
-            isChatLoading.value = false
-            scrollToBottom()
-          },
-          onError: (error) => {
-            console.error('AI聊天流式响应错误:', error)
-
-            // 更新AI回复为错误信息
-            const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
-            if (messageIndex !== -1) {
-              let errorContent = '抱歉，我遇到了一些问题，请稍后再试。'
-
-              if (error.message.includes('401')) {
-                errorContent = '认证失败，请重新登录。'
-              } else if (error.message.includes('403')) {
-                errorContent = '权限不足，无法访问AI助手。'
-              } else if (error.message.includes('500')) {
-                errorContent = '服务器内部错误，请稍后再试。'
-              } else if (error.message.includes('NetworkError')) {
-                errorContent = '网络连接出现问题，请检查网络后重试。'
-              }
-
-              assistantMessages.value[messageIndex].content = errorContent
-            }
-
-            isChatLoading.value = false
-            scrollToBottom()
-          }
+          params: {}
         })
+
+        // 更新AI回复内容
+        const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
+        if (messageIndex !== -1) {
+          assistantMessages.value[messageIndex].content = replyContent || ''
+        }
+
+        isChatLoading.value = false
+        scrollToBottom()
       } catch (error) {
         console.error('发送消息失败:', error)
 
         // 更新AI回复为错误信息
         const messageIndex = assistantMessages.value.findIndex(msg => msg.id === assistantMessageId)
         if (messageIndex !== -1) {
-          let errorContent = '网络连接出现问题，请检查网络后重试。'
-
-          if (error.message.includes('401')) {
-            errorContent = '认证失败，请重新登录。'
-          } else if (error.message.includes('403')) {
-            errorContent = '权限不足，无法访问AI助手。'
-          } else if (error.message.includes('500')) {
-            errorContent = '服务器内部错误，请稍后再试。'
-          }
-
-          assistantMessages.value[messageIndex].content = errorContent
+          // 使用错误消息，如果错误对象有message属性则使用，否则使用默认错误信息
+          assistantMessages.value[messageIndex].content = error.message || '网络连接出现问题，请检查网络后重试。'
         }
 
         isChatLoading.value = false

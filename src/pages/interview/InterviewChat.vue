@@ -385,29 +385,35 @@ const submitAnswer = async () => {
     // 增加用户回答计数
     userAnswerCount.value++
 
-    // 预占位AI消息（用于聚合流）
+    // 预占位AI消息
     streamMessageId = `assistant_${Date.now()}`
     messageList.value.push({ id: streamMessageId, type: 'assistant', content: '', time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) })
     scrollToBottom()
 
-    // 触发后端流式接口
+    // 调用后端接口
     isAiStreaming.value = true
-    await aiApi.interviewProgress({
-      conversationId,
-      userMessage: userAnswer.value,
-      onData: (data) => {
-        const idx = messageList.value.findIndex(m => m.id === streamMessageId)
-        if (idx !== -1) messageList.value[idx].content += data
-        scrollToBottom()
-      },
-      onComplete: () => {
-        isAiStreaming.value = false
-      },
-      onError: () => {
-        isAiStreaming.value = false
-        ElMessage.error('回答生成失败，请重试')
+    try {
+      const replyContent = await aiApi.interviewProgress({
+        conversationId,
+        userMessage: userAnswer.value
+      })
+
+      // 更新AI回复内容
+      const idx = messageList.value.findIndex(m => m.id === streamMessageId)
+      if (idx !== -1) {
+        messageList.value[idx].content = replyContent || ''
       }
-    })
+      scrollToBottom()
+    } catch (error) {
+      // 处理错误
+      const idx = messageList.value.findIndex(m => m.id === streamMessageId)
+      if (idx !== -1) {
+        messageList.value[idx].content = error.message || '回答生成失败，请重试'
+      }
+      ElMessage.error(error.message || '回答生成失败，请重试')
+    } finally {
+      isAiStreaming.value = false
+    }
 
     // 成功后清空输入
     userAnswer.value = ''
@@ -437,7 +443,50 @@ const startInterviewControl = () => {
       type: 'warning'
     }
   ).then(() => {
-    // 显示3秒倒计时
+    // 立即开始面试准备请求
+    const conversationId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    // 将conversationId保存到interviewConfig中，确保后续进度接口使用同一个ID
+    interviewConfig.value.conversationId = conversationId
+    const jobId = interviewStore.interviewConfig.position
+    const resumeId = interviewStore.interviewConfig.resumeId
+
+    // 先插入一条空的AI消息
+    streamMessageId = `assistant_${Date.now()}`
+    messageList.value.push({
+      id: streamMessageId,
+      type: 'assistant',
+      content: '',
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    })
+    isAiStreaming.value = true
+
+    // 立即发送请求
+    aiApi.interviewPrepare({
+      conversationId,
+      jobId,
+      resumeId
+    }).then((replyContent) => {
+      // 更新AI回复内容
+      const index = messageList.value.findIndex(m => m.id === streamMessageId)
+      if (index !== -1) {
+        messageList.value[index].content = replyContent || ''
+      }
+      scrollToBottom()
+      isAiStreaming.value = false
+    }).catch((error) => {
+      // 处理错误
+      const index = messageList.value.findIndex(m => m.id === streamMessageId)
+      if (index !== -1) {
+        messageList.value[index].content = error.message || '面试准备失败'
+      }
+      ElMessage.error(error.message || '面试准备失败')
+      isAiStreaming.value = false
+      
+      // 发生错误时，立即隐藏遮罩
+      isStarting.value = false
+    })
+
+    // 显示3秒倒计时遮罩（与请求并行进行）
     isStarting.value = true
     countdown.value = 3
     let left = 3
@@ -450,44 +499,6 @@ const startInterviewControl = () => {
         isPaused.value = false
         hasStarted.value = true
         ElMessage.success('面试已开始')
-
-        // 触发面试准备流式请求
-        const conversationId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-        // 将conversationId保存到interviewConfig中，确保后续进度接口使用同一个ID
-        interviewConfig.value.conversationId = conversationId
-        const jobId = interviewStore.interviewConfig.position
-        const resumeId = interviewStore.interviewConfig.resumeId
-
-        // 先插入一条空的AI消息，用于聚合本次流
-        streamMessageId = `assistant_${Date.now()}`
-        messageList.value.push({
-          id: streamMessageId,
-          type: 'assistant',
-          content: '',
-          time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-        })
-        isAiStreaming.value = true
-        aiApi.interviewPrepare({
-          conversationId,
-          jobId,
-          resumeId,
-          onData: (data) => {
-            // 将流式数据聚合到一条消息中
-            const index = messageList.value.findIndex(m => m.id === streamMessageId)
-            if (index !== -1) {
-              messageList.value[index].content += data
-            }
-            scrollToBottom()
-          },
-          onComplete: () => {
-            // 完成时不提示
-            isAiStreaming.value = false
-          },
-          onError: () => {
-            ElMessage.error('面试准备失败')
-            isAiStreaming.value = false
-          }
-        })
       }
     }, 1000)
   }).catch(() => {
