@@ -24,7 +24,7 @@
           <h1>面试结果分析</h1>
           <p class="summary-subtitle">恭喜你完成了本次面试！以下是详细的分析报告</p>
         </div>
-        
+
         <div class="summary-content">
           <div class="overall-score">
             <div class="score-circle">
@@ -33,7 +33,7 @@
             </div>
             <div class="score-grade">{{ scoreGrade }}</div>
           </div>
-          
+
           <div class="score-details">
             <div class="score-breakdown">
               <h3>得分明细</h3>
@@ -75,7 +75,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="ai-feedback">
               <h3>AI总评</h3>
               <div class="feedback-content">
@@ -105,10 +105,10 @@
           <h2>详细反馈分析</h2>
           <p>按题目逐一分析，提供具体改进建议</p>
         </div>
-        
+
         <div class="feedback-list">
-          <div 
-            v-for="(feedback, index) in questionFeedbacks" 
+          <div
+            v-for="(feedback, index) in questionFeedbacks"
             :key="index"
             class="feedback-item"
           >
@@ -122,18 +122,18 @@
                 <span class="unit">分</span>
               </div>
             </div>
-            
+
             <div class="feedback-content">
               <div class="feedback-section">
                 <h4>内容评价</h4>
                 <p>{{ feedback.contentFeedback }}</p>
               </div>
-              
+
               <div class="feedback-section">
                 <h4>表达评价</h4>
                 <p>{{ feedback.expressionFeedback }}</p>
               </div>
-              
+
               <div class="feedback-section">
                 <h4>改进建议</h4>
                 <ul class="improvement-list">
@@ -143,10 +143,10 @@
                 </ul>
               </div>
             </div>
-            
+
             <div class="feedback-actions">
-              <el-button 
-                type="primary" 
+              <el-button
+                type="primary"
                 size="small"
                 @click="playRecording(index)"
                 :disabled="!feedback.hasRecording"
@@ -154,9 +154,9 @@
                 <el-icon><VideoPlay /></el-icon>
                 回听录音
               </el-button>
-              
-              <el-button 
-                type="success" 
+
+              <el-button
+                type="success"
                 size="small"
                 @click="showReferenceAnswer(index)"
               >
@@ -175,10 +175,10 @@
             <h2>下一步行动</h2>
             <p>基于你的表现，我们为你准备了以下建议</p>
           </div>
-          
+
           <div class="action-buttons">
-            <el-button 
-              type="primary" 
+            <el-button
+              type="primary"
               size="large"
               class="action-btn download-btn"
               @click="downloadReport"
@@ -186,9 +186,9 @@
               <el-icon><Download /></el-icon>
               下载完整报告
             </el-button>
-            
-            <el-button 
-              type="success" 
+
+            <el-button
+              type="success"
               size="large"
               class="action-btn retry-btn"
               @click="retryInterview"
@@ -196,9 +196,9 @@
               <el-icon><Refresh /></el-icon>
               再练一次
             </el-button>
-            
-            <el-button 
-              type="info" 
+
+            <el-button
+              type="info"
               size="large"
               class="action-btn home-btn"
               @click="goHome"
@@ -240,10 +240,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { House, Download, Refresh, VideoPlay, View } from '@element-plus/icons-vue'
+import {nextTick, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {ElMessage} from 'element-plus'
+import {Download, House, Refresh, VideoPlay, View} from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 
 const router = useRouter()
@@ -385,7 +385,7 @@ const initRadarChart = () => {
   if (radarChart.value) {
     chartInstance = echarts.init(radarChart.value)
     chartInstance.setOption(radarOptions)
-    
+
     // 响应式处理
     window.addEventListener('resize', () => {
       if (chartInstance) {
@@ -405,7 +405,7 @@ const playRecording = (index) => {
 const showReferenceAnswer = (index) => {
   const feedback = questionFeedbacks.value[index]
   currentReferenceQuestion.value = feedback.question
-  
+
   // 根据问题生成参考回答
   const referenceAnswers = {
     0: '我是一名有3年前端开发经验的工程师，毕业于XX大学计算机科学专业。在校期间，我专注于Web技术的学习，参与了多个前端项目的开发。毕业后，我在XX公司担任前端开发工程师，负责公司核心产品的前端架构设计和开发工作。我熟练掌握Vue、React等主流框架，对性能优化和用户体验有深入的理解。',
@@ -413,14 +413,14 @@ const showReferenceAnswer = (index) => {
     2: '在团队协作中，我遇到过一次关于技术选型的分歧。我建议使用新技术栈，而团队其他成员倾向于使用现有的稳定方案。我首先收集了详细的技术对比数据，包括性能、维护成本、学习曲线等，然后组织了一次技术分享会，让团队成员了解新技术的优势。最终我们达成了一个折中方案：在新项目中试用新技术，同时保持现有项目的稳定性。',
     3: '我对这个前端开发岗位的理解是，需要负责公司产品的前端架构设计、核心功能开发和性能优化。我选择贵公司是因为：1）公司产品在行业内具有领先地位，技术挑战性强；2）团队技术氛围浓厚，有完善的培训体系；3）公司重视技术创新，愿意尝试新技术。我相信我的技术能力和学习热情能够为团队带来价值。'
   }
-  
+
   const referenceTips = {
     0: ['突出核心技能和经验', '用具体数字量化成果', '展现对目标岗位的理解'],
     1: ['详细描述问题背景', '说明解决思路和步骤', '量化优化效果'],
     2: ['展现沟通协调能力', '提供具体处理案例', '说明最终结果'],
     3: ['深入了解公司文化', '分析岗位要求', '结合个人经历']
   }
-  
+
   currentReferenceAnswer.value = referenceAnswers[index] || '暂无参考回答'
   currentReferenceTips.value = referenceTips[index] || []
   referenceDialogVisible.value = true
@@ -447,21 +447,21 @@ const unlockScroll = () => {
   try {
     const body = document.body
     const html = document.documentElement
-    
+
     // 移除可能影响滚动的类
     body.classList.remove('el-popup-parent--hidden')
     body.classList.remove('el-overflow-hidden')
-    
+
     // 清理内联样式
     if (body.style.overflow) body.style.overflow = ''
     if (body.style.position) body.style.position = ''
     if (html.style.overflow) html.style.overflow = ''
     if (html.style.position) html.style.position = ''
-    
+
     // 强制设置可滚动
     body.style.overflow = 'auto'
     html.style.overflow = 'auto'
-    
+
     // 检查并清理页面内可能影响滚动的元素
     const pageElements = document.querySelectorAll('.interview-results-page *')
     pageElements.forEach(el => {
@@ -479,7 +479,7 @@ onMounted(async () => {
   setTimeout(unlockScroll, 50)
   setTimeout(unlockScroll, 200)
   setTimeout(unlockScroll, 500)
-  
+
   // 解析路由参数
   try {
     if (route.query.duration) {
@@ -489,12 +489,12 @@ onMounted(async () => {
   } catch (error) {
     console.error('解析参数失败:', error)
   }
-  
+
   // 等待DOM渲染完成后初始化图表
   await nextTick()
   initRadarChart()
 })
-</script> 
+</script>
 
 <style scoped>
 .interview-results-page {
@@ -1000,57 +1000,57 @@ onMounted(async () => {
   .navbar {
     padding: 0 20px;
   }
-  
+
   .main-content {
     padding: 20px 15px;
   }
-  
+
   .summary-content {
     flex-direction: column;
     gap: 30px;
   }
-  
+
   .score-circle {
     width: 120px;
     height: 120px;
   }
-  
+
   .score-value {
     font-size: 36px;
   }
-  
+
   .breakdown-items {
     grid-template-columns: 1fr;
   }
-  
+
   .feedback-content {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .question-header {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .question-score {
     text-align: left;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .action-btn {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .summary-header h1 {
     font-size: 28px;
   }
-  
+
   .feedback-header h2 {
     font-size: 24px;
   }
@@ -1063,30 +1063,30 @@ onMounted(async () => {
     padding: 15px;
     gap: 15px;
   }
-  
+
   .summary-header {
     padding: 30px 20px;
   }
-  
+
   .summary-content {
     padding: 20px;
   }
-  
+
   .chart-container {
     padding: 20px;
   }
-  
+
   .radar-chart {
     height: 300px;
   }
-  
+
   .feedback-item {
     margin: 0 -15px;
     border-radius: 0;
   }
-  
+
   .question-header, .feedback-content, .feedback-actions {
     padding: 20px;
   }
 }
-</style> 
+</style>

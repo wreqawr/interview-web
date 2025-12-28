@@ -1,13 +1,13 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
 import {
-  getPrimaryRole,
-  getRoleHomePage,
-  getRoleHomePageByToken,
-  getRolesFromToken,
-  getUserInfoFromToken,
-  hasRole,
-  isTokenExpired
+    getPrimaryRole,
+    getRoleHomePage,
+    getRoleHomePageByToken,
+    getRolesFromToken,
+    getUserInfoFromToken,
+    hasRole,
+    isTokenExpired
 } from '@/utils/jwt';
 import {getRoleFeatures, getRoleStatistics} from '@/constants/permissions';
 // 导入SVG图标以解决404错误
@@ -188,4 +188,4 @@ export const useUserStore = defineStore('user', () => {
         setToken, setUserPermissions, restoreToken, clearUserInfo, refreshUserInfo,
         hasUserRole, hasFeature, getFeature, getHomePage
     };
-}); 
+});

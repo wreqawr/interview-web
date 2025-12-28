@@ -7,9 +7,9 @@
       <div class="interview-content">
         <!-- 聊天记录滚动区域 -->
         <div class="chat-messages" ref="chatMessagesRef">
-          <div 
-            v-for="msg in messageList" 
-            :key="msg.id" 
+          <div
+            v-for="msg in messageList"
+            :key="msg.id"
             class="message"
             :class="msg.type"
           >
@@ -29,8 +29,8 @@
           <!-- 用户回答区域 -->
           <div class="answer-section">
             <div class="input-wrapper">
-              <textarea 
-                class="chat-input" 
+              <textarea
+                class="chat-input"
                 :placeholder="isSubmitting ? 'AI正在处理中，请稍候...' : '请详细描述你的思路和解决方案，使用 Shift + Enter 换行'"
                 v-model="userAnswer"
                 rows="4"
@@ -38,7 +38,7 @@
                 @keydown.enter.exact="handleEnterSubmit"
                 @keydown.shift.enter="handleShiftEnter"
               ></textarea>
-              <img 
+              <img
                 :src="canSend ? sendEnableIcon : sendDisableIcon"
                 :alt="canSend ? '提交回答' : '提交回答(禁用)'"
                 class="send-icon"
@@ -67,7 +67,7 @@
         <div class="panel-header">
           <h3>面试控制面板</h3>
         </div>
-        
+
         <div class="panel-content">
           <!-- 面试进度 -->
           <div class="panel-section">
@@ -136,17 +136,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useInterviewStore } from '@/stores/interview'
-import { 
-  Clock, VideoPause, Refresh, VideoPlay 
-} from '@element-plus/icons-vue'
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
+import {ElMessage, ElMessageBox} from 'element-plus'
+import {useInterviewStore} from '@/stores/interview'
+import {Clock, Refresh, VideoPause, VideoPlay} from '@element-plus/icons-vue'
 import sendEnableIcon from '@/assets/chat/send-enable.svg'
 import sendDisableIcon from '@/assets/chat/send-disable.svg'
-import { aiApi } from '@/api/ai'
-import { nextTick, watch } from 'vue'
+import {aiApi} from '@/api/ai'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
@@ -260,27 +257,27 @@ let timer = null
 // 检查面试配置
 const checkInterviewConfig = () => {
   const config = interviewStore.interviewConfig
-  
+
   // 检查是否有必要的配置
   if (!config.position || !config.resumeId || !config.mode) {
     ElMessage.error('面试配置不完整，请返回重新配置')
     router.push('/interview/preparation')
     return false
   }
-  
+
   // 检查面试模式是否正确
   if (config.mode !== 'chat') {
     ElMessage.error('当前页面仅支持文字聊天面试模式')
     router.push('/interview/preparation')
     return false
   }
-  
+
   // 更新本地配置
   interviewConfig.value = { ...config }
-  
+
   // 开始面试
   interviewStore.startInterview()
-  
+
   return true
 }
 
@@ -292,10 +289,10 @@ onMounted(() => {
   if (!checkInterviewConfig()) {
     return
   }
-  
+
   // 设置当前问题
   currentQuestion.value = questions.value[0]
-  
+
   // 开始计时
   startTimer()
 })
@@ -345,12 +342,12 @@ const progressPercent = computed(() => {
 const handleEnterSubmit = (event) => {
   // 检查是否有输入法候选项
   const hasComposition = event.isComposing || event.keyCode === 229
-  
+
   // 如果有输入法候选项，不阻止默认行为，让输入法处理
   if (hasComposition) {
     return
   }
-  
+
   // 如果没有输入法候选项，则提交回答
   event.preventDefault()
   submitAnswer()
@@ -381,7 +378,7 @@ const submitAnswer = async () => {
       time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
     }
     messageList.value.push(userMsg)
-    
+
     // 增加用户回答计数
     userAnswerCount.value++
 
@@ -481,7 +478,7 @@ const startInterviewControl = () => {
       }
       ElMessage.error(error.message || '面试准备失败')
       isAiStreaming.value = false
-      
+
       // 发生错误时，立即隐藏遮罩
       isStarting.value = false
     })
@@ -524,11 +521,11 @@ const endInterview = async () => {
         type: 'warning'
       }
     )
-    
+
     // 跳转到面试结果页面
     router.push({
       path: '/interview/results',
-      query: { 
+      query: {
         mode: 'chat',
         duration: interviewTime.value,
         questions: currentQuestionIndex.value + 1
@@ -910,7 +907,7 @@ const endInterview = async () => {
     flex-direction: column;
     padding: 15px;
   }
-  
+
   .control-panel {
     width: 100%;
     order: -1;
@@ -923,22 +920,22 @@ const endInterview = async () => {
   .main-content {
     padding: 10px;
   }
-  
+
   .interview-content {
     padding: 0;
   }
-  
+
   .chat-messages {
     padding: 15px 47px 0 15px;
     margin: 0 15px;
     width: calc(100% - 30px);
     height: calc(100vh - 280px);
   }
-  
+
   .fixed-bottom-section {
     padding: 15px;
   }
-  
+
   .message-content {
     max-width: 85%;
   }
@@ -972,4 +969,4 @@ const endInterview = async () => {
   font-size: 18px;
   opacity: 0.9;
 }
-</style> 
+</style>

@@ -155,6 +155,16 @@
                             <span class="mode-desc">纯文字对话，更轻松自然的交流</span>
                           </div>
                         </el-option>
+                        <el-option
+                            value="voice"
+                            label="语音面试"
+                        >
+                          <div class="mode-option">
+                            <span class="mode-icon">🎤</span>
+                            <span class="mode-label">语音面试</span>
+                            <span class="mode-desc">语音实时对话，更自然的交流方式</span>
+                          </div>
+                        </el-option>
                       </el-select>
                     </div>
                   </div>
@@ -477,6 +487,15 @@ const startInterview = () => {
   } else if (interviewConfig.value.mode === 'chat') {
     // 文字聊天模式：直接跳转，不传递URL参数
     router.push('/interview/chat')
+  } else if (interviewConfig.value.mode === 'voice') {
+    // 语音面试模式：检查设备状态
+    if (!micWorking.value) {
+      ElMessage.warning('请先确保麦克风正常工作')
+      return
+    }
+
+    // 跳转到语音面试页面，不传递URL参数
+    router.push('/interview/voice')
   }
 }
 

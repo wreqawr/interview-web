@@ -1,7 +1,4 @@
-import {ENV_INFO} from '@/config/env';
-
-// 使用环境配置获取API基础URL
-export const GATEWAY_BASE_URL = ENV_INFO.apiGatewayBaseUrl;
+export const GATEWAY_BASE_URL = '/api';
 
 // 用户接口
 export const USER_API = `${GATEWAY_BASE_URL}/user`;
@@ -46,11 +43,9 @@ export const RESUME_ANALYZE_URL = `${RESUME_API}/analyze`;
 export const RESUME_ANALYZE_ASYNC_URL = `${RESUME_API}/queryResumeAsyncAnalyzeResult`;
 // 获取求职者已经申请过的岗位信息
 export const CANDIDATE_JOBS_URL = `${CANDIDATE_API}/getJobList`;
-// ai聊天助手使用 WebFlux 基础URL
+// ai聊天助手URL
 export const ASSISTANT_CHAT_URL = `${AI_API}/chat`;
 // ai文字面试准备接口地址
 export const INTERVIEW_CHAT_PREPARE_URL = `${INTERVIEW_API}/text/prepare`;
 // ai文字面试接口地址
 export const INTERVIEW_CHAT_PROGRESS_URL = `${INTERVIEW_API}/text/progress`;
-// 导出环境信息，方便调试
-export {ENV_INFO};

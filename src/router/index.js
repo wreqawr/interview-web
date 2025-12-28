@@ -97,6 +97,13 @@ const routes = [
                 component: () => import('@/pages/interview/InterviewChat.vue')
             },
 
+            // 语音面试页面
+            {
+                path: 'interview/voice',
+                name: 'VoiceInterview',
+                component: () => import('@/pages/interview/VoiceInterview.vue')
+            },
+
             // 面试结果页面
             {
                 path: 'interview/results',

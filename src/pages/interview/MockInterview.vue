@@ -12,7 +12,7 @@
             <el-tag v-else type="success" effect="dark" size="small">进行中</el-tag>
           </div>
         </div>
-        
+
         <div class="header-center">
           <div class="interview-config">
             <el-select
@@ -29,43 +29,43 @@
                   :value="resume.value"
               />
             </el-select>
-            <el-select 
-                v-model="context.jobId" 
-                placeholder="选择岗位" 
-                size="large" 
+            <el-select
+                v-model="context.jobId"
+                placeholder="选择岗位"
+                size="large"
                 class="config-select"
             >
               <el-option v-for="j in jobOptions" :key="j.value" :label="j.label" :value="j.value"/>
             </el-select>
           </div>
         </div>
-        
+
         <div class="header-right">
           <div class="interview-controls">
-            <el-button 
-                type="success" 
-                size="large" 
-                :disabled="isRunning || !canStart" 
+            <el-button
+                type="success"
+                size="large"
+                :disabled="isRunning || !canStart"
                 @click="handleStart"
                 class="control-btn start-btn"
             >
               <el-icon><VideoPlay /></el-icon>
               开始面试
             </el-button>
-            <el-button 
+            <el-button
                 v-if="isRunning"
-                type="warning" 
-                size="large" 
+                type="warning"
+                size="large"
                 @click="handlePause"
                 class="control-btn pause-btn"
             >
               <el-icon><VideoPause /></el-icon>
               暂停
             </el-button>
-            <el-button 
+            <el-button
                 v-if="messages.length > 0"
-                type="danger" 
-                size="large" 
+                type="danger"
+                size="large"
                 @click="handleEnd"
                 class="control-btn end-btn"
             >
@@ -141,10 +141,10 @@
           <div class="job-content">
             <h4 class="job-title">{{ currentJob?.label || '未选择岗位' }}</h4>
             <div class="job-tags">
-              <el-tag 
-                  v-for="keyword in jobKeywords" 
-                  :key="keyword" 
-                  size="small" 
+              <el-tag
+                  v-for="keyword in jobKeywords"
+                  :key="keyword"
+                  size="small"
                   class="skill-tag"
               >
                 {{ keyword }}
@@ -207,7 +207,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 输入提示 -->
           <div v-if="isRunning" class="typing-indicator">
             <div class="typing-dots">
@@ -222,10 +222,10 @@
         <!-- 智能输入区域 -->
         <div class="input-area">
           <div class="quick-tools">
-            <el-button 
-                v-for="tool in quickTools" 
+            <el-button
+                v-for="tool in quickTools"
                 :key="tool.key"
-                size="small" 
+                size="small"
                 @click="insertTemplate(tool.template)"
                 class="tool-btn"
             >
@@ -233,7 +233,7 @@
               {{ tool.label }}
             </el-button>
           </div>
-          
+
           <div class="input-container">
             <el-input
                 v-model="inputText"
@@ -248,10 +248,10 @@
                 <el-checkbox v-model="options.instantFeedback" label="即时反馈" size="small"/>
                 <el-checkbox v-model="options.voiceInput" label="语音输入" size="small"/>
               </div>
-              <el-button 
-                  type="primary" 
-                  size="large" 
-                  :disabled="!canSend" 
+              <el-button
+                  type="primary"
+                  size="large"
+                  :disabled="!canSend"
                   @click="handleSend"
                   class="send-btn"
               >
@@ -273,10 +273,10 @@
           </div>
           <div class="progress-content">
             <el-steps direction="vertical" :active="activeStep" finish-status="success" class="interview-steps">
-              <el-step 
-                  v-for="step in interviewSteps" 
+              <el-step
+                  v-for="step in interviewSteps"
                   :key="step.key"
-                  :title="step.title" 
+                  :title="step.title"
                   :description="step.description"
                   :icon="step.icon"
               />
@@ -322,7 +322,7 @@
 <script setup>
 import {computed, nextTick, onMounted, ref} from 'vue'
 import {ElMessage} from 'element-plus'
-import {VideoPlay, VideoPause, Clock, ChatDotRound, Light, Promotion} from '@element-plus/icons-vue'
+import {ChatDotRound, Clock, Light, Promotion, VideoPause, VideoPlay} from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import {getResumeList} from '@/api/resume'
 // 导入SVG图标以解决404错误
@@ -519,7 +519,7 @@ const handleStart = () => {
   }
   isRunning.value = true
   ElMessage.success('面试开始！请认真回答AI面试官的问题')
-  
+
   // 更新面试进度
   activeStep.value = 1
 }
@@ -532,7 +532,7 @@ const handlePause = () => {
 const handleEnd = () => {
   isRunning.value = false
   ElMessage.success('面试结束！请查看您的表现评估')
-  
+
   // 更新面试进度到完成
   activeStep.value = 5
 }
@@ -541,14 +541,14 @@ const handleSend = async () => {
   if (!canSend.value) return
   const text = inputText.value.trim()
   inputText.value = ''
-  
+
   // 添加用户消息
   messages.value.push({
     role: 'user',
     time: dayjs().format('HH:mm:ss'),
     html: text
   })
-  
+
   await nextTick()
   scrollToBottom()
 
@@ -561,15 +561,15 @@ const handleSend = async () => {
       html: aiResponse.content,
       hint: aiResponse.hint
     })
-    
+
     // 更新面试进度
     if (messages.value.length > 3) {
       activeStep.value = Math.min(5, Math.floor(messages.value.length / 2) + 1)
     }
-    
+
     // 更新实时评分
     updateRealtimeScores()
-    
+
     await nextTick()
     scrollToBottom()
   }, 800)
@@ -595,7 +595,7 @@ const generateAIResponse = (userInput) => {
       hint: '沟通技巧 / 冲突处理 / 团队合作'
     }
   ]
-  
+
   return responses[Math.floor(Math.random() * responses.length)]
 }
 
@@ -1286,4 +1286,4 @@ onMounted(() => {
     order: -1; /* Bring chat to top */
   }
 }
-</style> 
+</style>

@@ -10,14 +10,14 @@
           </div>
         </div>
       </div>
-      
+
       <div class="status-center">
         <div class="timer">
           <el-icon><Clock /></el-icon>
           <span class="time-display">{{ currentTime }}</span>
         </div>
       </div>
-      
+
       <div class="status-right">
         <div class="connection-status">
           <div class="status-indicator" :class="{ connected: isConnected }"></div>
@@ -37,7 +37,7 @@
               {{ aiStatusText }}
             </div>
           </div>
-          
+
           <div class="interviewer-video">
             <div class="ai-avatar" :class="{ speaking: aiStatus === 'speaking' }">
               <span class="avatar-emoji">{{ currentInterviewer.avatar }}</span>
@@ -47,13 +47,13 @@
                 <span></span>
               </div>
             </div>
-            
+
             <div class="interviewer-info">
               <h3 class="interviewer-name">{{ currentInterviewer.name }}</h3>
               <p class="interviewer-style">{{ currentInterviewer.style }}</p>
             </div>
           </div>
-          
+
           <div class="current-question">
             <h4>当前问题</h4>
             <div class="question-content">
@@ -75,7 +75,7 @@
               </el-button>
             </div>
           </div>
-          
+
           <div v-if="transcriptVisible" class="transcript-content">
             <!-- AI说话区域 -->
             <div class="transcript-ai">
@@ -85,7 +85,7 @@
               </div>
               <div class="transcript-text" v-html="aiTranscript"></div>
             </div>
-            
+
             <!-- 用户说话区域 -->
             <div class="transcript-user">
               <div class="transcript-label">
@@ -102,16 +102,16 @@
           <div class="video-header">
             <h3>我的画面</h3>
             <div class="video-controls">
-              <el-button 
-                size="small" 
+              <el-button
+                size="small"
                 :type="isMuted ? 'danger' : 'success'"
                 @click="toggleMute"
               >
                 <el-icon><component :is="isMuted ? 'Microphone' : 'Microphone'" /></el-icon>
                 {{ isMuted ? '已静音' : '正常' }}
               </el-button>
-              <el-button 
-                size="small" 
+              <el-button
+                size="small"
                 :type="isVideoOff ? 'danger' : 'success'"
                 @click="toggleVideo"
               >
@@ -120,12 +120,12 @@
               </el-button>
             </div>
           </div>
-          
+
           <div class="user-video-container">
-            <video 
-              ref="userVideo" 
-              class="user-video" 
-              autoplay 
+            <video
+              ref="userVideo"
+              class="user-video"
+              autoplay
               muted
               :class="{ 'video-off': isVideoOff }"
             ></video>
@@ -142,7 +142,7 @@
     <div class="control-bar">
       <div class="control-left">
         <!-- 主要操作按钮 -->
-        <el-button 
+        <el-button
           class="control-btn"
           :type="isMuted ? 'danger' : 'success'"
           @click="toggleMute"
@@ -150,8 +150,8 @@
           <el-icon><component :is="isMuted ? 'Microphone' : 'Microphone'" /></el-icon>
           {{ isMuted ? '开启麦克风' : '静音' }}
         </el-button>
-        
-        <el-button 
+
+        <el-button
           class="control-btn"
           :type="isVideoOff ? 'danger' : 'success'"
           @click="toggleVideo"
@@ -160,25 +160,25 @@
           {{ isVideoOff ? '开启摄像头' : '关闭摄像头' }}
         </el-button>
       </div>
-      
+
       <div class="control-center">
-        <el-button 
+        <el-button
           class="control-btn repeat-btn"
           @click="repeatQuestion"
         >
           <el-icon><Refresh /></el-icon>
           重复问题
         </el-button>
-        
-        <el-button 
+
+        <el-button
           class="control-btn pause-btn"
           @click="togglePause"
         >
           <el-icon><component :is="isPaused ? 'VideoPlay' : 'VideoPause'" /></el-icon>
           {{ isPaused ? '继续' : '暂停' }}
         </el-button>
-        
-        <el-button 
+
+        <el-button
           class="control-btn skip-btn"
           @click="skipQuestion"
         >
@@ -186,10 +186,10 @@
           跳过
         </el-button>
       </div>
-      
+
       <div class="control-right">
-        <el-button 
-          type="info" 
+        <el-button
+          type="info"
           size="large"
           class="view-results-btn"
           @click="viewResults"
@@ -197,9 +197,9 @@
           <el-icon><View /></el-icon>
           查看结果
         </el-button>
-        
-        <el-button 
-          type="danger" 
+
+        <el-button
+          type="danger"
           size="large"
           class="end-interview-btn"
           @click="endInterview"
@@ -253,13 +253,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useInterviewStore } from '@/stores/interview'
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {ElMessage} from 'element-plus'
+import {useInterviewStore} from '@/stores/interview'
 import {
-  Clock, User, UserFilled, VideoCamera,
-  VideoPlay, Refresh, View, Warning, ArrowRight
+  ArrowRight,
+  Clock,
+  Refresh,
+  User,
+  UserFilled,
+  VideoCamera,
+  VideoPlay,
+  View,
+  Warning
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -359,7 +366,7 @@ const toggleTranscript = () => {
 const repeatQuestion = () => {
   aiStatus.value = 'speaking'
   ElMessage.success('正在重复问题...')
-  
+
   // 模拟AI重复问题
   setTimeout(() => {
     aiStatus.value = 'listening'
@@ -387,7 +394,7 @@ const skipQuestion = () => {
 const confirmSkip = () => {
   skipDialogVisible.value = false
   currentQuestionIndex.value++
-  
+
   if (currentQuestionIndex.value > totalQuestions.value) {
     ElMessage.success('所有问题已完成！')
     endInterview()
@@ -407,11 +414,11 @@ const endInterview = () => {
 const confirmEnd = () => {
   endDialogVisible.value = false
   stopTimer()
-  
+
   // 跳转到结果页面
   router.push({
     path: '/interview/results',
-    query: { 
+    query: {
       config: JSON.stringify(interviewConfig.value),
       duration: currentTime.value,
       questionsAnswered: currentQuestionIndex.value
@@ -433,11 +440,11 @@ const generateNewQuestion = () => {
     '遇到技术问题时，你的解决思路是什么？',
     '你有什么问题想问我们的吗？'
   ]
-  
+
   currentQuestion.value = questions[currentQuestionIndex.value - 1] || '请继续回答下一个问题。'
   aiTranscript.value = currentQuestion.value
   userTranscript.value = ''
-  
+
   // 模拟AI提问状态
   aiStatus.value = 'speaking'
   setTimeout(() => {
@@ -449,7 +456,7 @@ const generateNewQuestion = () => {
 const viewResults = () => {
   router.push({
     path: '/interview/results',
-    query: { 
+    query: {
       config: JSON.stringify(interviewConfig.value),
       duration: currentTime.value,
       questionsAnswered: currentQuestionIndex.value
@@ -474,21 +481,21 @@ const unlockScroll = () => {
   try {
     const body = document.body
     const html = document.documentElement
-    
+
     // 移除可能影响滚动的类
     body.classList.remove('el-popup-parent--hidden')
     body.classList.remove('el-overflow-hidden')
-    
+
     // 清理内联样式
     if (body.style.overflow) body.style.overflow = ''
     if (body.style.position) body.style.position = ''
     if (html.style.overflow) html.style.overflow = ''
     if (html.style.position) html.style.position = ''
-    
+
     // 强制设置可滚动
     body.style.overflow = 'auto'
     html.style.overflow = 'auto'
-    
+
     // 检查并清理页面内可能影响滚动的元素
     const pageElements = document.querySelectorAll('.live-interview-page *')
     pageElements.forEach(el => {
@@ -502,27 +509,27 @@ const unlockScroll = () => {
 // 检查面试配置
 const checkInterviewConfig = () => {
   const config = interviewStore.interviewConfig
-  
+
   // 检查是否有必要的配置
   if (!config.position || !config.resumeId || !config.mode) {
     ElMessage.error('面试配置不完整，请返回重新配置')
     router.push('/interview/preparation')
     return false
   }
-  
+
   // 检查面试模式是否正确
   if (config.mode !== 'video') {
     ElMessage.error('当前页面仅支持视频面试模式')
     router.push('/interview/preparation')
     return false
   }
-  
+
   // 更新本地配置
   interviewConfig.value = { ...config }
-  
+
   // 开始面试
   interviewStore.startInterview()
-  
+
   return true
 }
 
@@ -536,26 +543,26 @@ const currentInterviewer = ref({
 // 初始化面试
 const initializeInterview = async () => {
   // 从store获取当前问题
-  currentQuestion.value = interviewStore.interviewState.currentQuestionIndex === 0 ? 
-    '请简单介绍一下你自己，以及为什么选择这个职位？' : 
+  currentQuestion.value = interviewStore.interviewState.currentQuestionIndex === 0 ?
+    '请简单介绍一下你自己，以及为什么选择这个职位？' :
     '请详细描述你的技术经验和项目经历'
-  
+
   aiTranscript.value = currentQuestion.value
   userTranscript.value = ''
-  
+
   // 从store获取AI状态
   aiStatus.value = 'speaking'
-  
+
   // 从store获取面试进度
   currentQuestionIndex.value = interviewStore.interviewState.currentQuestionIndex
   totalQuestions.value = interviewStore.interviewState.totalQuestions
-  
+
   // 初始化摄像头
   await initCamera()
-  
+
   // 开始计时
   startTimer()
-  
+
   // 模拟用户回答
   setInterval(() => {
     if (aiStatus.value === 'listening' && !isPaused.value) {
@@ -568,11 +575,11 @@ const initializeInterview = async () => {
 const initCamera = async () => {
   try {
     // 请求摄像头和麦克风权限
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: true, 
-      audio: true 
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
     })
-    
+
     // 将视频流绑定到video元素
     if (userVideo.value) {
       userVideo.value.srcObject = stream
@@ -581,12 +588,12 @@ const initCamera = async () => {
         userVideo.value.play().catch(e => console.log('视频播放失败:', e))
       }
     }
-    
+
     ElMessage.success('摄像头初始化成功')
   } catch (error) {
     console.error('摄像头初始化失败:', error)
     ElMessage.error('摄像头初始化失败，请检查设备权限设置')
-    
+
     // 如果摄像头失败，至少尝试获取音频
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -607,10 +614,10 @@ onMounted(() => {
   if (!checkInterviewConfig()) {
     return
   }
-  
+
   // 初始化面试
   initializeInterview()
-  
+
   // 解锁滚动
   unlockScroll()
   setTimeout(unlockScroll, 50)
@@ -622,18 +629,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // 停止计时器
   stopTimer()
-  
+
   // 清理摄像头资源
   if (userVideo.value && userVideo.value.srcObject) {
     const tracks = userVideo.value.srcObject.getTracks()
     tracks.forEach(track => track.stop())
     userVideo.value.srcObject = null
   }
-  
+
   // 清理面试状态
   interviewStore.endInterview()
 })
-</script> 
+</script>
 
 <style scoped>
 .live-interview-page {
@@ -712,10 +719,6 @@ onBeforeUnmount(() => {
   animation: pulse 2s infinite;
 }
 
-.status-indicator.connected {
-  background: #52c41a;
-}
-
 .status-text {
   font-size: 14px;
   color: #a0a0a0;
@@ -773,12 +776,6 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.interviewer-status.speaking {
-  background: rgba(64, 158, 255, 0.2);
-  color: #409eff;
-  border: 1px solid rgba(64, 158, 255, 0.3);
-}
-
 .interviewer-video {
   display: flex;
   flex-direction: column;
@@ -799,11 +796,6 @@ onBeforeUnmount(() => {
   justify-content: center;
   border: 3px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
-}
-
-.ai-avatar.speaking {
-  border-color: #409eff;
-  box-shadow: 0 0 20px rgba(64, 158, 255, 0.3);
 }
 
 .avatar-emoji {
@@ -1089,11 +1081,11 @@ onBeforeUnmount(() => {
   .main-content {
     flex-direction: column;
   }
-  
+
   .left-column, .right-column {
     flex: none;
   }
-  
+
   .ai-interviewer-section {
     height: auto;
     min-height: 400px;
@@ -1104,30 +1096,30 @@ onBeforeUnmount(() => {
   .top-status-bar {
     padding: 15px 20px;
   }
-  
+
   .main-content {
     padding: 15px;
   }
-  
+
   .control-bar {
     padding: 15px 20px;
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .control-left, .control-center, .control-right {
     justify-content: center;
   }
-  
+
   .progress-bar {
     width: 150px;
   }
-  
+
   .ai-avatar {
     width: 100px;
     height: 100px;
   }
-  
+
   .avatar-emoji {
     font-size: 50px;
   }
@@ -1139,27 +1131,27 @@ onBeforeUnmount(() => {
     gap: 15px;
     padding: 15px;
   }
-  
+
   .status-left, .status-center, .status-right {
     width: 100%;
     text-align: center;
   }
-  
+
   .progress-bar {
     width: 100%;
   }
-  
+
   .ai-interviewer-section {
     padding: 20px;
   }
-  
+
   .transcript-section, .user-video-section {
     padding: 15px;
   }
-  
+
   .control-btn {
     padding: 10px 15px;
     font-size: 14px;
   }
 }
-</style> 
+</style>

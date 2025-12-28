@@ -12,8 +12,8 @@
       <!-- 中间功能菜单 -->
       <div class="nav-center">
         <div class="nav-menu">
-          <div 
-            v-for="feature in userFeatures" 
+          <div
+            v-for="feature in userFeatures"
             :key="feature.key"
             :class="['nav-menu-item', { 'active': isCurrentPage(feature.path) }]"
             @click="handleMenuSelect(feature.key)"
@@ -54,11 +54,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowDown, Setting, SwitchButton, ArrowLeft } from '@element-plus/icons-vue'
+import {computed} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useUserStore} from '@/stores/user'
+import {ElMessage, ElMessageBox} from 'element-plus'
+import {ArrowDown, ArrowLeft, Setting, SwitchButton} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -262,7 +262,7 @@ const handleUserCommand = async (command) => {
   .nav-container {
     padding: 0 16px;
   }
-  
+
   .nav-menu-item {
     padding: 0 14px; /* 进一步减少padding */
     font-size: 13px;
@@ -278,9 +278,9 @@ const handleUserCommand = async (command) => {
     padding: 0 12px;
     font-size: 12px;
   }
-  
+
   .username {
     display: none;
   }
 }
-</style> 
+</style>

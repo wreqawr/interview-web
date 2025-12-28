@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import {defineStore} from 'pinia'
+import {ref, watch} from 'vue'
 
 export const useInterviewStore = defineStore('interview', () => {
   // 默认配置
@@ -94,7 +94,7 @@ export const useInterviewStore = defineStore('interview', () => {
       if (interviewState.value.currentAnswer.trim()) {
         interviewState.value.answers[interviewState.value.currentQuestionIndex] = interviewState.value.currentAnswer
       }
-      
+
       interviewState.value.currentQuestionIndex++
       interviewState.value.currentAnswer = ''
     }
@@ -107,7 +107,7 @@ export const useInterviewStore = defineStore('interview', () => {
       if (interviewState.value.currentAnswer.trim()) {
         interviewState.value.answers[interviewState.value.currentQuestionIndex] = interviewState.value.currentAnswer
       }
-      
+
       interviewState.value.currentQuestionIndex--
       interviewState.value.currentAnswer = interviewState.value.answers[interviewState.value.currentQuestionIndex] || ''
     }
@@ -159,7 +159,7 @@ export const useInterviewStore = defineStore('interview', () => {
     // 状态
     interviewConfig,
     interviewState,
-    
+
     // 方法
     setInterviewConfig,
     setResumeInfo,
@@ -176,4 +176,4 @@ export const useInterviewStore = defineStore('interview', () => {
     getProgressPercent,
     clearInterviewData
   }
-}) 
+})

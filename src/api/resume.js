@@ -1,13 +1,13 @@
 import http from './http';
 import {
-  RESUME_ANALYZE_ASYNC_URL,
-  RESUME_ANALYZE_URL,
-  RESUME_DELETE_URL,
-  RESUME_DOWNLOAD_URL,
-  RESUME_METADATA_ASYNC_URL,
-  RESUME_METADATA_URL,
-  RESUME_PREVIEW_URL,
-  RESUME_UPLOAD_URL
+    RESUME_ANALYZE_ASYNC_URL,
+    RESUME_ANALYZE_URL,
+    RESUME_DELETE_URL,
+    RESUME_DOWNLOAD_URL,
+    RESUME_METADATA_ASYNC_URL,
+    RESUME_METADATA_URL,
+    RESUME_PREVIEW_URL,
+    RESUME_UPLOAD_URL
 } from './endpoints';
 
 /**
@@ -91,4 +91,4 @@ export async function analyzeResume(resumeId) {
  */
 export async function queryResumeAnalyzeAsyncResult(taskId, resumeId) {
     return await http.get(`${RESUME_ANALYZE_ASYNC_URL}/${taskId}/${resumeId}`);
-} 
+}
