@@ -37,8 +37,8 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
 
 .voice-avatar {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
 }
 
 .avatar-image {
@@ -46,6 +46,8 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .avatar-image img {
@@ -63,11 +65,20 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   position: relative;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.voice-hero:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
 }
 
 .hero-icon {
   font-size: 80px;
   z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .sound-waves {
@@ -78,14 +89,16 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
   align-items: center;
   justify-content: center;
   gap: 8px;
+  pointer-events: none;
 }
 
 .sound-waves span {
   width: 4px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.8);
+  height: 50px;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 2px;
   animation: wave 1s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .sound-waves span:nth-child(1) {
@@ -103,9 +116,11 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
 @keyframes wave {
   0%, 100% {
     transform: scaleY(0.5);
+    opacity: 0.6;
   }
   50% {
     transform: scaleY(1);
+    opacity: 1;
   }
 }
 </style>

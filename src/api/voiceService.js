@@ -1,14 +1,31 @@
 // 标准服务 - 用于调用后端 API
 import http from "./http";
+import {AICallAgentType} from "aliyun-auikit-aicall";
 
 class StandardAppService {
-    constructor() {
-        this.appServer = ''
-        this.serverAuth = ''
-    }
-
-    setAppServer(appServer) {
-        this.appServer = appServer
+    async generateAIAgent(userId, region, aiAgentId) {
+        const payload = {
+            user_id: userId,
+            ai_agent_id: aiAgentId,
+            region,
+        }
+        const url = '/api/ai/agent/generateAIAgentCall'
+        try {
+            const response = await http.post(url, payload)
+            const parseData = response.data;
+            const result = {
+                agentType: AICallAgentType.VoiceAgent,
+                instanceId: parseData.ai_agent_instance_id,
+                channelId: parseData.channel_id,
+                userId: parseData.ai_agent_user_id,
+                rtcToken: parseData.rtc_auth_token,
+                reqId: parseData.request_id || "",
+            };
+            console.log(result);
+            return result;
+        } catch (error) {
+            throw error
+        }
     }
 
     // 获取 RTC 认证 Token

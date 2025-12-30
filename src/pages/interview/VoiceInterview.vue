@@ -1,54 +1,160 @@
 <template>
   <div class="voice-interview-page">
-    <div class="voice-interview-container">
-      <!-- 顶部状态栏 -->
-      <div class="top-status-bar">
-        <div class="status-left">
-          <el-button
+    <!-- 顶部状态栏 -->
+    <div class="top-status-bar">
+      <div class="status-left">
+        <el-button
             text
             @click="handleExit"
             class="exit-btn"
-          >
-            <el-icon><ArrowLeft /></el-icon>
-            <span>退出面试</span>
-          </el-button>
-        </div>
+        >
+          <el-icon>
+            <ArrowLeft/>
+          </el-icon>
+          <span>退出面试</span>
+        </el-button>
+      </div>
 
-        <div class="status-center">
-          <div class="timer">
-            <el-icon><Clock /></el-icon>
-            <span class="time-display">{{ formatTime(interviewTime) }}</span>
+      <div class="status-center">
+        <div class="timer">
+          <el-icon>
+            <Clock/>
+          </el-icon>
+          <span class="time-display">{{ formatTime(interviewTime) }}</span>
+        </div>
+      </div>
+
+      <div class="status-right">
+        <div class="connection-status">
+          <div class="status-indicator" :class="{ connected: isConnected }"></div>
+          <span class="status-text">{{ statusText }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 左栏 - AI面试官和实时对话 -->
+      <div class="left-column">
+        <div class="ai-interviewer-section">
+          <div class="interviewer-header">
+            <h2>AI面试官</h2>
+            <div class="interviewer-status" :class="aiStatusClass">
+              {{ aiStatusText }}
+            </div>
           </div>
-        </div>
 
-        <div class="status-right">
-          <div class="connection-status">
-            <div class="status-indicator" :class="{ connected: isConnected }"></div>
-            <span class="status-text">{{ statusText }}</span>
+          <!-- AI面试官和实时对话左右布局 -->
+          <div class="interviewer-main-layout">
+            <!-- 左侧：AI面试官 -->
+            <div class="interviewer-left">
+              <div class="interviewer-avatar">
+                <VoiceAvatar/>
+                <div class="interviewer-info">
+                  <h3 class="interviewer-name">offer侠</h3>
+                  <p class="interviewer-style">专业型面试官</p>
+                </div>
+              </div>
+
+              <!-- 当前问题 -->
+              <div class="current-question" v-if="currentQuestion">
+                <h4>当前问题</h4>
+                <div class="question-content">
+                  {{ currentQuestion }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：实时对话 -->
+            <div class="transcript-section">
+              <div class="transcript-header">
+                <h4>实时对话</h4>
+              </div>
+              <div class="transcript-content">
+                <!-- AI说话区域 -->
+                <div class="transcript-ai" v-if="aiTranscript">
+                  <div class="transcript-label">
+                    <el-icon>
+                      <UserFilled/>
+                    </el-icon>
+                    AI面试官
+                  </div>
+                  <div class="transcript-text" v-html="formatTranscript(aiTranscript)"></div>
+                </div>
+
+                <!-- 用户说话区域 -->
+                <div class="transcript-user" v-if="userTranscript">
+                  <div class="transcript-label">
+                    <el-icon>
+                      <User/>
+                    </el-icon>
+                    我的回答
+                  </div>
+                  <div class="transcript-text" v-html="formatTranscript(userTranscript)"></div>
+                </div>
+
+                <!-- 空状态 -->
+                <div v-if="!aiTranscript && !userTranscript" class="transcript-empty">
+                  <p>对话内容将在这里显示</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 主要内容区域 -->
-      <div class="voice-content">
-        <VoiceAvatar />
+      <!-- 右栏 - 控制面板 -->
+      <div class="right-column">
+        <!-- 面试进度 -->
+        <div class="control-panel">
+          <div class="panel-header">
+            <h3>面试控制</h3>
+          </div>
+          <div class="panel-content">
+            <!-- 连接状态 -->
+            <div class="panel-section">
+              <h4>连接状态</h4>
+              <div class="status-card" :class="callState">
+                <div class="status-icon">
+                  <div class="status-dot" :class="{ connected: isConnected }"></div>
+                </div>
+                <div class="status-info">
+                  <div class="status-title">{{ statusText }}</div>
+                  <div class="status-desc" v-if="isConnected">语音通话已建立</div>
+                  <div class="status-desc" v-else>正在建立连接...</div>
+                </div>
+              </div>
+            </div>
 
-        <div v-if="callState === 'Connecting'" class="connecting">
-          <div class="spinner"></div>
-          <p>正在连接...</p>
-        </div>
+            <!-- 错误提示 -->
+            <div class="panel-section" v-if="callState === 'Error'">
+              <div class="error-card">
+                <el-icon class="error-icon">
+                  <Warning/>
+                </el-icon>
+                <div class="error-message">{{ callErrorMessage || '连接失败' }}</div>
+                <el-button type="primary" size="small" @click="handleRetry">重试连接</el-button>
+              </div>
+            </div>
 
-        <div v-if="callState === 'Error'" class="error">
-          <p>连接失败: {{ callErrorMessage }}</p>
-          <el-button @click="handleRetry">重试</el-button>
+            <!-- 连接中提示 -->
+            <div class="panel-section" v-if="callState === 'Connecting'">
+              <div class="connecting-card">
+                <div class="spinner-small"></div>
+                <div class="connecting-text">正在连接中，请稍候...</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- 控制按钮 -->
+    <!-- 底部控制栏 -->
+    <div class="control-bar">
       <VoiceControls
-        :controller="controller"
-        @call="handleCall"
-        @stop="handleStop"
+          :controller="controller"
+          @call="handleCall"
+          @stop="handleStop"
       />
     </div>
   </div>
@@ -58,14 +164,13 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
-import {ArrowLeft, Clock} from '@element-plus/icons-vue'
+import {ArrowLeft, Clock, User, UserFilled, Warning} from '@element-plus/icons-vue'
 import ARTCAICallEngine, {AICallAgentType, AICallState} from 'aliyun-auikit-aicall'
 import AUIAICallProxyController from '@/controller/call/AUIAICallProxyController'
 import {useVoiceInterviewStore} from '@/stores/voiceInterview'
 import {useUserStore} from '@/stores/user'
 import VoiceAvatar from '@/components/interview/VoiceAvatar.vue'
 import VoiceControls from '@/components/interview/VoiceControls.vue'
-import voiceService from '@/api/voiceService'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -78,6 +183,27 @@ let timer = null
 // 语音面试配置（可以从后端获取或使用默认值）
 const voiceAgentId = ref('86f6aab36b0f4faa95f39a1ea2ddebc6') // 默认智能体ID，应该从配置获取
 const region = ref('cn-shanghai')
+
+// 实时字幕
+const aiTranscript = ref('')
+const userTranscript = ref('')
+const currentQuestion = ref('')
+
+// AI状态
+const aiStatusText = computed(() => {
+  if (callState.value === 'Connected') {
+    return voiceInterviewStore.state.isSpeaking ? '正在提问' : '正在倾听'
+  }
+  if (callState.value === 'Connecting') return '连接中'
+  return '等待连接'
+})
+
+const aiStatusClass = computed(() => {
+  if (callState.value === 'Connected') {
+    return voiceInterviewStore.state.isSpeaking ? 'speaking' : 'listening'
+  }
+  return 'waiting'
+})
 
 const callState = computed(() => {
   const state = voiceInterviewStore.state.callState
@@ -125,7 +251,7 @@ const stopTimer = () => {
 // 初始化控制器
 const initController = () => {
   // 设置服务端地址（重要！与 vue-voice 保持一致）
-  voiceService.setAppServer('')  // 使用相对路径，空字符串表示当前域名
+  // voiceService.setAppServer('')  // 使用相对路径，空字符串表示当前域名
 
   // 获取用户ID（从token中提取或使用默认值）
   const userInfo = userStore.getUserInfo
@@ -161,7 +287,7 @@ const setupEventListeners = () => {
 
   // 状态变化
   controller.value.on('AICallStateChanged', (newState) => {
-    voiceInterviewStore.setState({ callState: newState })
+    voiceInterviewStore.setState({callState: newState})
     if (newState === AICallState.Connected) {
       startTimer()
     } else if (newState === AICallState.Over || newState === AICallState.Error) {
@@ -177,23 +303,35 @@ const setupEventListeners = () => {
 
   // 智能体状态变化
   controller.value.on('AICallAgentStateChanged', (newState) => {
-    voiceInterviewStore.setState({ agentState: newState })
+    voiceInterviewStore.setState({agentState: newState})
   })
 
   // 音量变化
   controller.value.on('AICallActiveSpeakerVolumeChanged', (userId, volume) => {
     if (userId === '') {
-      voiceInterviewStore.setState({ isSpeaking: volume > 30 })
+      voiceInterviewStore.setState({isSpeaking: volume > 30})
     }
   })
 
   // 字幕通知
   controller.value.on('AICallAgentSubtitleNotify', (data) => {
     console.log('Agent subtitle:', data)
+    // 更新AI字幕
+    if (data && data.text) {
+      aiTranscript.value = data.text
+      // 如果是第一个问题，更新当前问题
+      if (!currentQuestion.value) {
+        currentQuestion.value = data.text
+      }
+    }
   })
 
   controller.value.on('AICallUserSubtitleNotify', (data) => {
     console.log('User subtitle:', data)
+    // 更新用户字幕
+    if (data && data.text) {
+      userTranscript.value = data.text
+    }
   })
 
   // Token 过期
@@ -211,13 +349,13 @@ const setupEventListeners = () => {
   // 智能体配置加载
   controller.value.on('AICallAgentConfigLoaded', (config) => {
     if (config.AvatarUrl) {
-      voiceInterviewStore.setState({ voiceAvatarUrl: config.AvatarUrl })
+      voiceInterviewStore.setState({voiceAvatarUrl: config.AvatarUrl})
     }
     if (config?.TtsConfig?.VoiceId) {
-      voiceInterviewStore.setState({ voiceId: config.TtsConfig.VoiceId })
+      voiceInterviewStore.setState({voiceId: config.TtsConfig.VoiceId})
     }
     if (config?.enablePushToTalk) {
-      voiceInterviewStore.setState({ enablePushToTalk: config.enablePushToTalk })
+      voiceInterviewStore.setState({enablePushToTalk: config.enablePushToTalk})
     }
   })
 }
@@ -270,7 +408,14 @@ const handleRetry = () => {
 // 退出
 const handleExit = async () => {
   await handleStop()
-  router.push('/interview/preparation')
+  await router.push('/interview/preparation')
+}
+
+// 格式化字幕文本（支持HTML）
+const formatTranscript = (text) => {
+  if (!text) return ''
+  // 转义HTML，但保留换行
+  return text.replace(/\n/g, '<br>')
 }
 
 onMounted(() => {
@@ -290,27 +435,24 @@ onUnmounted(() => {
 
 <style scoped>
 .voice-interview-page {
-  width: 100%;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   flex-direction: column;
+  background: #0f1419;
+  color: #fff;
+  overflow: hidden;
 }
 
-.voice-interview-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-/* 顶部状态栏 */
+/* 顶部状态栏样式 */
 .top-status-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 15px 30px;
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
 }
 
 .status-left,
@@ -334,40 +476,50 @@ onUnmounted(() => {
 }
 
 .exit-btn {
-  color: white;
+  color: #fff;
   font-size: 16px;
+}
+
+.exit-btn:hover {
+  color: #a0a0a0;
 }
 
 .timer {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .time-display {
-  font-size: 18px;
-  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
 }
 
 .connection-status {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: white;
 }
 
 .status-indicator {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #ff4444;
+  background: #ff4d4f;
   animation: pulse 2s infinite;
 }
 
 .status-indicator.connected {
   background: #4caf50;
   animation: none;
+}
+
+.status-text {
+  font-size: 14px;
+  color: #a0a0a0;
 }
 
 @keyframes pulse {
@@ -379,49 +531,388 @@ onUnmounted(() => {
   }
 }
 
-/* 主要内容区域 */
-.voice-content {
+/* 主内容区样式 */
+.main-content {
   flex: 1;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+/* 左栏样式 */
+.left-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-interviewer-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  overflow-y: auto;
+}
+
+.interviewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.interviewer-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+.interviewer-status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: #a0a0a0;
+}
+
+/* AI面试官和实时对话左右布局 */
+.interviewer-main-layout {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 左侧：AI面试官区域 */
+.interviewer-left {
+  width: 350px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.interviewer-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.interviewer-info {
+  text-align: center;
+}
+
+.interviewer-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.interviewer-style {
+  font-size: 14px;
+  color: #a0a0a0;
+  margin: 0;
+}
+
+.current-question {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-question h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #a0a0a0;
+  margin: 0 0 15px 0;
+}
+
+.question-content {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #fff;
+}
+
+/* 右侧：实时对话区域 */
+.transcript-section {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.transcript-header {
+  margin-bottom: 15px;
+}
+
+.transcript-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #a0a0a0;
+  margin: 0;
+}
+
+.transcript-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.transcript-ai,
+.transcript-user {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transcript-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #a0a0a0;
+  margin-bottom: 10px;
+}
+
+.transcript-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #fff;
+}
+
+.transcript-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 右栏样式 */
+.right-column {
+  width: 350px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.control-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.panel-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.panel-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.panel-section {
+  margin-bottom: 25px;
+}
+
+.panel-section h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-icon {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+  background: #4caf50;
+  animation: none;
+}
+
+.status-info {
+  flex: 1;
+}
+
+.status-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.status-desc {
+  font-size: 14px;
+  color: #a0a0a0;
+}
+
+.error-card {
   padding: 20px;
-}
-
-.connecting {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  background: rgba(244, 67, 54, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(244, 67, 54, 0.3);
   text-align: center;
-  color: white;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+.error-icon {
+  font-size: 48px;
+  color: #f44336;
+  margin-bottom: 10px;
+}
+
+.error-message {
+  color: #fff;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.connecting-card {
+  padding: 20px;
+  text-align: center;
+}
+
+.spinner-small {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
+  margin: 0 auto 15px;
+}
+
+.connecting-text {
+  color: #a0a0a0;
+  font-size: 14px;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.error {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: white;
-  background: rgba(244, 67, 54, 0.8);
-  padding: 20px;
-  border-radius: 12px;
+/* 底部控制栏样式 */
+.control-bar {
+  padding: 20px 30px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .right-column {
+    width: 100%;
+  }
+
+  .interviewer-main-layout {
+    flex-direction: column;
+  }
+
+  .interviewer-left {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-status-bar {
+    padding: 15px 20px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .ai-interviewer-section {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .right-column {
+    width: 100%;
+  }
+
+  .interviewer-main-layout {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .interviewer-left {
+    width: 100%;
+  }
+
+  .interviewer-avatar {
+    padding: 15px;
+  }
+
+  .current-question {
+    padding: 15px;
+  }
+
+  .transcript-section {
+    padding: 15px;
+  }
 }
 </style>
 

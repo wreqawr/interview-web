@@ -94,14 +94,9 @@ const handleCallClick = () => {
 
 <style scoped>
 .voice-controls {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  width: 100%;
+  padding: 0;
+  background: transparent;
 }
 
 .controls-buttons {
@@ -109,7 +104,7 @@ const handleCallClick = () => {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
 }
 
@@ -117,45 +112,73 @@ const handleCallClick = () => {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: none;
-  background: #f0f0f0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   font-size: 24px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #fff;
+  backdrop-filter: blur(10px);
 }
 
 .control-btn:hover {
-  transform: scale(1.1);
-  background: #e0e0e0;
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:active {
+  transform: translateY(0);
 }
 
 .control-btn.active {
-  background: #667eea;
-  color: white;
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
 }
 
 .call-btn {
   width: 70px;
   height: 70px;
-  background: #4caf50;
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.5);
   color: white;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.call-btn:hover {
+  background: rgba(76, 175, 80, 0.4);
+  box-shadow: 0 0 25px rgba(76, 175, 80, 0.5);
 }
 
 .call-btn.is-calling {
-  background: #f44336;
+  background: rgba(244, 67, 54, 0.3);
+  border-color: rgba(244, 67, 54, 0.5);
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.3);
+}
+
+.call-btn.is-calling:hover {
+  background: rgba(244, 67, 54, 0.4);
+  box-shadow: 0 0 25px rgba(244, 67, 54, 0.5);
 }
 
 .push-btn {
-  background: #ff9800;
+  background: rgba(255, 152, 0, 0.3);
+  border-color: rgba(255, 152, 0, 0.5);
   color: white;
 }
 
+.push-btn:hover {
+  background: rgba(255, 152, 0, 0.4);
+}
+
 .push-btn.active {
-  background: #f57c00;
+  background: rgba(245, 124, 0, 0.4);
   transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(245, 124, 0, 0.5);
 }
 </style>
 

@@ -49,3 +49,4 @@ export const ASSISTANT_CHAT_URL = `${AI_API}/chat`;
 export const INTERVIEW_CHAT_PREPARE_URL = `${INTERVIEW_API}/text/prepare`;
 // ai文字面试接口地址
 export const INTERVIEW_CHAT_PROGRESS_URL = `${INTERVIEW_API}/text/progress`;
+//
