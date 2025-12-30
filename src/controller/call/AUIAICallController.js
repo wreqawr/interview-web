@@ -26,6 +26,23 @@ export default class AUIAICallController extends EventEmitter {
     this._errorCode = null
     this._agentInfo = null
     this._agentState = null
+    this._shareConfig = null
+  }
+
+  get shareConfig() {
+    return this._shareConfig
+  }
+
+  set shareConfig(shareToken) {
+    console.log('Controller', 'SetShareConfig', { shareToken })
+    try {
+      this._shareConfig = ARTCAICallEngine.parseShareAgentCall(shareToken)
+      if (this._shareConfig?.agentType !== undefined) {
+        this.config.agentType = this._shareConfig.agentType
+      }
+    } catch (error) {
+      console.error('ParseShareAgentCallFailed', error)
+    }
   }
 
   get agentType() {
@@ -71,23 +88,35 @@ export default class AUIAICallController extends EventEmitter {
 
   // 初始化引擎
   async initEngine() {
-    if (!this._currentEngine) {
-      this._currentEngine = new ARTCAICallEngine()
+    // 如果引擎已存在且已初始化，先清理
+    if (this._currentEngine) {
+      try {
+        await this._currentEngine.handup()
+        this._currentEngine.removeAllListeners()
+      } catch (e) {
+        // 忽略清理错误
+      }
+      this._currentEngine = null
     }
+
+    this._currentEngine = new ARTCAICallEngine()
 
     try {
       await this._currentEngine.init(this.config.agentType, this.engineConfig)
       console.log('Controller', 'InitEngineSuccess')
     } catch (error) {
       console.error('InitEngineFailed', error)
+      this._currentEngine = null
       throw error
     }
   }
 
   // 添加引擎事件监听 - 完全按照 React 版本
   addEngineListener() {
+    // 注意：不在这里创建引擎实例，由 initEngine 统一创建
     if (!this._currentEngine) {
-      this._currentEngine = new ARTCAICallEngine(this.engineConfig)
+      // 如果引擎不存在，先创建一个实例（但不初始化）
+      this._currentEngine = new ARTCAICallEngine()
     }
 
     // 错误事件
@@ -258,14 +287,33 @@ export default class AUIAICallController extends EventEmitter {
   async handup() {
     console.log('Controller', 'Handup')
     const currentState = this.state
-    if (this.state === AICallState.Over || this.state === AICallState.Error) return
+    if (this.state === AICallState.Over || this.state === AICallState.Error) {
+      // 即使状态已经是 Over 或 Error，也要清理引擎
+      if (this._currentEngine) {
+        try {
+          await this._currentEngine.handup()
+          this._currentEngine.removeAllListeners()
+        } catch (e) {
+          // 忽略清理错误
+        }
+        this._currentEngine = null
+      }
+      return
+    }
     this.state = AICallState.Over
     const agent = this.engine?.agentInfo
     if (agent && currentState === AICallState.Connected) {
       await this.stopAIAgent()
     }
-    await this.engine?.handup()
-    this.engine?.removeAllListeners()
+    if (this._currentEngine) {
+      try {
+        await this._currentEngine.handup()
+        this._currentEngine.removeAllListeners()
+      } catch (e) {
+        // 忽略清理错误
+      }
+      this._currentEngine = null
+    }
     this.removeAllListeners()
   }
 
@@ -282,5 +330,9 @@ export default class AUIAICallController extends EventEmitter {
   // 抽象方法，子类实现
   async start() {
     throw new Error('start method must be implemented by subclass')
+  }
+
+  destroy() {
+    // 子类可以重写此方法
   }
 }

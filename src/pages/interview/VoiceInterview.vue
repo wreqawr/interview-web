@@ -166,7 +166,7 @@ import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
 import {ArrowLeft, Clock, User, UserFilled, Warning} from '@element-plus/icons-vue'
 import ARTCAICallEngine, {AICallAgentType, AICallState} from 'aliyun-auikit-aicall'
-import AUIAICallProxyController from '@/controller/call/AUIAICallProxyController'
+import AUIAICallStandardController from '@/controller/call/AUIAICallStandardController'
 import {useVoiceInterviewStore} from '@/stores/voiceInterview'
 import {useUserStore} from '@/stores/user'
 import VoiceAvatar from '@/components/interview/VoiceAvatar.vue'
@@ -250,16 +250,13 @@ const stopTimer = () => {
 
 // 初始化控制器
 const initController = () => {
-  // 设置服务端地址（重要！与 vue-voice 保持一致）
-  // voiceService.setAppServer('')  // 使用相对路径，空字符串表示当前域名
-
   // 获取用户ID（从token中提取或使用默认值）
   const userInfo = userStore.getUserInfo
   const userId = userInfo?.userId || userInfo?.id || userInfo?.username || 'default_user'
   const userToken = userStore.token || ''
 
-  // 创建控制器
-  controller.value = new AUIAICallProxyController(userId, userToken)
+  // 创建控制器（使用 standard 模式）
+  controller.value = new AUIAICallStandardController(userId, userToken)
 
   // 配置控制器
   controller.value.config = {
