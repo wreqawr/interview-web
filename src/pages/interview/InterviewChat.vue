@@ -724,19 +724,6 @@ const endInterview = async () => {
   box-sizing: border-box;
 }
 
-.send-icon:hover:not(.disabled) {
-  transform: translateY(-2px);
-}
-
-.send-icon:active:not(.disabled) {
-  transform: translateY(0);
-}
-
-.send-icon.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 /* 思考指示器 */
 .thinking-indicator {
   display: flex;
@@ -886,7 +873,6 @@ const endInterview = async () => {
 }
 
 .ctrl-item:hover { opacity: 0.9; transform: translateY(-1px); }
-.ctrl-item.disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .ctrl-item.start { background: #67c23a; }
 .ctrl-item.pause { background: #909399; }

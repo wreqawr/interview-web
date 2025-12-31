@@ -389,7 +389,7 @@ const getIconSrc = (iconPath) => {
     '@/assets/function/jobseeker/interview-report.svg': interviewReportIcon,
     '@/assets/function/jobseeker/study-center.svg': studyCenterIcon
   }
-  
+
   return iconMap[iconPath] || iconPath
 }
 
@@ -530,21 +530,6 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.carousel-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: scale(0.9);
-}
-
-.carousel-btn:not(.disabled):hover {
-  transform: scale(1.1);
-  box-shadow: 0 12px 30px rgba(49, 130, 206, 0.4);
-}
-
-.carousel-btn:not(.disabled):active {
-  transform: scale(0.95);
-}
-
 .carousel-btn span {
   font-size: 10px;
   line-height: 1;
@@ -618,11 +603,6 @@ onUnmounted(() => {
 .indicator:hover {
   background: rgba(0, 0, 0, 0.5);
   transform: scale(1.2);
-}
-
-.indicator.active {
-  background: #409eff;
-  transform: scale(1.3);
 }
 
 .feature-card-content {
@@ -856,4 +836,4 @@ onUnmounted(() => {
     transition: transform 0.1s ease-out, opacity 0.1s ease-out;
   }
 }
-</style> 
+</style>

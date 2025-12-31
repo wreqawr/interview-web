@@ -1287,14 +1287,6 @@ html, body {
   opacity: 0.6; /* 默认半透明 */
 }
 
-.hr-assistant-bubble:hover,
-.hr-assistant-bubble.active {
-  right: 0; /* 悬浮时完全显示 */
-  transform: scale(1.05);
-  box-shadow: 0 6px 25px rgba(64, 158, 255, 0.6);
-  opacity: 1; /* 悬浮或激活时不透明 */
-}
-
 .bubble-icon {
   font-size: 20px;
   margin-bottom: 2px;
@@ -1321,10 +1313,6 @@ html, body {
   display: flex;
   flex-direction: column;
   border: 1px solid #e5e7eb;
-}
-
-.hr-assistant-panel.active {
-  right: 0;
 }
 
 /* 面板头部 */
@@ -1541,20 +1529,6 @@ html, body {
   border-radius: 6px;
 }
 
-.send-icon:hover:not(.disabled) {
-  transform: translateY(-2px);
-}
-
-
-
-.send-icon:active:not(.disabled) {
-  transform: translateY(0);
-}
-
-.send-icon.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
 
 /* 公告弹窗样式 */
 .announcement-overlay {

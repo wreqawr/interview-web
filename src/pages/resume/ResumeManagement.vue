@@ -1569,11 +1569,6 @@ function submitUpload() {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* 统一阴影 */
 }
 
-.resume-card.active {
-  border-color: #409eff;
-  background: rgba(255, 255, 255, 0.95);
-}
-
 .resume-card-header {
   display: flex;
   justify-content: space-between;
@@ -1784,11 +1779,6 @@ function submitUpload() {
   opacity: 0.8;
 }
 
-.action-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* 预览按钮 - 蓝色 */
 .action-item.preview {
   background: #409eff;
@@ -1815,133 +1805,10 @@ function submitUpload() {
 }
 
 /* 预览按钮悬停提示 */
-.action-item.preview.no-preview {
-  position: relative;
-}
-
-.action-item.preview.no-preview::before {
-  content: '不支持预览';
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.preview.no-preview::after {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.8);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.preview.no-preview:hover::before,
-.action-item.preview.no-preview:hover::after {
-  opacity: 1;
-  visibility: visible;
-}
 
 /* 编辑按钮悬停提示 */
-.action-item.edit.dev-in-progress {
-  position: relative;
-}
-
-.action-item.edit.dev-in-progress::before {
-  content: '该功能正在开发中';
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.edit.dev-in-progress::after {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.8);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.edit.dev-in-progress:hover::before,
-.action-item.edit.dev-in-progress:hover::after {
-  opacity: 1;
-  visibility: visible;
-}
 
 /* 分析按钮悬停提示 */
-.action-item.analyze.analyzing {
-  position: relative;
-}
-
-.action-item.analyze.analyzing::before {
-  content: '正在分析中，请稍等';
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.analyze.analyzing::after {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.8);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 1000;
-}
-
-.action-item.analyze.analyzing:hover::before,
-.action-item.analyze.analyzing:hover::after {
-  opacity: 1;
-  visibility: visible;
-}
 
 .preview-container {
   height: 600px;
@@ -2022,4 +1889,4 @@ function submitUpload() {
   }
 
 }
-</style> 
+</style>
