@@ -139,9 +139,6 @@ export default class AUIAICallController extends EventEmitter {
     })
 
     this._currentEngine.on('audioSubscribed', (userId, audioElement) => {
-      if (audioElement) {
-        this._agentAudioElement = audioElement
-      }
       this.emit('AICallAgentAudioSubscribed', audioElement)
     })
 

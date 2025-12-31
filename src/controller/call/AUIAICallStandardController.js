@@ -2,6 +2,7 @@
 import {AICallAgentError, AICallErrorCode, AICallState} from 'aliyun-auikit-aicall'
 import AUIAICallController from './AUIAICallController'
 import standardService from '@/api/voiceService'
+import {useInterviewStore} from '@/stores/interview'
 
 export default class AUIAICallStandardController extends AUIAICallController {
     async start() {
@@ -74,9 +75,22 @@ export default class AUIAICallStandardController extends AUIAICallController {
     }
 
     async startAIAgent() {
+        // 从 interviewStore 获取 resumeId 和 jobId
+        const interviewStore = useInterviewStore()
+        const resumeId = interviewStore.interviewConfig.resumeId
+        const jobId = interviewStore.interviewConfig.position
+
+        // 验证参数
+        if (!resumeId || !jobId) {
+            throw new AICallAgentError('resumeId and jobId are required')
+        }
+
         let agentInfo = null
         try {
-            agentInfo = await standardService.generateAIAgent()
+            agentInfo = await standardService.generateAIAgent({
+                resumeId,
+                jobId
+            })
         } catch (error) {
             throw error
         }
