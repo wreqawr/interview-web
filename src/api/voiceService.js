@@ -1,130 +1,32 @@
 // 标准服务 - 用于调用后端 API
-import http from "./http";
+import http from "./http"
+import {INTERVIEW_VIDEO_URL} from './endpoints'
+import {AICallAgentType} from 'aliyun-auikit-aicall'
 
-// WorkflowType 枚举
-// AgentType 到 WorkflowType 的映射
-// 获取 WorkflowType
 class StandardAppService {
     // 生成 AI 智能体实例（Standard 模式使用）
-    async generateAIAgent(userId, token, config) {
+    async generateAIAgent() {
         const param = {
             resumeId: "1766204843503b22d2697a4ba487",
             jobId: 1
         }
 
-        const url = '/api/interview/voice/generateAIAgentCall'
+        const response = await http.post(INTERVIEW_VIDEO_URL, param)
+        const {data} = response
 
-        try {
-            const response = await http.post(url, param)
-            const {data} = response
-
-            // 处理 HTTP 错误状态码
-            if (response.status === 403) {
-                const error = new Error('token is invalid')
-                error.name = 'ServiceAuthError'
+        // 处理响应数据
+        if (data.code === 200) {
+            const parseData = data.data
+            return {
+                agentType: AICallAgentType.VoiceAgent,
+                instanceId: parseData.ai_agent_instance_id,
+                channelId: parseData.channel_id,
+                userId: parseData.ai_agent_user_id,
+                rtcToken: parseData.rtc_auth_token,
+                reqId: parseData.request_id || ''
             }
-
-            // 处理响应数据
-            if (data.code === 200) {
-                const parseData = data.data
-                return {
-                    agentType: config.agentType,
-                    instanceId: parseData.ai_agent_instance_id,
-                    channelId: parseData.channel_id,
-                    userId: parseData.ai_agent_user_id,
-                    rtcToken: parseData.rtc_auth_token,
-                    reqId: parseData.request_id || ''
-                }
-            }
-
-        } catch (error) {
-            // 处理 HTTP 错误状态码
-            if (error.response) {
-                if (error.response.status === 403) {
-                    const authError = new Error('token is invalid')
-                    authError.name = 'ServiceAuthError'
-                    throw authError
-                } else if (error.response.status !== 200) {
-                    throw new Error(`response status is ${error.response.status}`)
-                }
-            }
-            // 重新抛出其他错误
-            throw error
-        }
-    }
-
-    // 获取 RTC 认证 Token
-    async getRtcAuthToken(userId, channelId) {
-        const payload = {
-            user_id: userId,
-            channel_id: channelId,
-        }
-        const url = `/api/ai/agent/getRtcAuthToken`
-
-        try {
-            const response = await http.post(url, payload)
-
-            const data = response.data
-
-            if (data.code === 200) {
-                // 与 React 版本保持一致，访问 data.data.rtc_auth_token
-                return data.data?.rtc_auth_token || data.rtc_auth_token
-            }
-        } catch (error) {
-            // 处理 HTTP 错误状态码
-            if (error.response) {
-                if (error.response.status === 403) {
-                    const authError = new Error('token is invalid')
-                    authError.name = 'ServiceAuthError'
-                    throw authError
-                } else if (error.response.status !== 200) {
-                    throw new Error(`response status is ${error.response.status}`)
-                }
-            }
-            // 重新抛出其他错误
-            throw error
-        }
-    }
-
-    // 描述智能体实例
-    async describeAIAgentInstance(userId, token, region, instanceId) {
-        if (!userId || !instanceId) {
-            throw new Error('userId or instanceId is empty')
         }
 
-        const payload = {
-            user_id: userId,
-            ai_agent_instance_id: instanceId,
-            region,
-        }
-        const url = '/api/ai/agent/describeAIAgentInstance'
-
-        try {
-            // 如果 appServer 为空，使用相对路径
-            const response = await http.post(url, payload)
-
-            const data = response.data
-
-            if (data.code === 200) {
-                // 与 React 版本保持一致，访问 data.data.agent_config
-                const agentConfig = data.data?.agent_config || data.runtime_config
-                return JSON.parse(agentConfig || '{}')
-            }
-
-        } catch (error) {
-            // 处理 HTTP 错误状态码
-            if (error.response) {
-                if (error.response.status === 403) {
-                    const authError = new Error('token is invalid')
-                    authError.name = 'ServiceAuthError'
-                    throw authError
-                } else if (error.response.status !== 200) {
-                    throw new Error(`describeAIAgentInstance error, response status: ${error.response.status}`)
-                }
-            }
-            // 重新抛出其他错误
-            throw error
-        }
     }
 }
 

@@ -6,63 +6,27 @@ import ARTCAICallEngine, {
   AICallConnectionStatus,
   AICallState,
 } from 'aliyun-auikit-aicall'
-import standardService from '@/api/voiceService'
 
 export default class AUIAICallController extends EventEmitter {
-  constructor(userId, token, config = {}) {
+  constructor(userId, config = {}) {
     super()
     this._userId = String(userId)
-    this._token = token
     this._currentEngine = null
     this.engineConfig = config || {}
     this.config = {
-      agentId: '',
       agentType: AICallAgentType.VoiceAgent,
-      region: 'cn-shanghai',
-      userId: this._userId,
-      userJoinToken: '',
     }
+    /** @type {AICallState} */
     this._state = AICallState.None
     this._errorCode = null
     this._agentInfo = null
-    this._agentState = null
-    this._shareConfig = null
   }
-
-  get shareConfig() {
-    return this._shareConfig
-  }
-
-  set shareConfig(shareToken) {
-    console.log('Controller', 'SetShareConfig', { shareToken })
-    try {
-      this._shareConfig = ARTCAICallEngine.parseShareAgentCall(shareToken)
-      if (this._shareConfig?.agentType !== undefined) {
-        this.config.agentType = this._shareConfig.agentType
-      }
-    } catch (error) {
-      console.error('ParseShareAgentCallFailed', error)
-    }
-  }
-
-  get agentType() {
-    return this.config.agentType
-  }
-
   get engine() {
     return this._currentEngine
   }
 
   get userId() {
     return this._userId
-  }
-
-  get token() {
-    return this._token
-  }
-
-  updateToken(token) {
-    this._token = token
   }
 
   get state() {
@@ -81,12 +45,7 @@ export default class AUIAICallController extends EventEmitter {
   get agentInfo() {
     return this._agentInfo
   }
-
-  get agentState() {
-    return this._agentState
-  }
-
-  // 初始化引擎
+// 初始化引擎
   async initEngine() {
     // 如果引擎已存在且已初始化，先清理
     if (this._currentEngine) {
@@ -129,7 +88,6 @@ export default class AUIAICallController extends EventEmitter {
 
     // Agent 状态相关
     this._currentEngine.on('agentStateChange', (newState) => {
-      this._agentState = newState
       this.emit('AICallAgentStateChanged', newState)
     })
 
@@ -234,28 +192,6 @@ export default class AUIAICallController extends EventEmitter {
     })
   }
 
-  // 描述智能体实例
-  async describeAIAgentInstance(instanceId) {
-    // 如果是分享链接，则处理
-    if (new URLSearchParams(location.search).get('token')) {
-      return
-    }
-
-    try {
-      const agentConfig = await standardService.describeAIAgentInstance(
-        this.userId,
-        this.token,
-        this.config.region,
-        instanceId
-      )
-
-      if (!agentConfig) return
-      this.emit('AICallAgentConfigLoaded', agentConfig)
-      console.log('Controller', 'DescribeAIAgentInstance')
-    } catch (error) {
-      console.log('DescribeAIAgentInstanceFailed', error?.name || error?.message || '')
-    }
-  }
 
   // 请求 RTC Token - 完全按照 React 版本
   async requestRTCToken() {

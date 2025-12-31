@@ -180,9 +180,6 @@ const controller = ref(null)
 const interviewTime = ref(0)
 let timer = null
 
-// 语音面试配置（可以从后端获取或使用默认值）
-const voiceAgentId = ref('86f6aab36b0f4faa95f39a1ea2ddebc6') // 默认智能体ID，应该从配置获取
-const region = ref('cn-shanghai')
 
 // 实时字幕
 const aiTranscript = ref('')
@@ -253,20 +250,13 @@ const initController = () => {
   // 获取用户ID（从token中提取或使用默认值）
   const userInfo = userStore.getUserInfo
   const userId = userInfo?.userId || userInfo?.id || userInfo?.username || 'default_user'
-  const userToken = userStore.token || ''
 
   // 创建控制器（使用 standard 模式）
-  controller.value = new AUIAICallStandardController(userId, userToken)
+  controller.value = new AUIAICallStandardController(userId)
 
-  // 配置控制器
+  // 配置控制器（只保留必要的配置）
   controller.value.config = {
     agentType: AICallAgentType.VoiceAgent,
-    region: region.value,
-    agentId: voiceAgentId.value,
-    userId: String(userId),  // 确保 userId 是字符串类型
-    userJoinToken: '',
-    userData: '',
-    agentConfig: null,
   }
 
   // 设置状态
