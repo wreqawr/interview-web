@@ -5,7 +5,7 @@ import App from './App.vue'
 import router from './router'
 
 // 引入Pinia状态管理
-import pinia from './store'
+import pinia from './stores'
 
 // 引入Element Plus及样式
 import ElementPlus from 'element-plus'

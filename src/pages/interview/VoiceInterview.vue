@@ -144,18 +144,18 @@
                 <div class="connecting-text">正在连接中，请稍候...</div>
               </div>
             </div>
+
+            <!-- 操作控制 -->
+            <div class="panel-section panel-section-controls">
+              <h4>操作控制</h4>
+              <button class="end-call-btn" @click="handleExit">
+                <img src="@/assets/interview/call.svg" alt="结束通话" class="call-icon" />
+                <span>结束通话</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 底部控制栏 -->
-    <div class="control-bar">
-      <VoiceControls
-          :controller="controller"
-          @call="handleCall"
-          @stop="handleStop"
-      />
     </div>
   </div>
 </template>
@@ -170,7 +170,6 @@ import AUIAICallStandardController from '@/controller/call/AUIAICallStandardCont
 import {useVoiceInterviewStore} from '@/stores/voiceInterview'
 import {useUserStore} from '@/stores/user'
 import VoiceAvatar from '@/components/interview/VoiceAvatar.vue'
-import VoiceControls from '@/components/interview/VoiceControls.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -425,9 +424,30 @@ onUnmounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0f1419;
-  color: #fff;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 50%, #f5f7fa 100%);
+  color: #1a202c;
   overflow: hidden;
+  position: relative;
+}
+
+.voice-interview-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.voice-interview-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* 顶部状态栏样式 */
@@ -436,9 +456,11 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   z-index: 100;
 }
 
@@ -463,12 +485,14 @@ onUnmounted(() => {
 }
 
 .exit-btn {
-  color: #fff;
+  color: #4b5563;
   font-size: 16px;
+  transition: all 0.2s ease;
 }
 
 .exit-btn:hover {
-  color: #a0a0a0;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
 }
 
 .timer {
@@ -477,7 +501,7 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 18px;
   font-weight: 600;
-  color: #fff;
+  color: #1e293b;
 }
 
 .time-display {
@@ -506,7 +530,8 @@ onUnmounted(() => {
 
 .status-text {
   font-size: 14px;
-  color: #a0a0a0;
+  color: #64748b;
+  font-weight: 500;
 }
 
 @keyframes pulse {
@@ -532,17 +557,21 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 80vh;
 }
 
 .ai-interviewer-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   padding: 30px;
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: 30px;
   overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  backdrop-filter: blur(10px);
 }
 
 .interviewer-header {
@@ -553,9 +582,12 @@ onUnmounted(() => {
 
 .interviewer-header h2 {
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
-  color: #fff;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .interviewer-status {
@@ -564,8 +596,10 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 500;
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  color: #a0a0a0;
+  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
 }
 
 /* AI面试官和实时对话左右布局 */
@@ -590,10 +624,11 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .interviewer-info {
@@ -602,47 +637,62 @@ onUnmounted(() => {
 
 .interviewer-name {
   font-size: 20px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0 0 5px 0;
 }
 
 .interviewer-style {
   font-size: 14px;
-  color: #a0a0a0;
+  color: #64748b;
   margin: 0;
+  font-weight: 500;
 }
 
 .current-question {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.1);
 }
 
 .current-question h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #a0a0a0;
+  color: #92400e;
   margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-question h4::before {
+  content: '❓';
+  font-size: 18px;
 }
 
 .question-content {
   font-size: 16px;
-  line-height: 1.6;
-  color: #fff;
+  line-height: 1.7;
+  color: #78350f;
+  font-weight: 500;
 }
 
 /* 右侧：实时对话区域 */
 .transcript-section {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .transcript-header {
@@ -652,8 +702,16 @@ onUnmounted(() => {
 .transcript-header h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #a0a0a0;
+  color: #475569;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transcript-header h4::before {
+  content: '💬';
+  font-size: 18px;
 }
 
 .transcript-content {
@@ -664,12 +722,20 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 
-.transcript-ai,
-.transcript-user {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+.transcript-ai {
+  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
+  border-radius: 12px;
   padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.transcript-user {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .transcript-label {
@@ -677,22 +743,31 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  font-weight: 500;
-  color: #a0a0a0;
+  font-weight: 600;
   margin-bottom: 10px;
+}
+
+.transcript-ai .transcript-label {
+  color: #6366f1;
+}
+
+.transcript-user .transcript-label {
+  color: #3b82f6;
 }
 
 .transcript-text {
   font-size: 15px;
-  line-height: 1.6;
-  color: #fff;
+  line-height: 1.7;
+  color: #1e293b;
+  font-weight: 500;
 }
 
 .transcript-empty {
   text-align: center;
   padding: 40px 20px;
-  color: #666;
+  color: #94a3b8;
   font-size: 14px;
+  font-style: italic;
 }
 
 /* 右栏样式 */
@@ -701,22 +776,38 @@ onUnmounted(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  height: 80vh;
 }
 
 .control-panel {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  backdrop-filter: blur(10px);
 }
 
 .panel-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
   color: #fff;
   padding: 20px;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .panel-header h3 {
@@ -728,18 +819,60 @@ onUnmounted(() => {
 .panel-content {
   flex: 1;
   padding: 20px;
-  overflow-y: auto;
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel-section {
   margin-bottom: 25px;
 }
 
+.panel-section-controls {
+  margin-top: auto;
+  margin-bottom: 20px;
+  padding-top: 25px;
+}
+
+.end-call-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.end-call-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.end-call-btn:active {
+  transform: translateY(0);
+}
+
+.call-icon {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+}
+
 .panel-section h4 {
   margin: 0 0 15px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: #1e293b;
 }
 
 .status-card {
@@ -747,9 +880,16 @@ onUnmounted(() => {
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .status-icon {
@@ -780,21 +920,22 @@ onUnmounted(() => {
 .status-title {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: #1e293b;
   margin-bottom: 5px;
 }
 
 .status-desc {
   font-size: 14px;
-  color: #a0a0a0;
+  color: #64748b;
 }
 
 .error-card {
   padding: 20px;
-  background: rgba(244, 67, 54, 0.1);
-  border-radius: 10px;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
   text-align: center;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
 }
 
 .error-icon {
@@ -804,9 +945,10 @@ onUnmounted(() => {
 }
 
 .error-message {
-  color: #fff;
+  color: #991b1b;
   margin-bottom: 15px;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .connecting-card {
@@ -817,16 +959,17 @@ onUnmounted(() => {
 .spinner-small {
   width: 30px;
   height: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 3px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 15px;
 }
 
 .connecting-text {
-  color: #a0a0a0;
+  color: #64748b;
   font-size: 14px;
+  font-weight: 500;
 }
 
 @keyframes spin {
@@ -835,13 +978,6 @@ onUnmounted(() => {
   }
 }
 
-/* 底部控制栏样式 */
-.control-bar {
-  padding: 20px 30px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 /* 响应式设计 */
 @media (max-width: 1200px) {

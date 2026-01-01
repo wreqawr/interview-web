@@ -2,6 +2,7 @@
 node_modules
 /dist
 vue-voice
+React
 
 
 # local env files
