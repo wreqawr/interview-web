@@ -2,14 +2,12 @@
   <div class="voice-avatar-container">
     <div class="voice-avatar">
       <div v-if="voiceAvatarUrl" class="avatar-image">
-        <img :src="voiceAvatarUrl" alt="Avatar" />
+        <img :src="voiceAvatarUrl" alt="Avatar"/>
       </div>
       <div v-else class="voice-hero">
-        <div class="hero-icon">🎤</div>
-        <div class="sound-waves" v-if="isSpeaking">
-          <span></span>
-          <span></span>
-          <span></span>
+        <div class="hero-inner">
+          <div class="hero-back"></div>
+          <div class="hero-containers" ref="lottieContainerRef"></div>
         </div>
       </div>
     </div>
@@ -17,13 +15,53 @@
 </template>
 
 <script setup>
-import {computed} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useVoiceInterviewStore} from '@/stores/voiceInterview'
+import HeroLottie from '@/utils/HeroLottie'
+
+const props = defineProps({
+  controller: {
+    type: Object,
+    default: null
+  }
+})
 
 const voiceInterviewStore = useVoiceInterviewStore()
+const lottieContainerRef = ref(null)
+let heroLottie = null
 
 const voiceAvatarUrl = computed(() => voiceInterviewStore.state.voiceAvatarUrl)
-const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
+
+const initHeroLottie = () => {
+  if (props.controller && lottieContainerRef.value && !voiceAvatarUrl.value && !heroLottie) {
+    heroLottie = new HeroLottie(lottieContainerRef.value, props.controller)
+    const onCallEnd = () => {
+      heroLottie?.destroy()
+      heroLottie = null
+    }
+    props.controller.on('AICallEnd', onCallEnd)
+  }
+}
+
+watch(() => props.controller, (newController) => {
+  if (newController && lottieContainerRef.value && !voiceAvatarUrl.value) {
+    initHeroLottie()
+  }
+}, {immediate: true})
+
+onMounted(() => {
+  // 延迟初始化，确保DOM已渲染
+  setTimeout(() => {
+    initHeroLottie()
+  }, 100)
+})
+
+onUnmounted(() => {
+  if (heroLottie) {
+    heroLottie.destroy()
+    heroLottie = null
+  }
+})
 </script>
 
 <style scoped>
@@ -33,12 +71,14 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
   justify-content: center;
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
 .voice-avatar {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
 .avatar-image {
@@ -57,71 +97,59 @@ const isSpeaking = computed(() => voiceInterviewStore.state.isSpeaking)
 }
 
 .voice-hero {
+  height: 200px;
   width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
+  overflow: visible;
   position: relative;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
 }
 
-.voice-hero:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+.hero-inner {
+  position: relative;
+  width: 360px;
+  height: 540px;
+  overflow: visible;
+  margin: -80px -20px;
 }
 
-.hero-icon {
-  font-size: 80px;
-  z-index: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.sound-waves {
+.hero-back {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  background-image: url(https://img.alicdn.com/imgextra/i1/O1CN01aeMosP1CcJ3MJinKG_!!6000000000101-2-tps-358-358.png);
+  background-size: 179px 179px;
+  width: 180px;
+  height: 180px;
+  left: 90px;
+  top: 180px;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.hero-containers {
+  position: absolute;
+  left: -90px;
+  top: 32px;
+  width: 540px;
+  height: 540px;
+  z-index: 2;
   pointer-events: none;
 }
 
-.sound-waves span {
-  width: 4px;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 2px;
-  animation: wave 1s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.hero-containers > div {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 540px;
+  height: 540px;
+  pointer-events: none;
 }
 
-.sound-waves span:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.sound-waves span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.sound-waves span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes wave {
-  0%, 100% {
-    transform: scaleY(0.5);
-    opacity: 0.6;
-  }
-  50% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
+.hero-containers svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
 }
 </style>
 

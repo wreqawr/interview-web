@@ -34,7 +34,7 @@
 
     <!-- 主内容区 -->
     <div class="main-content">
-      <!-- 左栏 - AI面试官和实时对话 -->
+      <!-- 左栏 - AI面试官 -->
       <div class="left-column">
         <div class="ai-interviewer-section">
           <div class="interviewer-header">
@@ -44,59 +44,21 @@
             </div>
           </div>
 
-          <!-- AI面试官和实时对话左右布局 -->
-          <div class="interviewer-main-layout">
-            <!-- 左侧：AI面试官 -->
-            <div class="interviewer-left">
-              <div class="interviewer-avatar">
-                <VoiceAvatar/>
-                <div class="interviewer-info">
-                  <h3 class="interviewer-name">offer侠</h3>
-                  <p class="interviewer-style">专业型面试官</p>
-                </div>
-              </div>
-
-              <!-- 当前问题 -->
-              <div class="current-question" v-if="currentQuestion">
-                <h4>当前问题</h4>
-                <div class="question-content">
-                  {{ currentQuestion }}
-                </div>
+          <!-- AI面试官居中显示 -->
+          <div class="interviewer-center">
+            <div class="interviewer-avatar">
+              <VoiceAvatar :controller="controller"/>
+              <div class="interviewer-info">
+                <h3 class="interviewer-name">{{ interviewerName }}</h3>
+                <p class="interviewer-style">专业型面试官</p>
               </div>
             </div>
 
-            <!-- 右侧：实时对话 -->
-            <div class="transcript-section">
-              <div class="transcript-header">
-                <h4>实时对话</h4>
-              </div>
-              <div class="transcript-content">
-                <!-- AI说话区域 -->
-                <div class="transcript-ai" v-if="aiTranscript">
-                  <div class="transcript-label">
-                    <el-icon>
-                      <UserFilled/>
-                    </el-icon>
-                    AI面试官
-                  </div>
-                  <div class="transcript-text" v-html="formatTranscript(aiTranscript)"></div>
-                </div>
-
-                <!-- 用户说话区域 -->
-                <div class="transcript-user" v-if="userTranscript">
-                  <div class="transcript-label">
-                    <el-icon>
-                      <User/>
-                    </el-icon>
-                    我的回答
-                  </div>
-                  <div class="transcript-text" v-html="formatTranscript(userTranscript)"></div>
-                </div>
-
-                <!-- 空状态 -->
-                <div v-if="!aiTranscript && !userTranscript" class="transcript-empty">
-                  <p>对话内容将在这里显示</p>
-                </div>
+            <!-- 当前问题 -->
+            <div class="current-question" v-if="currentQuestion">
+              <h4>当前问题</h4>
+              <div class="question-content">
+                {{ currentQuestion }}
               </div>
             </div>
           </div>
@@ -164,26 +126,36 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
-import {ArrowLeft, Clock, User, UserFilled, Warning} from '@element-plus/icons-vue'
+import {ArrowLeft, Clock, Warning} from '@element-plus/icons-vue'
 import ARTCAICallEngine, {AICallAgentType, AICallState} from 'aliyun-auikit-aicall'
 import AUIAICallStandardController from '@/controller/call/AUIAICallStandardController'
 import {useVoiceInterviewStore} from '@/stores/voiceInterview'
 import {useUserStore} from '@/stores/user'
+import {useInterviewStore} from '@/stores/interview'
 import VoiceAvatar from '@/components/interview/VoiceAvatar.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const voiceInterviewStore = useVoiceInterviewStore()
+const interviewStore = useInterviewStore()
 
 const controller = ref(null)
 const interviewTime = ref(0)
 let timer = null
 
 
-// 实时字幕
-const aiTranscript = ref('')
-const userTranscript = ref('')
+// 当前问题
 const currentQuestion = ref('')
+
+// 面试官名称（从面试配置中获取）
+const interviewerName = computed(() => {
+  const positionInfo = interviewStore.interviewConfig.positionInfo
+  if (positionInfo && positionInfo.companyName) {
+    return positionInfo.companyName
+  }
+  // 如果没有配置，返回默认值
+  return 'offer侠'
+})
 
 // AI状态
 const aiStatusText = computed(() => {
@@ -299,24 +271,11 @@ const setupEventListeners = () => {
     }
   })
 
-  // 字幕通知
+  // 字幕通知（用于提取当前问题）
   controller.value.on('AICallAgentSubtitleNotify', (data) => {
-    console.log('Agent subtitle:', data)
-    // 更新AI字幕
-    if (data && data.text) {
-      aiTranscript.value = data.text
-      // 如果是第一个问题，更新当前问题
-      if (!currentQuestion.value) {
-        currentQuestion.value = data.text
-      }
-    }
-  })
-
-  controller.value.on('AICallUserSubtitleNotify', (data) => {
-    console.log('User subtitle:', data)
-    // 更新用户字幕
-    if (data && data.text) {
-      userTranscript.value = data.text
+    // 如果是第一个问题，更新当前问题
+    if (data && data.text && !currentQuestion.value) {
+      currentQuestion.value = data.text
     }
   })
 
@@ -397,12 +356,6 @@ const handleExit = async () => {
   await router.push('/interview/preparation')
 }
 
-// 格式化字幕文本（支持HTML）
-const formatTranscript = (text) => {
-  if (!text) return ''
-  // 转义HTML，但保留换行
-  return text.replace(/\n/g, '<br>')
-}
 
 onMounted(() => {
   initController()
@@ -568,7 +521,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(226, 232, 240, 0.8);
   backdrop-filter: blur(10px);
@@ -602,21 +555,15 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-/* AI面试官和实时对话左右布局 */
-.interviewer-main-layout {
-  display: flex;
-  gap: 20px;
+/* AI面试官居中显示 */
+.interviewer-center {
   flex: 1;
-  min-height: 0;
-}
-
-/* 左侧：AI面试官区域 */
-.interviewer-left {
-  width: 350px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  min-height: 0;
 }
 
 .interviewer-avatar {
@@ -629,6 +576,11 @@ onUnmounted(() => {
   padding: 24px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  min-height: 200px;
+  position: relative;
+  width: 100%;
+  max-width: 500px;
 }
 
 .interviewer-info {
@@ -682,93 +634,6 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* 右侧：实时对话区域 */
-.transcript-section {
-  flex: 1;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.transcript-header {
-  margin-bottom: 15px;
-}
-
-.transcript-header h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #475569;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.transcript-header h4::before {
-  content: '💬';
-  font-size: 18px;
-}
-
-.transcript-content {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.transcript-ai {
-  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
-}
-
-.transcript-user {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-.transcript-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.transcript-ai .transcript-label {
-  color: #6366f1;
-}
-
-.transcript-user .transcript-label {
-  color: #3b82f6;
-}
-
-.transcript-text {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.transcript-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: #94a3b8;
-  font-size: 14px;
-  font-style: italic;
-}
 
 /* 右栏样式 */
 .right-column {
@@ -989,13 +854,6 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .interviewer-main-layout {
-    flex-direction: column;
-  }
-
-  .interviewer-left {
-    width: 100%;
-  }
 }
 
 @media (max-width: 768px) {
@@ -1016,24 +874,11 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .interviewer-main-layout {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .interviewer-left {
-    width: 100%;
-  }
-
   .interviewer-avatar {
     padding: 15px;
   }
 
   .current-question {
-    padding: 15px;
-  }
-
-  .transcript-section {
     padding: 15px;
   }
 }
