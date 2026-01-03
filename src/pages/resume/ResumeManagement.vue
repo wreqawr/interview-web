@@ -472,6 +472,7 @@ import {
   UploadFilled,
   View
 } from '@element-plus/icons-vue'
+import {convertMinioUrlToProxy} from '@/utils/minioProxy'
 
 // 响应式数据
 const sortBy = ref('createTime')
@@ -736,8 +737,11 @@ const handleBatchDownload = async () => {
           return new Promise((resolve) => {
             const {downloadUrl, downloadFileName} = downloadInfo
 
+            // 将 MinIO 的 HTTP URL 转换为通过 nginx 代理的 HTTPS URL
+            const proxyDownloadUrl = convertMinioUrlToProxy(downloadUrl)
+
             // 使用fetch下载文件并设置正确的文件名
-            fetch(downloadUrl)
+            fetch(proxyDownloadUrl)
                 .then(fileResponse => {
                   if (fileResponse.ok) {
                     return fileResponse.blob()
@@ -868,7 +872,8 @@ const handlePreview = async (resume = selectedResume.value) => {
     const data = response?.data || response
 
     if (data.code === 200 && data.data?.previewUrl) {
-      previewUrl.value = data.data.previewUrl
+      // 将 MinIO 的 HTTP URL 转换为通过 nginx 代理的 HTTPS URL
+      previewUrl.value = convertMinioUrlToProxy(data.data.previewUrl)
       previewDialogVisible.value = true
     } else {
       ElMessage.error(data.message || '获取预览地址失败')
@@ -907,8 +912,11 @@ const handleDownload = async (resume = selectedResume.value) => {
       const downloadInfo = data.data[0]
       const {downloadUrl, downloadFileName} = downloadInfo
 
+      // 将 MinIO 的 HTTP URL 转换为通过 nginx 代理的 HTTPS URL
+      const proxyDownloadUrl = convertMinioUrlToProxy(downloadUrl)
+
       // 使用fetch下载文件并设置正确的文件名
-      const fileResponse = await fetch(downloadUrl)
+      const fileResponse = await fetch(proxyDownloadUrl)
       if (fileResponse.ok) {
         const blob = await fileResponse.blob()
 
