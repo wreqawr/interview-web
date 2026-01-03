@@ -5,8 +5,7 @@ services:
     container_name: interview-web
     restart: unless-stopped
     ports:
-      - "10077:8080"   # HTTP 端口（重定向到 HTTPS）
-      - "80:8443"   # HTTPS 端口
+      - "443:8443"   # HTTPS 端口（443 是 HTTPS 默认端口，访问时无需输入端口号）
     volumes:
       # 挂载 SSL 证书
       - ./ssl:/etc/nginx/ssl:ro
