@@ -10,14 +10,14 @@ COPY package*.json ./
 # 配置 npm 镜像源为淘宝镜像，加速依赖下载
 RUN npm config set registry https://registry.npmmirror.com
 
-# 安装依赖（包括开发依赖，因为构建需要vue-cli-service）
+# 安装依赖（包括开发依赖，因为构建需要 Vite）
 RUN npm ci
 
 # 复制源代码
 COPY . .
 
 # 构建应用
-RUN npm run build:prod
+RUN npm run build
 
 # 生产阶段 - 使用更轻量的nginx镜像
 FROM nginx:alpine-slim
@@ -36,25 +36,16 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # 复制 nginx 配置文件
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 创建非 root 用户（nginx镜像中已存在nginx用户，我们使用不同的用户名）
-RUN addgroup -g 1001 -S appuser && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G appuser -g appuser appuser
-
 # 设置目录权限并清理不必要的文件
-RUN chown -R appuser:appuser /usr/share/nginx/html && \
-    chown -R appuser:appuser /var/cache/nginx && \
-    chown -R appuser:appuser /var/log/nginx && \
-    chown -R appuser:appuser /etc/nginx/conf.d && \
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
     # 清理不必要的文件
     rm -rf /var/cache/apk/* && \
     rm -rf /tmp/* && \
     rm -rf /var/tmp/*
 
-# 设置 /run 目录权限
-RUN mkdir -p /run && chown -R appuser:appuser /run
-
-# 切换到非 root 用户
-USER appuser
+# 注意：nginx 以 root 用户运行主进程是正常的（容器环境中可接受）
+# nginx worker 进程会以 nginx 用户运行（通过 nginx.conf 中的 user 指令配置）
 
 # 暴露端口
 EXPOSE 8080
@@ -64,4 +55,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/ || exit 1
 
 # 启动 nginx
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]

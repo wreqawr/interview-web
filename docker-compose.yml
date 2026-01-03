@@ -1,16 +1,27 @@
+services:
+  # 前端应用（HTTPS 版本）
+  interview-web:
+    image: interview-web:latest
+    container_name: interview-web
+    restart: unless-stopped
+    ports:
+      - "10077:8080"   # HTTP 端口（重定向到 HTTPS）
+      - "80:8443"   # HTTPS 端口
+    volumes:
+      # 挂载 SSL 证书
+      - ./ssl:/etc/nginx/ssl:ro
+      # 挂载 HTTPS nginx 配置
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - interview-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
 networks:
   interview-net:
     external: true
 
-services:
-  # 前端应用（已包含nginx）
-  interview-web:
-    image: interview-web:latest
-    container_name: interview-web
-    ports:
-      - "10077:8080"  # 映射到宿主机的10077端口
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      - interview-net
